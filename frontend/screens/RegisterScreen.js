@@ -2,28 +2,30 @@ import React, { useState } from "react";
 import { View, Text, StyleSheet, TextInput, TouchableOpacity, Alert } from "react-native";
 
 export default function SignUp(props) {
-  const [fullname, setFullname] = useState();
+  const [name, setFullname] = useState();
   const [username, setUsername] = useState();
   const [email, setEmail] = useState();
   const [password, setPassword] = useState();
-  
+  const [phone, setPhone] = useState();
+
   const signup = async () => {
-    if (!fullname || !username || !email || !password ) {
+    if (!name || !username || !email || !password || !phone) {
       Alert.alert('Error', 'Por favor, completa todos los campos.');
       return;
     }
 
     try {
-      const response = await fetch("http://localhost:3000/users/register", {
+      const response = await fetch("http://localhost:3001/users/register", {
         method: "POST",
         headers: {
           "Content-Type": "application/json"
         },
         body: JSON.stringify({
-          fullname,
+          name,
           username,
           email,
           password,
+          phone,
         })
       });
       const data = await response.json();
@@ -56,6 +58,10 @@ export default function SignUp(props) {
         <View style={styles.boxinside}>
           <TextInput placeholder='Password' style={{ paddingHorizontal: 15 }} secureTextEntry={true}
             onChangeText={(text) => setPassword(text)} />
+        </View>
+        <View style={styles.boxinside}>
+          <TextInput placeholder='Phone' style={{ paddingHorizontal: 15 }} 
+            onChangeText={(text) => setPhone(text)} />
         </View>
         <View style={styles.mainbuttonbox}>
           <TouchableOpacity style={styles.buttonbox} onPress={signup}>
