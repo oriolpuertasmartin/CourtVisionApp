@@ -9,36 +9,38 @@ export default function SignUp(props) {
   const [phone, setPhone] = useState();
 
   const signup = async () => {
+    console.log("🔹 Botón Sign Up presionado"); // <--- Agregado
+  
     if (!name || !username || !email || !password || !phone) {
       Alert.alert('Error', 'Por favor, completa todos los campos.');
+      console.log("⛔ Falta completar campos"); // <--- Agregado
       return;
     }
-
+  
     try {
+      console.log("📤 Enviando solicitud a backend..."); // <--- Agregado
       const response = await fetch("http://localhost:3001/users/register", {
         method: "POST",
         headers: {
           "Content-Type": "application/json"
         },
-        body: JSON.stringify({
-          name,
-          username,
-          email,
-          password,
-          phone,
-        })
+        body: JSON.stringify({ name, username, email, password, phone })
       });
+  
       const data = await response.json();
+      console.log("✅ Respuesta del backend:", data); // <--- Agregado
+  
       if (response.ok) {
         Alert.alert('Registro exitoso', 'Bienvenido...');
-        props.navigation.navigate('Login');
+        props.navigation.navigate('Home');
       } else {
         Alert.alert('Error en el registro', data.message || 'Ha ocurrido un problema.');
       }
     } catch (error) {
+      console.error("❌ Error en la solicitud:", error); // <--- Agregado
       Alert.alert('Error en el registro', error.message);
     }
-  };
+  };  
 
   return (
     <View style={styles.screen}>
