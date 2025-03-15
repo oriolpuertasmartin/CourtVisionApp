@@ -14,10 +14,41 @@ export default function App() {
     <NavigationContainer>
       <StatusBar style="auto" />
       <Stack.Navigator initialRouteName="Welcome">
-        <Stack.Screen name="Welcome" component={WelcomeScreen} />
-        <Stack.Screen name="Login" component={LoginScreen} />
-        <Stack.Screen name="Register" component={RegisterScreen} />
-        <Stack.Screen name="Home" component={HomeScreen} />
+        <Stack.Screen 
+          name="Welcome" 
+          component={WelcomeScreen} 
+          options={{ headerShown: false }} 
+        />
+        <Stack.Screen 
+          name="Login" 
+          component={LoginScreen} 
+          options={{ 
+            headerBackTitleVisible: false, 
+            headerTransparent: true, 
+            title: '',
+            headerTintColor: 'white', 
+          }} 
+        />
+        <Stack.Screen 
+          name="Register" 
+          component={RegisterScreen} 
+          options={{ 
+            headerBackTitleVisible: false, 
+            headerTransparent: true, 
+            title: '',
+            headerTintColor: 'white', 
+          }} 
+        />
+        <Stack.Screen 
+          name="Home" 
+          component={HomeScreen} 
+          options={{ 
+            headerBackTitleVisible: false, 
+            headerTransparent: true, 
+            title: '',
+            headerTintColor: 'white', 
+          }} 
+        />
       </Stack.Navigator>
     </NavigationContainer>
   );

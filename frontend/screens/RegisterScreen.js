@@ -1,6 +1,5 @@
 import React, { useState } from "react";
 import { View, Text, StyleSheet, TextInput, TouchableOpacity, Alert } from "react-native";
-
 export default function SignUp(props) {
   const [name, setFullname] = useState();
   const [username, setUsername] = useState();
@@ -44,25 +43,26 @@ export default function SignUp(props) {
 
   return (
     <View style={styles.screen}>
+      <Text style={styles.principalText}>Registro</Text>
       <View style={styles.box}>
         <View style={styles.boxinside}>
-          <TextInput placeholder='Full name' style={{ paddingHorizontal: 15 }}
+          <TextInput placeholder='Full name' style={[styles.input, { paddingHorizontal: 15 }]}
             onChangeText={(text) => setFullname(text)} />
         </View>
         <View style={styles.boxinside}>
-          <TextInput placeholder='Username' style={{ paddingHorizontal: 15 }}
+          <TextInput placeholder='Username' style={[styles.input, { paddingHorizontal: 15 }]}
             onChangeText={(text) => setUsername(text)} />
         </View>
         <View style={styles.boxinside}>
-          <TextInput placeholder='Email' style={{ paddingHorizontal: 15 }}
+          <TextInput placeholder='Email' style={[styles.input, { paddingHorizontal: 15 }]}
             onChangeText={(text) => setEmail(text)} />
         </View>
         <View style={styles.boxinside}>
-          <TextInput placeholder='Password' style={{ paddingHorizontal: 15 }} secureTextEntry={true}
+          <TextInput placeholder='Password' style={[styles.input, { paddingHorizontal: 15 }]} secureTextEntry={true}
             onChangeText={(text) => setPassword(text)} />
         </View>
         <View style={styles.boxinside}>
-          <TextInput placeholder='Phone' style={{ paddingHorizontal: 15 }} 
+          <TextInput placeholder='Phone' style={[styles.input, { paddingHorizontal: 15 }]}
             onChangeText={(text) => setPhone(text)} />
         </View>
         <View style={styles.mainbuttonbox}>
@@ -82,11 +82,17 @@ export default function SignUp(props) {
 }
 
 const styles = StyleSheet.create({
+  principalText: {
+      fontSize: 40,
+      color: 'white',
+      marginBottom: 20,
+      fontWeight: 'bold',
+  },
   screen: {
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
-    backgroundColor: 'white',
+    backgroundColor: '#FFA500',
   },
   box: {
     margin: 20,
@@ -108,6 +114,8 @@ const styles = StyleSheet.create({
     backgroundColor: "#cccccc40",
     borderRadius: 30,
     marginVertical: 10,
+    marginLeft: 15,
+    marginRight: 15,
   },
   mainbuttonbox: {
     alignItems: 'center',
@@ -122,6 +130,8 @@ const styles = StyleSheet.create({
   buttontext: {
     textAlign: 'center',
     color: 'white',
+    fontWeight: 'bold',
+    fontSize: 18,
   },
   bottomtext: {
     flexDirection: 'row',
@@ -131,6 +141,9 @@ const styles = StyleSheet.create({
   signuptext: {
     marginLeft: 5,
     fontWeight: 'bold',
-    color: '#FF8C00',
-  }
+    color: 'black',
+  },
+  input: {
+    color: '#A9A9A9', 
+  },
 });
