@@ -8,14 +8,6 @@ services:
       - "27017:27017" # Mapea el puerto 27017 al host
     volumes:
       - mongodb_data:/data/db # Persistencia de datos
-  backend:
-    build: ./backend
-    container_name: backend
-    restart: always
-    ports:
-      - "3001:3001"
-    depends_on:
-      - mongodb
-
+      
 volumes:
   mongodb_data:
