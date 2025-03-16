@@ -46,7 +46,7 @@ export default function App() {
             headerBackTitleVisible: false, 
             headerTransparent: true, 
             title: '',
-            headerTintColor: 'white', 
+            headerTintColor: 'black', 
           }} 
         />
       </Stack.Navigator>

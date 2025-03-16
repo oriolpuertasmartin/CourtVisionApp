@@ -70,7 +70,7 @@ const styles = StyleSheet.create({
     backgroundColor: '#FFA500',
     borderRadius: 30,
     paddingVertical: 20,
-    width: 150,
+    width: 250,
     marginTop: 20,
   },
   buttontext: {

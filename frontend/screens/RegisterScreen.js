@@ -1,5 +1,6 @@
 import React, { useState } from "react";
 import { View, Text, StyleSheet, TextInput, TouchableOpacity, Alert } from "react-native";
+
 export default function SignUp(props) {
   const [name, setFullname] = useState();
   const [username, setUsername] = useState();
@@ -31,7 +32,7 @@ export default function SignUp(props) {
   
       if (response.ok) {
         Alert.alert('Registro exitoso', 'Bienvenido...');
-        props.navigation.navigate('Home');
+        props.navigation.navigate('Login'); // Redirigir a la pantalla de inicio de sesión
       } else {
         Alert.alert('Error en el registro', data.message || 'Ha ocurrido un problema.');
       }
@@ -43,7 +44,7 @@ export default function SignUp(props) {
 
   return (
     <View style={styles.screen}>
-      <Text style={styles.principalText}>Registro</Text>
+      <Text style={styles.principalText}>Register</Text>
       <View style={styles.box}>
         <View style={styles.boxinside}>
           <TextInput placeholder='Full name' style={[styles.input, { paddingHorizontal: 15 }]}
