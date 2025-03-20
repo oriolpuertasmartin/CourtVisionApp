@@ -26,7 +26,7 @@ export default function LogIn(props) {
 
       if (response.ok) {
         Alert.alert('Inicio de sesión exitoso', 'Bienvenido de nuevo.');
-        props.navigation.navigate('Home'); // Redirigir a la pantalla de inicio
+        props.navigation.navigate('Main'); // Redirigir a la pantalla de inicio
       } else {
         Alert.alert('Error en el inicio de sesión', data.message || 'Ha ocurrido un problema.');
       }
