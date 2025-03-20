@@ -1,7 +1,7 @@
 import React, { useState } from "react";
 import { View, Text, StyleSheet, TextInput, TouchableOpacity, Alert } from "react-native";
 
-export default function LogIn(props) {
+export default function LogIn({navigation, setUser}) {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
 
@@ -26,7 +26,8 @@ export default function LogIn(props) {
 
       if (response.ok) {
         Alert.alert('Inicio de sesión exitoso', 'Bienvenido de nuevo.');
-        props.navigation.navigate('Main'); // Redirigir a la pantalla de inicio
+        setUser(data);
+        navigation.navigate('Main');
       } else {
         Alert.alert('Error en el inicio de sesión', data.message || 'Ha ocurrido un problema.');
       }

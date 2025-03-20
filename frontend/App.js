@@ -1,3 +1,5 @@
+import React, { useState } from 'react';
+import { View } from 'react-native';
 import { StatusBar } from 'expo-status-bar';
 import { NavigationContainer } from '@react-navigation/native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
@@ -5,16 +7,18 @@ import { createDrawerNavigator } from '@react-navigation/drawer';
 import WelcomeScreen from './screens/WelcomeScreen';
 import LoginScreen from './screens/LoginScreen';
 import RegisterScreen from './screens/RegisterScreen';
-import HomeScreen from './screens/HomeScreen'; 
-import TeamsScreen from './screens/TeamsScreen'; 
-import StartMatchScreen from './screens/StartMatchScreen'; 
-import SettingsScreen from './screens/SettingsScreen'; 
-import InfoScreen from './screens/InfoScreen'; 
+import HomeScreen from './screens/HomeScreen';
+import TeamsScreen from './screens/TeamsScreen';
+import StartMatchScreen from './screens/StartMatchScreen';
+import SettingsScreen from './screens/SettingsScreen';
+import InfoScreen from './screens/InfoScreen';
+import FloatingUserButton from './components/FloatingUserButton';
+
+// ...existing code...
 
 const Stack = createNativeStackNavigator();
 const Drawer = createDrawerNavigator();
 
-// Toda la navegación lateral de tabs
 function DrawerNavigator() {
   return (
     <Drawer.Navigator
@@ -32,45 +36,61 @@ function DrawerNavigator() {
   );
 }
 
-// Navegación principal 
 export default function App() {
+  // Estado para almacenar datos del usuario logueado
+  const [user, setUser] = useState(null);
+
+  // setUser({ username: 'RealUserName', email: 'realuser@example.com' });
+
   return (
-    <NavigationContainer>
-      <StatusBar style="auto" />
-      <Stack.Navigator initialRouteName="Welcome">
-        {/* Pantallas de autenticación */}
-        <Stack.Screen 
-          name="Welcome" 
-          component={WelcomeScreen} 
-          options={{ headerShown: false }} 
+    <View style={{ flex: 1 }}>
+      <NavigationContainer>
+        <StatusBar style="auto" />
+        <Stack.Navigator initialRouteName="Welcome">
+          {/* Pantalla de bienvenida */}
+          <Stack.Screen 
+            name="Welcome" 
+            component={WelcomeScreen} 
+            options={{ headerShown: false }} 
+          />
+          {/* Pantalla de Login con setUser */}
+          <Stack.Screen 
+            name="Login" 
+            options={{ 
+              headerBackTitleVisible: false, 
+              headerTransparent: true, 
+              title: '',
+              headerTintColor: 'white', 
+            }}
+          >
+            {(props) => <LoginScreen {...props} setUser={setUser} />}
+          </Stack.Screen>
+          {/* Pantalla de Registro */}
+          <Stack.Screen 
+            name="Register" 
+            component={RegisterScreen} 
+            options={{ 
+              headerBackTitleVisible: false, 
+              headerTransparent: true, 
+              title: '',
+              headerTintColor: 'white', 
+            }} 
+          />
+          {/* Navegación con Drawer */}
+          <Stack.Screen 
+            name="Main" 
+            component={DrawerNavigator} 
+            options={{ headerShown: false }} 
+          />
+        </Stack.Navigator>
+      </NavigationContainer>
+      {/* Botón flotante sólo si hay usuario logueado */}
+      {user && (
+        <FloatingUserButton 
+          user={user} 
+          onPress={() => console.log('Floating button pressed')}
         />
-        <Stack.Screen 
-          name="Login" 
-          component={LoginScreen} 
-          options={{ 
-            headerBackTitleVisible: false, 
-            headerTransparent: true, 
-            title: '',
-            headerTintColor: 'white', 
-          }} 
-        />
-        <Stack.Screen 
-          name="Register" 
-          component={RegisterScreen} 
-          options={{ 
-            headerBackTitleVisible: false, 
-            headerTransparent: true, 
-            title: '',
-            headerTintColor: 'white', 
-          }} 
-        />
-        {/* Pantalla principal de DrawerNavigator */}
-        <Stack.Screen 
-          name="Main" 
-          component={DrawerNavigator} 
-          options={{ headerShown: false }} 
-        />
-      </Stack.Navigator>
-    </NavigationContainer>
+      )}
+    </View>
   );
 }
