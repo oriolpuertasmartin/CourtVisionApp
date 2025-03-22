@@ -75,7 +75,7 @@ export default function App() {
               headerTintColor: 'white',
             }}
           />
-          <Stack.Screen name="Main">
+          <Stack.Screen name="Main" options={{ headerShown: false }}>
             {(props) => <DrawerNavigator {...props} user={user} />}
           </Stack.Screen>
         </Stack.Navigator>

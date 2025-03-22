@@ -65,7 +65,7 @@ export default function LogIn({navigation, setUser}) {
         </View>
         <View style={styles.bottomtext}>
           <Text>¿No tienes una cuenta?</Text>
-          <TouchableOpacity onPress={() => props.navigation.navigate('Register')}>
+          <TouchableOpacity onPress={() => navigation.navigate('Register')}>
             <Text style={styles.signuptext}>Sign up</Text>
           </TouchableOpacity>
         </View>
