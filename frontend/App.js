@@ -1,3 +1,4 @@
+//// filepath: c:\Users\Marc\Escritorio\miApp\CourtVisionApp\frontend\App.js
 import React, { useState } from 'react';
 import { View } from 'react-native';
 import { StatusBar } from 'expo-status-bar';
@@ -14,22 +15,25 @@ import SettingsScreen from './screens/SettingsScreen';
 import InfoScreen from './screens/InfoScreen';
 import FloatingUserButton from './components/FloatingUserButton';
 
-// ...existing code...
-
 const Stack = createNativeStackNavigator();
 const Drawer = createDrawerNavigator();
 
-function DrawerNavigator() {
+function DrawerNavigator({ user }) {
   return (
     <Drawer.Navigator
       screenOptions={{
         drawerType: 'permanent',
         headerShown: false,
+        drawerStyle: {
+          backgroundColor: '#D9D9D9',
+        },
       }}
     >
       <Drawer.Screen name="Home" component={HomeScreen} />
       <Drawer.Screen name="Teams" component={TeamsScreen} />
-      <Drawer.Screen name="Create Match" component={StartMatchScreen} />
+      <Drawer.Screen name="Start a Match">
+        {(props) => <StartMatchScreen {...props} user={user} />}
+      </Drawer.Screen>
       <Drawer.Screen name="Info" component={InfoScreen} />
       <Drawer.Screen name="Settings" component={SettingsScreen} />
     </Drawer.Navigator>
@@ -37,57 +41,48 @@ function DrawerNavigator() {
 }
 
 export default function App() {
-  // Estado para almacenar datos del usuario logueado
   const [user, setUser] = useState(null);
-
-  // setUser({ username: 'RealUserName', email: 'realuser@example.com' });
+  console.log("Estado del usuario en App.js:", user);
 
   return (
     <View style={{ flex: 1 }}>
       <NavigationContainer>
         <StatusBar style="auto" />
         <Stack.Navigator initialRouteName="Welcome">
-          {/* Pantalla de bienvenida */}
           <Stack.Screen 
             name="Welcome" 
             component={WelcomeScreen} 
-            options={{ headerShown: false }} 
+            options={{ headerShown: false }}
           />
-          {/* Pantalla de Login con setUser */}
           <Stack.Screen 
             name="Login" 
-            options={{ 
-              headerBackTitleVisible: false, 
-              headerTransparent: true, 
+            options={{
+              headerBackTitleVisible: false,
+              headerTransparent: true,
               title: '',
-              headerTintColor: 'white', 
+              headerTintColor: 'white',
             }}
           >
             {(props) => <LoginScreen {...props} setUser={setUser} />}
           </Stack.Screen>
-          {/* Pantalla de Registro */}
           <Stack.Screen 
             name="Register" 
             component={RegisterScreen} 
-            options={{ 
-              headerBackTitleVisible: false, 
-              headerTransparent: true, 
+            options={{
+              headerBackTitleVisible: false,
+              headerTransparent: true,
               title: '',
-              headerTintColor: 'white', 
-            }} 
+              headerTintColor: 'white',
+            }}
           />
-          {/* Navegación con Drawer */}
-          <Stack.Screen 
-            name="Main" 
-            component={DrawerNavigator} 
-            options={{ headerShown: false }} 
-          />
+          <Stack.Screen name="Main">
+            {(props) => <DrawerNavigator {...props} user={user} />}
+          </Stack.Screen>
         </Stack.Navigator>
       </NavigationContainer>
-      {/* Botón flotante sólo si hay usuario logueado */}
       {user && (
         <FloatingUserButton 
-          user={user} 
+          user={user}
           onPress={() => console.log('Floating button pressed')}
         />
       )}
