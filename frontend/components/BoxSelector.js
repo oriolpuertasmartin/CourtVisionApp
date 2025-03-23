@@ -1,7 +1,7 @@
 import React from 'react';
 import { View, Text, TouchableOpacity, StyleSheet } from 'react-native';
 
-export default function BoxSelector({ title, items, onSelect }) {
+export default function BoxSelector({ title, items, onSelect, children }) {
   return (
     <View style={styles.container}>
       <Text style={styles.title}>{title}</Text>
@@ -15,6 +15,7 @@ export default function BoxSelector({ title, items, onSelect }) {
             <Text style={styles.itemButtonText}>{item.name}</Text>
           </TouchableOpacity>
         ))}
+        {children}
       </View>
     </View>
   );
@@ -27,27 +28,30 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   title: {
-    fontSize: 24,
+    fontSize: 44,
     marginBottom: 20,
     fontWeight: 'bold',
   },
   box: {
-    width: '100%',
+    width: '70%',
+    minHeight: 350,
     backgroundColor: '#E6E0CE',
     borderRadius: 12,
-    paddingVertical: 20,
+    paddingVertical: 40,
     paddingHorizontal: 10,
     elevation: 3,
+    alignItems: 'center',
   },
   itemButton: {
     backgroundColor: '#FFF9E7',
-    paddingVertical: 15,
-    marginBottom: 10,
+    paddingVertical: 35,
+    marginBottom: 30,
     borderRadius: 8,
+    width: '90%',
   },
   itemButtonText: {
     textAlign: 'center',
-    fontSize: 16,
+    fontSize: 23,
     fontWeight: '600',
   },
 });

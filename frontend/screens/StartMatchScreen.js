@@ -1,16 +1,15 @@
-//// filepath: c:\Users\Marc\Escritorio\miApp\CourtVisionApp\frontend\screens\StartMatchScreen.js
 import React, { useState, useEffect } from "react";
-import { View, StyleSheet } from "react-native";
+import { View, Text, StyleSheet, TouchableOpacity } from "react-native";
 import BoxSelector from "../components/BoxSelector";
 
-export default function StartMatchScreen({ user }) { 
+export default function StartMatchScreen({ user, navigation }) { 
   const [teams, setTeams] = useState([]);
 
   useEffect(() => {
     async function fetchTeams() {
       try {
         console.log("Usuario recibido en StartMatchScreen:", user);
-        if (!user || !user._id) {  // Usamos _id, que es el nombre real del campo
+        if (!user || !user._id) {
           console.error("No se encontró el userId");
           return;
         }
@@ -33,10 +32,14 @@ export default function StartMatchScreen({ user }) {
   return (
     <View style={styles.container}>
       <BoxSelector
-        title="Select a Team"
+        title="Select your team"
         items={teams}
         onSelect={handleSelectTeam}
-      />
+      >
+        <TouchableOpacity style={styles.createButton} onPress={() => navigation.navigate('Teams')}>
+          <Text style={styles.createButtonText}>Create a new team</Text>
+        </TouchableOpacity>
+      </BoxSelector>
     </View>
   );
 }
@@ -47,5 +50,18 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
     backgroundColor: '#FFF8E1'
+  },
+  createButton: {
+    backgroundColor: '#FFF9E7',
+    paddingVertical: 35,
+    marginBottom: 30,
+    borderRadius: 8,
+    width: '90%',
+    alignItems: 'center',
+  },
+  createButtonText: {
+    textAlign: 'center',
+    fontSize: 23,
+    fontWeight: '600',
   },
 });
