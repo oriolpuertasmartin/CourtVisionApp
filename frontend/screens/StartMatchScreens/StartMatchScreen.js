@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
-import { View, Text, StyleSheet, TouchableOpacity } from "react-native";
-import BoxSelector from "../components/BoxSelector";
+import { View, Text, StyleSheet, TouchableOpacity, Alert } from "react-native";
+import BoxSelector from "../../components/BoxSelector";
 
 export default function StartMatchScreen({ user, navigation }) { 
   const [teams, setTeams] = useState([]);
@@ -13,7 +13,6 @@ export default function StartMatchScreen({ user, navigation }) {
           console.error("No se encontró el userId");
           return;
         }
-
         const response = await fetch(`http://localhost:3001/teams/user/${user._id}`);
         const data = await response.json();
         console.log("Equipos obtenidos:", data);
@@ -25,8 +24,25 @@ export default function StartMatchScreen({ user, navigation }) {
     fetchTeams();
   }, [user]);
 
-  const handleSelectTeam = (team) => {
-    console.log("Equipo seleccionado:", team.name);
+  // Esta función se llamará al seleccionar un equipo
+  const handleSelectTeam = async (team) => {
+    try {
+      // Se envía una solicitud POST para crear un nuevo match con el id del equipo seleccionado y el id del usuario
+      const response = await fetch("http://localhost:3001/matches", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ teamId: team._id, userId: user._id })
+      });
+      if (!response.ok) {
+        throw new Error("Error al crear el match");
+      }
+      const newMatch = await response.json();
+      // Navegar a OpponentTeamScreen pasando el matchId recién creado
+      navigation.navigate('OpponentTeam', { matchId: newMatch._id });
+    } catch (error) {
+      console.error("Error creando match:", error);
+      Alert.alert("Error", "No se pudo crear el partido");
+    }
   };
 
   return (

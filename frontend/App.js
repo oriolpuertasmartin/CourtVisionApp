@@ -10,10 +10,11 @@ import LoginScreen from './screens/LoginScreen';
 import RegisterScreen from './screens/RegisterScreen';
 import HomeScreen from './screens/HomeScreen';
 import TeamsScreen from './screens/TeamsScreen';
-import StartMatchScreen from './screens/StartMatchScreen';
 import SettingsScreen from './screens/SettingsScreen';
 import InfoScreen from './screens/InfoScreen';
 import FloatingUserButton from './components/FloatingUserButton';
+import StartMatchScreen from './screens/StartMatchScreens/StartMatchScreen';
+import OpponentTeamScreen from './screens/StartMatchScreens/OpponentTeamScreen';
 
 const Stack = createNativeStackNavigator();
 const Drawer = createDrawerNavigator();
@@ -101,6 +102,11 @@ export default function App() {
           >
             {(props) => <DrawerNavigator {...props} user={user} />}
           </Stack.Screen>
+          <Stack.Screen 
+            name="OpponentTeam" 
+            component={OpponentTeamScreen} 
+            options={{ headerShown: false }} 
+          />
         </Stack.Navigator>
       </NavigationContainer>
       {user && (
