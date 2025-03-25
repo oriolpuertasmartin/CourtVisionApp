@@ -55,6 +55,7 @@ function DrawerNavigator({ user }) {
       <Drawer.Screen name="Start a Match">
         {(props) => <StartMatchScreen {...props} user={user} />}
       </Drawer.Screen>
+      <Drawer.Screen name="Opponent Team" component={OpponentTeamScreen} />
       <Drawer.Screen name="Info" component={InfoScreen} />
       <Drawer.Screen name="Settings" component={SettingsScreen} />
     </Drawer.Navigator>
@@ -102,11 +103,6 @@ export default function App() {
           >
             {(props) => <DrawerNavigator {...props} user={user} />}
           </Stack.Screen>
-          <Stack.Screen 
-            name="OpponentTeam" 
-            component={OpponentTeamScreen} 
-            options={{ headerShown: false }} 
-          />
         </Stack.Navigator>
       </NavigationContainer>
       {user && (

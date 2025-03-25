@@ -38,7 +38,7 @@ export default function StartMatchScreen({ user, navigation }) {
       }
       const newMatch = await response.json();
       // Navegar a OpponentTeamScreen pasando el matchId recién creado
-      navigation.navigate('OpponentTeam', { matchId: newMatch._id });
+      navigation.navigate('Opponent Team', { matchId: newMatch._id });
     } catch (error) {
       console.error("Error creando match:", error);
       Alert.alert("Error", "No se pudo crear el partido");
