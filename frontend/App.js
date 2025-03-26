@@ -15,6 +15,7 @@ import InfoScreen from './screens/InfoScreen';
 import FloatingUserButton from './components/FloatingUserButton';
 import StartMatchScreen from './screens/StartMatchScreens/StartMatchScreen';
 import OpponentTeamScreen from './screens/StartMatchScreens/OpponentTeamScreen';
+import StartingPlayersScreen from "./screens/StartMatchScreens/StartingPlayersScreen";
 
 const Stack = createNativeStackNavigator();
 const Drawer = createDrawerNavigator();
@@ -56,6 +57,7 @@ function DrawerNavigator({ user }) {
         {(props) => <StartMatchScreen {...props} user={user} />}
       </Drawer.Screen>
       <Drawer.Screen name="Opponent Team" component={OpponentTeamScreen} />
+      <Drawer.Screen name="Starting Players" component={StartingPlayersScreen} />
       <Drawer.Screen name="Info" component={InfoScreen} />
       <Drawer.Screen name="Settings" component={SettingsScreen} />
     </Drawer.Navigator>

@@ -6,9 +6,6 @@ export type MatchDocument = Match & Document;
 @Schema()
 export class Match {
   @Prop({ required: true })
-  match_id: string;
-
-  @Prop({ required: true })
   userId: string; 
 
   @Prop({ default: 0 })

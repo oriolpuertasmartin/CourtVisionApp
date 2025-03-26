@@ -39,7 +39,7 @@ const styles = StyleSheet.create({
   },
   form: {
     width: "70%",
-    backgroundColor: "#E8E0C9",
+    backgroundColor: "#E6E0CE",
     borderRadius: 12,
     paddingVertical: 40,
     paddingHorizontal: 10,

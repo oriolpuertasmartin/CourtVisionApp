@@ -27,18 +27,17 @@ export default function StartMatchScreen({ user, navigation }) {
   // Esta función se llamará al seleccionar un equipo
   const handleSelectTeam = async (team) => {
     try {
-      // Se envía una solicitud POST para crear un nuevo match con el id del equipo seleccionado y el id del usuario
       const response = await fetch("http://localhost:3001/matches", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ teamId: team._id, userId: user._id })
+        body: JSON.stringify({ teamId: team._id, userId: user._id }),
       });
       if (!response.ok) {
         throw new Error("Error al crear el match");
       }
       const newMatch = await response.json();
-      // Navegar a OpponentTeamScreen pasando el matchId recién creado
-      navigation.navigate('Opponent Team', { matchId: newMatch._id });
+      console.log("Match creado:", newMatch); // Verifica que newMatch._id sea válido
+      navigation.navigate('Opponent Team', { matchId: newMatch._id, teamId: newMatch.winnerTeam });
     } catch (error) {
       console.error("Error creando match:", error);
       Alert.alert("Error", "No se pudo crear el partido");

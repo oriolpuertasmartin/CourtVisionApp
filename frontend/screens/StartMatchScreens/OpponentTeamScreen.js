@@ -4,18 +4,34 @@ import BoxFill from "../../components/BoxFill";
 import PrimaryButton from "../../components/PrimaryButton";
 
 export default function OpponentTeamScreen({ route, navigation }) {
-  const { matchId } = route.params;
+  const { matchId, teamId } = route.params;
   const [formData, setFormData] = useState({
     nombre: "",
     category: "",
     photo: "",
   });
 
-  const handleSubmit = () => {
-    // Here you could send a PATCH request to update the match with opponent data.
-    Alert.alert("Submitted", "Opponent data submitted for match: " + matchId);
-    // Optionally, navigate further if needed:
-    // navigation.navigate('NextScreen');
+  const handleSubmit = async () => {
+    try {
+      const response = await fetch(`http://localhost:3001/matches/${matchId}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ opponentTeam: {
+          name: formData.nombre,
+          category: formData.category,
+          photo: formData.photo
+        } }),
+      });
+      if (!response.ok) {
+        throw new Error("Error al actualizar el partido");
+      }
+      const updateMatch = await response.json();
+      Alert.alert("Actualizado", "Datos del partido actualizados correctamente");
+      navigation.navigate('Starting Players', { teamId });
+    } catch (error) {
+      console.error("Error actualizando match:", error);
+      Alert.alert("Error", "No se pudieron actualizar los datos del partido");
+    }
   };
 
   return (
