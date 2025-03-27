@@ -14,11 +14,15 @@ export default function StartMatchScreen({ user, navigation }) {
           return;
         }
         const response = await fetch(`http://localhost:3001/teams/user/${user._id}`);
+        if (!response.ok) {
+          throw new Error("Error al obtener equipos");
+        }
         const data = await response.json();
         console.log("Equipos obtenidos:", data);
         setTeams(data);
       } catch (error) {
         console.error("Error al obtener equipos:", error);
+        Alert.alert("Error", "No se pudieron cargar los equipos.");
       }
     }
     fetchTeams();
@@ -27,6 +31,7 @@ export default function StartMatchScreen({ user, navigation }) {
   // Esta función se llamará al seleccionar un equipo
   const handleSelectTeam = async (team) => {
     try {
+      console.log("Equipo seleccionado:", team);
       const response = await fetch("http://localhost:3001/matches", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -37,10 +42,15 @@ export default function StartMatchScreen({ user, navigation }) {
       }
       const newMatch = await response.json();
       console.log("Match creado:", newMatch); // Verifica que newMatch._id sea válido
-      navigation.navigate('Opponent Team', { matchId: newMatch._id, teamId: newMatch.winnerTeam });
+
+      // Navegar a la pantalla "OpponentTeam" dentro del stack "Start a Match"
+      navigation.navigate('Start a Match', {
+        screen: 'OpponentTeam',
+        params: { matchId: newMatch._id, teamId: newMatch.winnerTeam },
+      });
     } catch (error) {
       console.error("Error creando match:", error);
-      Alert.alert("Error", "No se pudo crear el partido");
+      Alert.alert("Error", "No se pudo crear el partido.");
     }
   };
 
