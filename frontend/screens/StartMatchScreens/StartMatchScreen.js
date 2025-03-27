@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { View, Text, StyleSheet, TouchableOpacity, Alert } from "react-native";
+import { View, Alert, StyleSheet, TouchableOpacity, Text } from "react-native";
 import BoxSelector from "../../components/BoxSelector";
 
 export default function StartMatchScreen({ user, navigation }) { 
@@ -28,7 +28,6 @@ export default function StartMatchScreen({ user, navigation }) {
     fetchTeams();
   }, [user]);
 
-  // Esta función se llamará al seleccionar un equipo
   const handleSelectTeam = async (team) => {
     try {
       console.log("Equipo seleccionado:", team);
@@ -41,9 +40,8 @@ export default function StartMatchScreen({ user, navigation }) {
         throw new Error("Error al crear el match");
       }
       const newMatch = await response.json();
-      console.log("Match creado:", newMatch); // Verifica que newMatch._id sea válido
+      console.log("Match creado:", newMatch);
 
-      // Navegar a la pantalla "OpponentTeam" dentro del stack "Start a Match"
       navigation.navigate('Start a Match', {
         screen: 'OpponentTeam',
         params: { matchId: newMatch._id, teamId: newMatch.winnerTeam },
@@ -71,22 +69,23 @@ export default function StartMatchScreen({ user, navigation }) {
 
 const styles = StyleSheet.create({
   container: {
-    flex: 1, 
+    flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
-    backgroundColor: '#FFF8E1'
+    backgroundColor: '#FFF8E1',
+    paddingHorizontal: 20,
   },
   createButton: {
-    backgroundColor: '#FFF9E7',
-    paddingVertical: 35,
-    marginBottom: 30,
-    borderRadius: 8,
-    width: '90%',
-    alignItems: 'center',
+    backgroundColor: '#FFF9E7', // Mismo color que los botones de los ítems
+    paddingVertical: 20, // Mismo padding vertical
+    marginBottom: 20, // Mismo margen inferior
+    borderRadius: 8, // Mismo borde redondeado
+    width: '95%', // Mismo ancho que los botones de los ítems
+    alignItems: 'center', // Centra el contenido del botón
   },
   createButtonText: {
     textAlign: 'center',
-    fontSize: 23,
-    fontWeight: '600',
+    fontSize: 23, // Mismo tamaño de fuente que los ítems
+    fontWeight: '600', // Mismo peso de fuente que los ítems
   },
 });

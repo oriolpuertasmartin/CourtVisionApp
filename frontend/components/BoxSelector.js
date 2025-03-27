@@ -17,7 +17,10 @@ export default function BoxSelector({ title, items, onSelect, children }) {
             </TouchableOpacity>
           ))}
         </ScrollView>
-        {children}
+        {/* Contenedor para el children con estilos centralizados */}
+        <View style={styles.childrenContainer}>
+          {children}
+        </View>
       </View>
     </View>
   );
@@ -60,5 +63,11 @@ const styles = StyleSheet.create({
     textAlign: 'center',
     fontSize: 23,
     fontWeight: '600',
+  },
+  childrenContainer: {
+    marginTop: 20, // Espacio entre el scroll y el children
+    alignItems: 'center', // Centra horizontalmente el children
+    width: '95%', // Asegura que el children tenga el mismo ancho que los botones
+    paddingVertical: 15,
   },
 });
