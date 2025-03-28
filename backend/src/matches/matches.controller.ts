@@ -11,8 +11,11 @@ export class MatchesController {
     // Ruta completa: POST http://localhost:3001/matches
     @Post()
     async createMatch(@Body() createMatchDto: CreateMatchDto) {
-        const match = await this.matchesService.create(createMatchDto);
-        return match;
+    console.log("Datos recibidos en createMatch:", createMatchDto); // Log para depuración
+    if (!createMatchDto.teamId || !createMatchDto.userId) {
+        throw new BadRequestException('teamId and userId are required');
+    }
+    return this.matchesService.create(createMatchDto);
     }
 
     // Nueva ruta: PATCH http://localhost:3001/matches/:id
@@ -21,6 +24,7 @@ export class MatchesController {
     @Param('id') id: string,
     @Body() updateMatchDto: UpdateMatchDto,
     ) {
+    console.log('Datos recibidos para actualizar:', updateMatchDto); // Log para depuración
     if (!isValidObjectId(id)) {
         throw new BadRequestException(`Invalid match ID: ${id}`);
     }

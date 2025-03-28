@@ -12,7 +12,7 @@ export default function StatsScreen({ route }) {
         <Text key={index}>{playerId}</Text>
       ))}
     </View>
-  );
+  ); 
 }
 
 const styles = StyleSheet.create({

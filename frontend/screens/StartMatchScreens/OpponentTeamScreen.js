@@ -26,13 +26,14 @@ export default function OpponentTeamScreen({ route, navigation }) {
         }),
       });
       if (!response.ok) {
+
         throw new Error("Error al actualizar el partido");
       }
       const updatedMatch = await response.json();
       Alert.alert("Actualizado", "Datos del partido actualizados correctamente");
   
       // Navegar a la pantalla "StartingPlayers"
-      navigation.navigate('StartingPlayers', { teamId });
+      navigation.navigate('StartingPlayers', { teamId, updatedMatch});
     } catch (error) {
       console.error("Error actualizando match:", error);
       Alert.alert("Error", "No se pudieron actualizar los datos del partido");

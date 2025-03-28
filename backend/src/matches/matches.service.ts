@@ -13,18 +13,28 @@ export class MatchesService {
 
   async create(createMatchDto: CreateMatchDto): Promise<Match> {
     const createdMatch = new this.matchModel({
+      teamId: createMatchDto.teamId,
       userId: createMatchDto.userId,
-      winnerPoints: 0,
-      loserPoints: 0,
-      winnerTeam: createMatchDto.teamId,
-      loserTeam: createMatchDto.opponentTeamId || "",
-      date: new Date(),
-      quarterScores: { winner: [0, 0, 0, 0], loser: [0, 0, 0, 0] },
+      opponentTeam: {
+        name: 'Opponent', // Nombre vacío por defecto
+        category: 'Category', // Categoría vacía por defecto
+        photo: '', // Foto vacía por defecto
+        stats: {
+          points: 0,
+          rebounds: 0,
+          assists: 0,
+          fieldGoalPercentage: 0,
+        },
+      },
+      date: createMatchDto.date || new Date(), // Fecha actual si no se proporciona
+      location: createMatchDto.location || '', // Ubicación vacía por defecto
     });
-    return createdMatch.save(); // MongoDB generará automáticamente el _id
+    return createdMatch.save();
   }
 
   async update(id: string, updateMatchDto: UpdateMatchDto): Promise<Match | null> {
+    console.log('Actualizando partido con ID:', id); // Log para depuración
+    console.log('Datos recibidos para actualizar en el servicio:', updateMatchDto); // Log para depuración
     return this.matchModel.findByIdAndUpdate(id, updateMatchDto, {
       new: true,
     }).exec();
