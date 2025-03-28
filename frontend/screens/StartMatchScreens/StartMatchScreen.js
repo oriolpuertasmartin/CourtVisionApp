@@ -59,7 +59,10 @@ export default function StartMatchScreen({ user, navigation }) {
         items={teams}
         onSelect={handleSelectTeam}
       >
-        <TouchableOpacity style={styles.createButton} onPress={() => navigation.navigate('Teams')}>
+        <TouchableOpacity 
+          style={styles.createButton} 
+          onPress={() => navigation.navigate('Teams')}
+        >
           <Text style={styles.createButtonText}>Create a new team</Text>
         </TouchableOpacity>
       </BoxSelector>
@@ -76,16 +79,16 @@ const styles = StyleSheet.create({
     paddingHorizontal: 20,
   },
   createButton: {
-    backgroundColor: '#FFF9E7', // Mismo color que los botones de los ítems
-    paddingVertical: 20, // Mismo padding vertical
-    marginBottom: 20, // Mismo margen inferior
-    borderRadius: 8, // Mismo borde redondeado
-    width: '95%', // Mismo ancho que los botones de los ítems
-    alignItems: 'center', // Centra el contenido del botón
+    backgroundColor: '#FFF9E7',
+    paddingVertical: 20,
+    borderRadius: 8,
+    width: '90%',
+    alignItems: 'center',
+    marginTop: 10,
   },
   createButtonText: {
     textAlign: 'center',
-    fontSize: 23, // Mismo tamaño de fuente que los ítems
-    fontWeight: '600', // Mismo peso de fuente que los ítems
+    fontSize: 23,
+    fontWeight: '600',
   },
 });
