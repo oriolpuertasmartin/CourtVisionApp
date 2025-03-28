@@ -9,10 +9,11 @@ export class PlayersController {
   // GET http://localhost:3001/players/team/:teamId
   @Get('team/:teamId')
   async getPlayersByTeam(@Param('teamId') teamId: string) {
-  const players = await this.playersService.findByTeamId(teamId);
-  if (!players || players.length === 0) {
-    throw new NotFoundException('No players found for the specified team');
-  }
-    return players;
-  }
+    console.log("Recibido teamId en controlador:", teamId); // Log para depuración
+    const players = await this.playersService.findByTeamId(teamId);
+    if (!players || players.length === 0) {
+      throw new NotFoundException('No players found for the specified team');
+    }
+      return players;
+    }
 }

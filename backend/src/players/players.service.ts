@@ -8,6 +8,7 @@ export class PlayersService {
   constructor(@InjectModel(Player.name) private playerModel: Model<PlayerDocument>) {}
 
   async findByTeamId(teamId: string): Promise<Player[]> {
+    console.log("Buscando jugadores para teamId:", teamId); // Log para depuración
     return this.playerModel.find({ team_id: teamId }).exec();
   }
 }
