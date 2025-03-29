@@ -1,4 +1,4 @@
-import { Controller, Get, Param, NotFoundException } from '@nestjs/common';
+import { Controller, Get, Param, Query, NotFoundException } from '@nestjs/common';
 import { PlayersService } from './players.service';
 
 // http://localhost:3001/players
@@ -15,5 +15,16 @@ export class PlayersController {
       throw new NotFoundException('No players found for the specified team');
     }
       return players;
+  }
+
+  // GET http://localhost:3001/players/:id
+  @Get()
+  async getPlayerByIds(@Query('ids') ids: string) {
+    const playerIds = ids.split(',');
+    const players = await this.playersService.findByIds(playerIds);
+    if(!players || players.length === 0) {
+      throw new NotFoundException('No players found for the specified ID');
     }
+    return players;
+  }
 }

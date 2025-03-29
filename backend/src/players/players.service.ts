@@ -11,4 +11,9 @@ export class PlayersService {
     console.log("Buscando jugadores para teamId:", teamId); // Log para depuración
     return this.playerModel.find({ team_id: teamId }).exec();
   }
+
+  async findByIds(ids: string[]): Promise<Player[]> {
+    console.log("Buscando jugadores por IDs", ids);
+    return this.playerModel.find({ _id: { $in: ids } }).exec();
+  }
 }
