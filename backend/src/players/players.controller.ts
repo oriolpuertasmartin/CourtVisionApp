@@ -19,12 +19,17 @@ export class PlayersController {
 
   // GET http://localhost:3001/players/:id
   @Get()
-  async getPlayerByIds(@Query('ids') ids: string) {
-    const playerIds = ids.split(',');
-    const players = await this.playersService.findByIds(playerIds);
-    if(!players || players.length === 0) {
-      throw new NotFoundException('No players found for the specified ID');
+  async getPlayers(@Query('ids') ids?: string) {
+    if (ids) {
+      const playerIds = ids.split(',');
+      const players = await this.playersService.findByIds(playerIds);
+      if (!players || players.length === 0) {
+        throw new NotFoundException('No players found for the specified IDs');
+      }
+      return players;
+    } else {
+      // Return all players if no ids provided
+      return await this.playersService.findAll();
     }
-    return players;
   }
 }

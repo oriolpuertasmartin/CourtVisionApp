@@ -16,4 +16,9 @@ export class PlayersService {
     console.log("Buscando jugadores por IDs", ids);
     return this.playerModel.find({ _id: { $in: ids } }).exec();
   }
+
+  async findAll(): Promise<Player[]> {
+    // Return all players in the collection
+    return this.playerModel.find().exec();
+  }
 }

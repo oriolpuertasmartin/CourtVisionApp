@@ -31,7 +31,7 @@ export default function StartMatchScreen({ user, navigation }) {
   const handleSelectTeam = async (team) => {
     try {
       console.log("Equipo seleccionado:", team);
-      const response = await fetch("http://localhost:3001/matches", {
+      const response = await fetch(`http://localhost:3001/matches`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ teamId: team._id, userId: user._id }),
