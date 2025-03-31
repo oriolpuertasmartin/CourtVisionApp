@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from "react";
 import { View, Text, StyleSheet, ActivityIndicator } from "react-native";
 import PlayerButton from "../../components/PlayerButton";
+import StatsButtons from "../../components/StatsButtons";
 
 export default function StatsScreen({ route }) {
   const { selectedPlayers } = route.params;
@@ -71,6 +72,9 @@ export default function StatsScreen({ route }) {
           ))}
         </View>
       </View>
+
+      {/* Aquí renderizamos los botones de estadísticas */}
+      <StatsButtons />
 
       {/* Contenedor de bench players fijado abajo */}
       <View style={styles.bottomContainer}>
