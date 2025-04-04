@@ -1,22 +1,22 @@
 import React from 'react';
 import { View, StyleSheet, TouchableOpacity, Text } from 'react-native';
 
-const StatsButtons = () => {
+const StatsButtons = ({ onStatPress }) => {
     const buttons = [
-        { label: '1pt', color: '#58E053' },    
-        { label: '1pt', color: '#F15656' },        
-        { label: '2pt', color: '#58E053' },   
-        { label: '2pt', color: '#F15656' },    
-        { label: '3pt', color: '#58E053' },    
-        { label: '3pt', color: '#F15656' },    
-        { label: 'STL', color: '#D6B400' },    
-        { label: 'ASS', color: '#D6B400' },    
-        { label: 'BLK', color: '#D6B400' },    
-        { label: 'DEF REB', color: '#D6B400' },
-        { label: 'OFF REB', color: '#D6B400' },
-        { label: 'TURN', color: '#D6B400' },   
-        { label: 'FOUL', color: '#545EF4' },   
-        { label: 'SUB', color: '#EC37EF' }     
+        { label: '1pt', color: '#58E053', stat: '1pt', enabled: true }, // Verde
+        { label: '1pt', color: '#F15656', stat: '1pt', enabled: false }, // Rojo
+        { label: '2pt', color: '#58E053', stat: '2pt', enabled: true }, // Verde
+        { label: '2pt', color: '#F15656', stat: '2pt', enabled: false }, // Rojo
+        { label: '3pt', color: '#58E053', stat: '3pt', enabled: true }, // Verde
+        { label: '3pt', color: '#F15656', stat: '3pt', enabled: false }, // Rojo
+        { label: 'STL', color: '#D6B400', stat: 'steals', enabled: true },
+        { label: 'ASS', color: '#D6B400', stat: 'assists', enabled: true },
+        { label: 'BLK', color: '#D6B400', stat: 'blocks', enabled: true },
+        { label: 'DEF REB', color: '#D6B400', stat: 'defRebounds', enabled: true },
+        { label: 'OFF REB', color: '#D6B400', stat: 'offRebounds', enabled: true },
+        { label: 'TURN', color: '#D6B400', stat: 'turnovers', enabled: true },
+        { label: 'FOUL', color: '#545EF4', stat: 'fouls', enabled: true },
+        { label: 'SUB', color: '#EC37EF', stat: 'substitutions', enabled: true },
     ];
 
     // Organiza los botones en pares
@@ -37,6 +37,7 @@ const StatsButtons = () => {
                         <TouchableOpacity 
                             key={`${rowIndex}-${colIndex}`} 
                             style={[styles.button, { backgroundColor: button.color }]}
+                            onPress={() => onStatPress(button.stat)} // Llama a la función con la estadística correspondiente
                         > 
                             <Text style={styles.buttonText}>{button.label}</Text>
                         </TouchableOpacity>
