@@ -31,10 +31,15 @@ export class PlayerstatsService {
     console.log("Actualizando estadísticas para playerStatsId:", playerStatsId); // Log para depuración
     console.log("Datos recibidos para actualizar:", statsUpdate); // Log para depuración
   
+    // Validar que los valores sean números
+    const sanitizedUpdate = Object.fromEntries(
+      Object.entries(statsUpdate).map(([key, value]) => [key, Number(value)])
+    );
+  
     const updatedStats = await this.playerStatsModel.findByIdAndUpdate(
       playerStatsId,
-      { $inc: statsUpdate }, // Incrementa las estadísticas
-      { new: true }, // Devuelve el documento actualizado
+      { $inc: sanitizedUpdate },
+      { new: true },
     ).exec();
   
     if (!updatedStats) {
@@ -43,6 +48,7 @@ export class PlayerstatsService {
   
     return updatedStats;
   }
+  
   
   async getStats(matchId: string, playerIds: string[]): Promise<PlayerStats[]> {
     const stats = await this.playerStatsModel.find({ matchId, playerId: { $in: playerIds } }).exec();
