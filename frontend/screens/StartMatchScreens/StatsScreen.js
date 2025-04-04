@@ -124,6 +124,9 @@ export default function StatsScreen({ route }) {
         payload = { points: 2, fieldGoalsMade: 1, fieldGoalsAttempted: 1 };
       } else if (stat === "3pt") {
         payload = { points: 3, fieldGoalsMade: 1, fieldGoalsAttempted: 1 };
+      } else if (stat === "offRebounds" || stat === "defRebounds") {
+        // Incrementar rebounds además de offRebounds o defRebounds
+        payload = { [stat]: 1, rebounds: 1 };
       } else {
         payload[stat] = 1;
       }
