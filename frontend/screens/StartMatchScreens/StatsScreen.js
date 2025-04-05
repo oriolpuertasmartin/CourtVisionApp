@@ -2,6 +2,7 @@ import React, { useEffect, useState } from "react";
 import { View, Text, StyleSheet, ActivityIndicator, Alert } from "react-native";
 import PlayerButton from "../../components/PlayerButton";
 import StatsButtons from "../../components/StatsButtons";
+import Scoreboard from "../../components/ScoreBoard";
 
 export default function StatsScreen({ route }) {
   const { selectedPlayers, matchId, teamId } = route.params;
@@ -214,6 +215,19 @@ export default function StatsScreen({ route }) {
         </View>
       )}
 
+      <View style={styles.scoreboardContainer}>
+        <Scoreboard
+          teamAName="UAB"
+          teamBName="Opponent"
+          teamAScore={0}
+          teamBScore={0}
+          teamAFouls={0}
+          teamBFouls={0}
+          period="H1"
+          initialTime="10:00"
+        />
+      </View>
+
       <StatsButtons onStatPress={handleStatUpdate} />
 
       <View style={styles.bottomContainer}>
@@ -272,8 +286,8 @@ const styles = StyleSheet.create({
   },
   opponentButtonContainer: {
     position: "absolute",
-    top: 280,
-    right: 20,
+    top: 70,
+    right: 50,
     zIndex: 10,
   },
   benchPlayersContainer: {
@@ -291,5 +305,11 @@ const styles = StyleSheet.create({
     width: "48%",
     padding: 3,
     marginBottom: 1,
+  },
+  scoreboardContainer: {
+    position: "absolute",
+    top: 400,
+    right: 50,
+    zIndex: 10,
   },
 });
