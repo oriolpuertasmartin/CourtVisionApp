@@ -6,40 +6,40 @@ export type PlayerStatsDocument = PlayerStats & Document;
 @Schema()
 export class PlayerStats {
   @Prop({ required: true })
-  matchId: string; // ID del partido al que pertenecen las estadísticas
+  matchId: string;
 
   @Prop({ required: true })
-  playerId: string; // ID del jugador
+  playerId: string;
 
   @Prop({ default: 0 })
-  points: number; // Puntos anotados por el jugador
+  points: number;
 
   @Prop({ default: 0 })
-  rebounds: number; // Rebotes capturados por el jugador
+  rebounds: number;
 
   @Prop({ default: 0 })
-  assists: number; // Asistencias realizadas por el jugador
+  assists: number;
 
   @Prop({ default: 0 })
-  blocks: number; // Bloqueos realizados por el jugador
+  blocks: number;
 
   @Prop({ default: 0 })
-  steals: number; // Robos realizados por el jugador
+  steals: number;
 
   @Prop({ default: 0 })
-  turnovers: number; // Pérdidas de balón del jugador
+  turnovers: number;
 
   @Prop({ default: 0 })
-  fieldGoalsMade: number; // Tiros de campo anotados
+  fieldGoalsMade: number;
 
   @Prop({ default: 0 })
-  fieldGoalsAttempted: number; // Tiros de campo intentados
+  fieldGoalsAttempted: number;
 
   @Prop({ default: 0 })
-  freeThrowsMade: number; // Tiros libres anotados
+  freeThrowsMade: number;
 
   @Prop({ default: 0 })
-  freeThrowsAttempted: number; // Tiros libres intentados
+  freeThrowsAttempted: number;
 }
 
 export const PlayerStatsSchema = SchemaFactory.createForClass(PlayerStats);

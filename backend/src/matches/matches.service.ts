@@ -4,11 +4,14 @@ import { Model } from 'mongoose';
 import { Match, MatchDocument } from './schema/matches.schema';
 import { CreateMatchDto } from './dto/create-match.dto';
 import { UpdateMatchDto } from './dto/update-match.dto';
+import { PlayerstatsService } from '../playerstats/playerstats.service';
+import { PlayerStatsDocument } from '../playerstats/schema/playerstats.schema';
 
 @Injectable()
 export class MatchesService {
   constructor(
     @InjectModel(Match.name) private matchModel: Model<MatchDocument>,
+    private readonly playerstatsService: PlayerstatsService,
   ) {}
 
   async create(createMatchDto: CreateMatchDto): Promise<Match> {
@@ -16,9 +19,9 @@ export class MatchesService {
       teamId: createMatchDto.teamId,
       userId: createMatchDto.userId,
       opponentTeam: {
-        name: 'Opponent', // Nombre vacío por defecto
-        category: 'Category', // Categoría vacía por defecto
-        photo: '', // Foto vacía por defecto
+        name: 'Opponent',
+        category: 'Category',
+        photo: '',
         stats: {
           points: 0,
           rebounds: 0,
@@ -26,10 +29,21 @@ export class MatchesService {
           fieldGoalPercentage: 0,
         },
       },
-      date: createMatchDto.date || new Date(), // Fecha actual si no se proporciona
-      location: createMatchDto.location || '', // Ubicación vacía por defecto
+      date: createMatchDto.date || new Date(),
+      location: createMatchDto.location || '',
     });
-    return createdMatch.save();
+  
+    const match = await createdMatch.save();
+  
+    // Inicializar estadísticas del equipo rival
+    const opponentStats = await this.playerstatsService.initializeOpponentStats(match.id) as PlayerStatsDocument;
+  
+    // Asignar el playerStatsId al equipo rival
+    match.opponentTeam['playerStatsId'] = opponentStats._id;
+  
+    await match.save();
+  
+    return match;
   }
 
   async update(id: string, updateMatchDto: UpdateMatchDto): Promise<Match | null> {

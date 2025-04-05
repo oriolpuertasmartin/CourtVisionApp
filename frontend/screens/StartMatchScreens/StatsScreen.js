@@ -7,9 +7,10 @@ export default function StatsScreen({ route }) {
   const { selectedPlayers, matchId, teamId } = route.params;
   const [startingPlayers, setStartingPlayers] = useState([]);
   const [benchPlayers, setBenchPlayers] = useState([]);
-  const [benchStats, setBenchStats] = useState([]); // Nuevo estado
+  const [benchStats, setBenchStats] = useState([]);
   const [selectedPlayerId, setSelectedPlayerId] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [opponentsStats, setOpponentsStats] = useState(null);
 
   useEffect(() => {
     async function fetchPlayers() {
@@ -19,14 +20,10 @@ export default function StatsScreen({ route }) {
           return;
         }
 
-        console.log("Fetching players for teamId:", teamId);
-
         const response = await fetch(`http://localhost:3001/players/team/${teamId}`);
-        if (!response.ok) {
-          throw new Error("Error al obtener los jugadores del equipo.");
-        }
+        if (!response.ok) throw new Error("Error al obtener los jugadores del equipo.");
         const data = await response.json();
-        console.log("Players fetched:", data);
+
         setBenchPlayers(data.filter((player) => !selectedPlayers.includes(player._id)));
       } catch (error) {
         console.error("Error fetching players:", error);
@@ -47,17 +44,13 @@ export default function StatsScreen({ route }) {
         const responseStarting = await fetch(
           `http://localhost:3001/playerstats?matchId=${matchId}&playerIds=${selectedPlayers.join(",")}`
         );
-        if (!responseStarting.ok) {
-          throw new Error("Error al obtener las estadísticas de los jugadores titulares.");
-        }
+        if (!responseStarting.ok) throw new Error("Error al obtener las estadísticas de los jugadores titulares.");
         const startingStats = await responseStarting.json();
 
         const responsePlayers = await fetch(
           `http://localhost:3001/players?ids=${selectedPlayers.join(",")}`
         );
-        if (!responsePlayers.ok) {
-          throw new Error("Error al obtener los detalles de los jugadores titulares.");
-        }
+        if (!responsePlayers.ok) throw new Error("Error al obtener los detalles de los jugadores titulares.");
         const startingDetails = await responsePlayers.json();
 
         const combinedStartingPlayers = startingStats.map((stat) => ({
@@ -87,6 +80,21 @@ export default function StatsScreen({ route }) {
             setBenchStats(combined);
           }
         }
+
+        const opponentStatsRes = await fetch(
+          `http://localhost:3001/playerstats?matchId=${matchId}&playerIds=opponent`
+        );
+        if (opponentStatsRes.ok) {
+          const opponentStats = await opponentStatsRes.json();
+          if (opponentStats.length > 0) {
+            setOpponentsStats({
+              ...opponentStats[0],
+              name: "Opponent Team",
+              number: "",
+              statsId: opponentStats[0]._id,
+            });
+          }
+        }
       } catch (error) {
         console.error("Error:", error);
         Alert.alert("Error", "No se pudieron cargar los datos necesarios.");
@@ -109,9 +117,14 @@ export default function StatsScreen({ route }) {
     }
 
     try {
-      const playerStats =
-        startingPlayers.find((p) => p.playerId === selectedPlayerId) ||
-        benchStats.find((p) => p.playerId === selectedPlayerId);
+      let playerStats;
+      if (selectedPlayerId === "opponent") {
+        playerStats = opponentsStats;
+      } else {
+        playerStats =
+          startingPlayers.find((p) => p.playerId === selectedPlayerId) ||
+          benchStats.find((p) => p.playerId === selectedPlayerId);
+      }
 
       if (!playerStats || !playerStats.statsId) {
         throw new Error("No se encontró el documento de estadísticas para el jugador seleccionado.");
@@ -125,7 +138,6 @@ export default function StatsScreen({ route }) {
       } else if (stat === "3pt") {
         payload = { points: 3, fieldGoalsMade: 1, fieldGoalsAttempted: 1 };
       } else if (stat === "offRebounds" || stat === "defRebounds") {
-        // Incrementar rebounds además de offRebounds o defRebounds
         payload = { [stat]: 1, rebounds: 1 };
       } else {
         payload[stat] = 1;
@@ -146,7 +158,9 @@ export default function StatsScreen({ route }) {
 
       const updated = await response.json();
 
-      if (startingPlayers.some((p) => p.statsId === updated._id)) {
+      if (selectedPlayerId === "opponent") {
+        setOpponentsStats((prev) => ({ ...prev, ...updated }));
+      } else if (startingPlayers.some((p) => p.statsId === updated._id)) {
         setStartingPlayers((prev) =>
           prev.map((p) => (p.statsId === updated._id ? { ...p, ...updated } : p))
         );
@@ -187,6 +201,18 @@ export default function StatsScreen({ route }) {
           ))}
         </View>
       </View>
+
+      {opponentsStats && (
+        <View style={styles.opponentButtonContainer}>
+          <PlayerButton
+            key="opponent"
+            player={{ name: "Opponent Team"}}
+            playerstats={opponentsStats}
+            onPress={() => handleSelectPlayer("opponent")}
+            isSelected={selectedPlayerId === "opponent"}
+          />
+        </View>
+      )}
 
       <StatsButtons onStatPress={handleStatUpdate} />
 
@@ -243,6 +269,12 @@ const styles = StyleSheet.create({
     position: "absolute",
     top: 70,
     left: 50,
+  },
+  opponentButtonContainer: {
+    position: "absolute",
+    top: 280,
+    right: 20,
+    zIndex: 10,
   },
   benchPlayersContainer: {
     flexDirection: "row",

@@ -2,6 +2,7 @@ import { Injectable, NotFoundException } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model } from 'mongoose';
 import { PlayerStats, PlayerStatsDocument } from './schema/playerstats.schema';
+import { v4 as uuidv4 } from 'uuid'; // Importar para generar un ID único
 
 @Injectable()
 export class PlayerstatsService {
@@ -25,6 +26,24 @@ export class PlayerstatsService {
       freeThrowsAttempted: 0,
     }));
     return this.playerStatsModel.insertMany(stats);
+  }
+  
+  async initializeOpponentStats(matchId: string): Promise<PlayerStatsDocument> {
+    const opponentStats = {
+      matchId,
+      playerId: 'opponent', // Identificador único para el equipo rival
+      points: 0,
+      rebounds: 0,
+      assists: 0,
+      blocks: 0,
+      steals: 0,
+      turnovers: 0,
+      fieldGoalsMade: 0,
+      fieldGoalsAttempted: 0,
+      freeThrowsMade: 0,
+      freeThrowsAttempted: 0,
+    };
+    return this.playerStatsModel.create(opponentStats);
   }
 
   async updateStats(playerStatsId: string, statsUpdate: Partial<PlayerStats>): Promise<PlayerStats> {
