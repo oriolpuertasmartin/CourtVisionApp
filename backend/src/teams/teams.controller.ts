@@ -12,4 +12,10 @@ export class TeamsController {
     console.log("Recibido userId en controlador:", userId); // Log para depuración
     return this.teamsService.findByUserId(userId);
    }
+
+   @Get(':id')
+   async getTeamById(@Param('id') id: string) {
+     console.log("Buscando equipo con ID:", id); // Log para depuración
+     return this.teamsService.findById(id);
+   }
 }

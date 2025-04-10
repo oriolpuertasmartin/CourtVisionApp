@@ -1,10 +1,22 @@
 import React, { useEffect, useState } from "react";
-import { View, Text, StyleSheet, ActivityIndicator, Alert } from "react-native";
+import { View, Text, StyleSheet, ActivityIndicator, Alert, TouchableOpacity } from "react-native";
 import PlayerButton from "../../components/PlayerButton";
 import StatsButtons from "../../components/StatsButtons";
 import Scoreboard from "../../components/ScoreBoard";
+import PrimaryButton from "../../components/PrimaryButton";
 
-export default function StatsScreen({ route }) {
+// Solo para depuración - eliminarlo después
+const mostrarAlerta = (titulo, mensaje) => {
+  console.log(`ALERTA: ${titulo} - ${mensaje}`);
+  try {
+    Alert.alert(titulo, mensaje);
+    console.log("Alert.alert ejecutado correctamente");
+  } catch (error) {
+    console.error("Error al mostrar la alerta:", error);
+  }
+};
+
+export default function StatsScreen({ route, navigation }) {
   const { selectedPlayers, matchId, teamId } = route.params;
   const [startingPlayers, setStartingPlayers] = useState([]);
   const [benchPlayers, setBenchPlayers] = useState([]);
@@ -19,41 +31,38 @@ export default function StatsScreen({ route }) {
   const [teamAFouls, setTeamAFouls] = useState(0);
   const [teamBFouls, setTeamBFouls] = useState(0);
 
+  // En vez de obtener los datos del equipo por ID, 
+  // obtenemos datos básicos del partido
   useEffect(() => {
-    async function fetchTeamData() {
+    async function fetchMatchData() {
       try {
-        // Obtener el nombre del equipo del usuario
-        const teamRes = await fetch(`http://localhost:3001/teams/${teamId}`);
-        if (teamRes.ok) {
-          const teamData = await teamRes.json();
-          if (teamData.name) {
-            setTeamAName(teamData.name);
-          }
-        }
-
         // Obtener datos del partido
-        const matchRes = await fetch(`http://localhost:3001/matches/${matchId}`);
-        if (matchRes.ok) {
-          const matchData = await matchRes.json();
-          
-          // Inicializar puntuaciones y faltas si existen
-          if (matchData.teamAScore !== undefined) setTeamAScore(matchData.teamAScore);
-          if (matchData.teamBScore !== undefined) setTeamBScore(matchData.teamBScore);
-          if (matchData.teamAFouls !== undefined) setTeamAFouls(matchData.teamAFouls);
-          if (matchData.teamBFouls !== undefined) setTeamBFouls(matchData.teamBFouls);
-          
-          // Si hay equipo rival con nombre
-          if (matchData.opponentTeam && matchData.opponentTeam.name) {
-            setTeamBName(matchData.opponentTeam.name);
+        if (matchId) {
+          const matchRes = await fetch(`http://localhost:3001/matches/${matchId}`);
+          if (matchRes.ok) {
+            const matchData = await matchRes.json();
+            
+            // Inicializar puntuaciones y faltas si existen
+            if (matchData.teamAScore !== undefined) setTeamAScore(matchData.teamAScore);
+            if (matchData.teamBScore !== undefined) setTeamBScore(matchData.teamBScore);
+            if (matchData.teamAFouls !== undefined) setTeamAFouls(matchData.teamAFouls);
+            if (matchData.teamBFouls !== undefined) setTeamBFouls(matchData.teamBFouls);
+            
+            // Si hay equipo rival con nombre
+            if (matchData.opponentTeam && matchData.opponentTeam.name) {
+              setTeamBName(matchData.opponentTeam.name);
+            }
+          } else {
+            console.log("No se pudo obtener información del partido");
           }
         }
       } catch (error) {
-        console.error("Error al cargar datos del equipo:", error);
+        console.error("Error al cargar datos del partido:", error);
       }
     }
     
-    fetchTeamData();
-  }, [teamId, matchId]);
+    fetchMatchData();
+  }, [matchId]);
   
   // Actualizar el partido cuando cambia la puntuación o las faltas
   useEffect(() => {
@@ -99,7 +108,14 @@ export default function StatsScreen({ route }) {
         if (!response.ok) throw new Error("Error al obtener los jugadores del equipo.");
         const data = await response.json();
 
-        setBenchPlayers(data.filter((player) => !selectedPlayers.includes(player._id)));
+        if (Array.isArray(data) && selectedPlayers && Array.isArray(selectedPlayers)) {
+          setBenchPlayers(data.filter((player) => !selectedPlayers.includes(player._id)));
+        } else {
+          console.error("Datos de jugadores o selectedPlayers no válidos", { 
+            dataIsArray: Array.isArray(data), 
+            selectedPlayersIsArray: Array.isArray(selectedPlayers) 
+          });
+        }
       } catch (error) {
         console.error("Error fetching players:", error);
         Alert.alert("Error", "No se pudieron cargar los jugadores.");
@@ -112,20 +128,27 @@ export default function StatsScreen({ route }) {
   useEffect(() => {
     async function initializeAndFetchPlayers() {
       try {
-        if (!matchId || selectedPlayers.length === 0) {
-          throw new Error("matchId o selectedPlayers no están definidos.");
+        if (!matchId || !selectedPlayers || selectedPlayers.length === 0) {
+          console.log("matchId o selectedPlayers no están definidos");
+          setLoading(false);
+          return;
         }
 
+        // Fetch y combinar estadísticas de los jugadores titulares
         const responseStarting = await fetch(
           `http://localhost:3001/playerstats?matchId=${matchId}&playerIds=${selectedPlayers.join(",")}`
         );
-        if (!responseStarting.ok) throw new Error("Error al obtener las estadísticas de los jugadores titulares.");
+        if (!responseStarting.ok) {
+          throw new Error("Error al obtener las estadísticas de los jugadores titulares");
+        }
         const startingStats = await responseStarting.json();
 
         const responsePlayers = await fetch(
           `http://localhost:3001/players?ids=${selectedPlayers.join(",")}`
         );
-        if (!responsePlayers.ok) throw new Error("Error al obtener los detalles de los jugadores titulares.");
+        if (!responsePlayers.ok) {
+          throw new Error("Error al obtener los detalles de los jugadores titulares");
+        }
         const startingDetails = await responsePlayers.json();
 
         const combinedStartingPlayers = startingStats.map((stat) => ({
@@ -135,33 +158,41 @@ export default function StatsScreen({ route }) {
         }));
         setStartingPlayers(combinedStartingPlayers);
 
-        const allPlayersRes = await fetch(`http://localhost:3001/players/team/${teamId}`);
-        const allPlayersData = await allPlayersRes.json();
-        const bench = allPlayersData.filter((player) => !selectedPlayers.includes(player._id));
-        setBenchPlayers(bench);
+        // Obtener jugadores del banquillo
+        if (teamId) {
+          const allPlayersRes = await fetch(`http://localhost:3001/players/team/${teamId}`);
+          if (!allPlayersRes.ok) {
+            throw new Error("Error al obtener todos los jugadores del equipo");
+          }
+          const allPlayersData = await allPlayersRes.json();
+          const bench = allPlayersData.filter((player) => !selectedPlayers.includes(player._id));
+          setBenchPlayers(bench);
 
-        const benchIds = bench.map((p) => p._id);
-        if (benchIds.length > 0) {
-          const benchStatsRes = await fetch(
-            `http://localhost:3001/playerstats?matchId=${matchId}&playerIds=${benchIds.join(",")}`
-          );
-          if (benchStatsRes.ok) {
-            const stats = await benchStatsRes.json();
-            const combined = stats.map((stat) => ({
-              ...stat,
-              ...bench.find((p) => p._id === stat.playerId),
-              statsId: stat._id,
-            }));
-            setBenchStats(combined);
+          // Obtener estadísticas para jugadores del banquillo
+          const benchIds = bench.map((p) => p._id);
+          if (benchIds.length > 0) {
+            const benchStatsRes = await fetch(
+              `http://localhost:3001/playerstats?matchId=${matchId}&playerIds=${benchIds.join(",")}`
+            );
+            if (benchStatsRes.ok) {
+              const stats = await benchStatsRes.json();
+              const combined = stats.map((stat) => ({
+                ...stat,
+                ...bench.find((p) => p._id === stat.playerId),
+                statsId: stat._id,
+              }));
+              setBenchStats(combined);
+            }
           }
         }
 
+        // Obtener estadísticas del equipo oponente
         const opponentStatsRes = await fetch(
           `http://localhost:3001/playerstats?matchId=${matchId}&playerIds=opponent`
         );
         if (opponentStatsRes.ok) {
           const opponentStats = await opponentStatsRes.json();
-          if (opponentStats.length > 0) {
+          if (opponentStats && opponentStats.length > 0) {
             setOpponentsStats({
               ...opponentStats[0],
               name: "Opponent Team",
@@ -170,6 +201,8 @@ export default function StatsScreen({ route }) {
             });
           }
         }
+        
+        console.log("Estadísticas inicializadas correctamente");
       } catch (error) {
         console.error("Error:", error);
         Alert.alert("Error", "No se pudieron cargar los datos necesarios.");
@@ -179,7 +212,7 @@ export default function StatsScreen({ route }) {
     }
 
     initializeAndFetchPlayers();
-  }, [matchId, selectedPlayers]);
+  }, [matchId, selectedPlayers, teamId]);
 
   const handleSelectPlayer = (playerId) => {
     setSelectedPlayerId(playerId === selectedPlayerId ? null : playerId);
@@ -278,6 +311,90 @@ export default function StatsScreen({ route }) {
     }
   };
 
+  // Función simplificada para pruebas
+  const pruebaAlerta = () => {
+    console.log("Prueba de alerta iniciada");
+    try {
+      Alert.alert(
+        "Prueba",
+        "Esta es una alerta de prueba",
+        [
+          {
+            text: "Cancelar",
+            onPress: () => console.log("Cancelar presionado"),
+            style: "cancel"
+          },
+          {
+            text: "OK",
+            onPress: () => console.log("OK presionado")
+          }
+        ]
+      );
+      console.log("Alert.alert de prueba ejecutado correctamente");
+    } catch (error) {
+      console.error("Error en prueba de alerta:", error);
+    }
+  };
+
+  // Versión alternativa que navega directamente a StatsView sin alertas
+const finalizarPartidoDirecto = async () => {
+  console.log("1. Iniciando finalización del partido (directo)");
+  
+  try {
+    // Paso 1: Crear objeto de datos
+    const updateData = { 
+      status: "completed",
+      teamAScore, 
+      teamBScore,
+      teamAFouls,
+      teamBFouls
+    };
+    console.log("2. Datos preparados:", JSON.stringify(updateData));
+    
+    // Paso 2: Enviar solicitud al servidor
+    console.log(`3. Enviando solicitud a ${matchId}`);
+    const response = await fetch(`http://localhost:3001/matches/${matchId}`, {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(updateData),
+    });
+    console.log("4. Respuesta recibida:", response.status);
+    
+    // Paso 3: Verificar respuesta
+    if (!response.ok) {
+      console.error("5. Error en la respuesta");
+      return;
+    }
+    
+    // Paso 4: Procesar respuesta
+    const data = await response.json();
+    console.log("6. Datos recibidos:", JSON.stringify(data));
+    
+    // Paso 5: Navegar directamente a StatsView
+    console.log("7. Navegando directamente a StatsView");
+    
+    navigation.reset({
+      index: 0,
+      routes: [
+        { 
+          name: 'Main',
+          params: { 
+            screen: 'Start a Match',
+            params: {
+              screen: 'StatsView',
+              params: { matchId }
+            }
+          } 
+        }
+      ],
+    });
+    console.log("Navegación a StatsView ejecutada");
+    
+  } catch (error) {
+    console.error("Error en finalizarPartidoDirecto:", error);
+  }
+};
+
   if (loading) {
     return (
       <View style={styles.container}>
@@ -327,6 +444,29 @@ export default function StatsScreen({ route }) {
           period="H1"
           initialTime="10:00"
         />
+
+        {/* Botones de prueba y finalizar */}
+        <View style={styles.finishButtonContainer}>
+          <TouchableOpacity
+            onPress={finalizarPartidoDirecto}
+            style={{
+              backgroundColor: "#D9534F",
+              width: 300,
+              marginTop: 15,
+              paddingVertical: 12,
+              borderRadius: 5,
+              alignItems: 'center',
+            }}
+          >
+            <Text style={{
+              fontSize: 18,
+              fontWeight: "bold",
+              color: 'white'
+            }}>
+              Finish the match 
+            </Text>
+          </TouchableOpacity>
+        </View>
       </View>
 
       <StatsButtons onStatPress={handleStatUpdate} />
@@ -412,5 +552,20 @@ const styles = StyleSheet.create({
     top: 400,
     right: 50,
     zIndex: 10,
+  },
+  finishButtonContainer: {
+    marginTop: 20,
+    width: "100%",
+    alignItems: "center",
+  },
+  finishButton: {
+    backgroundColor: "#D9534F",
+    width: 300,
+    marginTop: 15,
+    paddingVertical: 12,
+  },
+  finishButtonText: {
+    fontSize: 18,
+    fontWeight: "bold",
   },
 });

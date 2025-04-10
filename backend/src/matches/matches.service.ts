@@ -55,39 +55,49 @@ export class MatchesService {
   }
 
   // Nuevo método para actualizar y gestionar el historial de periodos
-  async updatePeriodStats(id: string, periodStats: {
-    period: string;
-    teamAScore: number;
-    teamBScore: number;
-    teamAFouls: number;
-    teamBFouls: number;
-  }): Promise<Match | null> {
-    const match = await this.matchModel.findById(id);
-    
-    if (!match) return null;
-    
-    // Buscar si ya existe un registro para este periodo
-    const existingPeriodIndex = match.periodsHistory.findIndex(
-      p => p.period === periodStats.period
-    );
-    
-    if (existingPeriodIndex >= 0) {
-      // Actualizar el periodo existente
-      match.periodsHistory[existingPeriodIndex] = periodStats;
-    } else {
-      // Agregar nuevo periodo
-      match.periodsHistory.push(periodStats);
-    }
-    
-    // Actualizar también los totales actuales
-    match.teamAScore = periodStats.teamAScore;
-    match.teamBScore = periodStats.teamBScore;
-    match.teamAFouls = periodStats.teamAFouls;
-    match.teamBFouls = periodStats.teamBFouls;
-    match.currentPeriod = periodStats.period;
-    
-    return match.save();
+async updatePeriodStats(id: string, periodStats: {
+  period: string;
+  teamAScore: number;
+  teamBScore: number;
+  teamAFouls: number;
+  teamBFouls: number;
+}): Promise<Match | null> {
+  const match = await this.matchModel.findById(id);
+  
+  if (!match) return null;
+  
+  // Inicializar periodsHistory si no existe
+  if (!match.periodsHistory) {
+    match.periodsHistory = [];
   }
+  
+  // Buscar si ya existe un registro para este periodo
+  const existingPeriodIndex = match.periodsHistory.findIndex(
+    p => p.period === periodStats.period
+  );
+  
+  if (existingPeriodIndex >= 0) {
+    // Actualizar el periodo existente
+    match.periodsHistory[existingPeriodIndex] = periodStats;
+  } else {
+    // Agregar nuevo periodo
+    match.periodsHistory.push(periodStats);
+  }
+  
+  // Actualizar también los totales actuales
+  match.teamAScore = periodStats.teamAScore;
+  match.teamBScore = periodStats.teamBScore;
+  match.teamAFouls = periodStats.teamAFouls;
+  match.teamBFouls = periodStats.teamBFouls;
+  match.currentPeriod = periodStats.period;
+  
+  try {
+    return await match.save();
+  } catch (error) {
+    console.error('Error al guardar el partido:', error);
+    throw error; // Re-lanzar el error para que el controlador pueda manejarlo
+  }
+}
 
   // Método para obtener el historial de periodos de un partido
   async getPeriodHistory(id: string): Promise<any> {

@@ -59,6 +59,8 @@ const Scoreboard = ({
       try {
         if (!matchId || loading) return;
         
+        console.log("Actualizando período en el servidor:", currentPeriod);
+        
         const response = await fetch(`http://localhost:3001/matches/${matchId}`, {
           method: "PATCH",
           headers: { "Content-Type": "application/json" },
@@ -68,6 +70,7 @@ const Scoreboard = ({
         });
         
         if (!response.ok) throw new Error("Error al actualizar el periodo");
+        console.log("Período actualizado en el servidor:", currentPeriod);
       } catch (error) {
         console.error("Error al actualizar el periodo:", error);
       }
@@ -111,54 +114,75 @@ const Scoreboard = ({
   };
 
   // Función para cambiar de periodo y guardar las estadísticas
-  const handlePeriodChange = async (newPeriod) => {
-    if (newPeriod === currentPeriod) return;
-    
-    try {
-      // Guardar estadísticas del periodo actual
-      const currentPeriodStats = {
-        period: currentPeriod,
-        teamAScore,
-        teamBScore,
-        teamAFouls,
-        teamBFouls
-      };
-      
-      // Actualizar historial local
-      const updatedHistory = [...periodsHistory];
-      const existingIndex = updatedHistory.findIndex(p => p.period === currentPeriod);
-      
-      if (existingIndex >= 0) {
-        updatedHistory[existingIndex] = currentPeriodStats;
-      } else {
-        updatedHistory.push(currentPeriodStats);
-      }
-      
-      setPeriodsHistory(updatedHistory);
-      
-      // Guardar en el backend
-      if (matchId) {
-        const response = await fetch(`http://localhost:3001/matches/${matchId}/period`, {
-          method: "PATCH",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify(currentPeriodStats),
-        });
-        
-        if (!response.ok) throw new Error("Error al guardar periodo");
-      }
-      
-      // Cambiar al nuevo periodo
-      setCurrentPeriod(newPeriod);
-      
-      // Reiniciar cronómetro para el nuevo periodo
-      const [min, sec] = initialTime.split(":").map(Number);
-      setTotalSeconds(min * 60 + sec);
-      setIsPlaying(false);
-    } catch (error) {
-      console.error("Error al cambiar de periodo:", error);
-    }
-  };
+  // Actualizar la función handlePeriodChange para usar el endpoint general
+
+const handlePeriodChange = async (newPeriod) => {
+  if (newPeriod === currentPeriod) return;
   
+  try {
+    console.log(`Cambiando de periodo ${currentPeriod} a ${newPeriod}`);
+    
+    // Guardar estadísticas del periodo actual
+    const currentPeriodStats = {
+      period: currentPeriod,
+      teamAScore,
+      teamBScore,
+      teamAFouls,
+      teamBFouls
+    };
+    
+    console.log("Estadísticas del periodo actual:", currentPeriodStats);
+    
+    // Actualizar historial local
+    const updatedHistory = [...periodsHistory];
+    
+    const existingIndex = updatedHistory.findIndex(p => p.period === currentPeriod);
+    
+    if (existingIndex >= 0) {
+      updatedHistory[existingIndex] = currentPeriodStats;
+    } else {
+      updatedHistory.push(currentPeriodStats);
+    }
+    
+    setPeriodsHistory(updatedHistory);
+    
+    // Guardar en el backend usando el endpoint general en lugar del específico
+    if (matchId) {
+      console.log("Guardando periodo usando endpoint general");
+      
+      const response = await fetch(`http://localhost:3001/matches/${matchId}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ 
+          periodsHistory: updatedHistory,
+          currentPeriod: newPeriod,
+          teamAScore,
+          teamBScore,
+          teamAFouls,
+          teamBFouls
+        }),
+      });
+      
+      if (!response.ok) {
+        console.error("Error al guardar periodo. Estado:", response.status);
+        throw new Error("Error al guardar periodo");
+      }
+      
+      console.log("Periodo guardado exitosamente");
+    }
+    
+    // Cambiar al nuevo periodo
+    setCurrentPeriod(newPeriod);
+    
+    // Reiniciar cronómetro para el nuevo periodo
+    const [min, sec] = initialTime.split(":").map(Number);
+    setTotalSeconds(min * 60 + sec);
+    setIsPlaying(false);
+  } catch (error) {
+    console.error("Error al cambiar de periodo:", error);
+  }
+};
+
   const toggleHistoryView = () => {
     setShowHistory(prev => !prev);
   };

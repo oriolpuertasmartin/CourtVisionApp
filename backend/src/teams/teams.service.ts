@@ -12,4 +12,8 @@ export class TeamsService {
   async findByUserId(userId: string): Promise<Team[]> {
     return this.teamModel.find({ user_id: userId }).exec();
   }
+
+  async findById(id: string): Promise<Team | null> {
+    return this.teamModel.findById(id).exec();
+  }
 }

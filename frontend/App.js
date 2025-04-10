@@ -19,6 +19,7 @@ import StartMatchScreen from './screens/StartMatchScreens/StartMatchScreen';
 import OpponentTeamScreen from './screens/StartMatchScreens/OpponentTeamScreen';
 import StartingPlayersScreen from './screens/StartMatchScreens/StartingPlayersScreen';
 import StatsScreen from './screens/StartMatchScreens/StatsScreen';
+import StatsView from './screens/StartMatchScreens/StatsView';
 
 // Creación de los navegadores
 const Stack = createNativeStackNavigator();
@@ -68,6 +69,12 @@ function StartMatchStack({ user }) {
         options={{ headerShown: false }} // Oculta el encabezado predeterminado
       >
         {(props) => <StatsScreen {...props} />}
+      </Stack.Screen>
+      <Stack.Screen 
+        name="StatsView" 
+        options={{ headerShown: false }}
+      >
+        {(props) => <StatsView {...props} />}
       </Stack.Screen>
     </Stack.Navigator>
   );
