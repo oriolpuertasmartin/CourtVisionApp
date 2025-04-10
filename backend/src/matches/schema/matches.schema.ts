@@ -42,6 +42,41 @@ export class Match {
 
   @Prop({ type: [Types.ObjectId], ref: 'Player', default: [] })
   startingPlayers: Types.ObjectId[]; // IDs de los jugadores titulares
+
+  // Propiedades para el marcador total actual
+  @Prop({ default: 0 })
+  teamAScore: number;
+
+  @Prop({ default: 0 })
+  teamBScore: number;
+
+  @Prop({ default: 0 })
+  teamAFouls: number;
+
+  @Prop({ default: 0 })
+  teamBFouls: number;
+
+  @Prop({ default: 'H1' })
+  currentPeriod: string;
+
+  // Historial de periodos para guardar el marcador por cuartos
+  @Prop({
+    type: [{
+      period: { type: String, required: true }, // H1, H2, OT1, etc.
+      teamAScore: { type: Number, default: 0 },
+      teamBScore: { type: Number, default: 0 },
+      teamAFouls: { type: Number, default: 0 },
+      teamBFouls: { type: Number, default: 0 },
+    }],
+    default: []
+  })
+  periodsHistory: {
+    period: string;
+    teamAScore: number;
+    teamBScore: number;
+    teamAFouls: number;
+    teamBFouls: number;
+  }[];
 }
 
 export const MatchSchema = SchemaFactory.createForClass(Match);

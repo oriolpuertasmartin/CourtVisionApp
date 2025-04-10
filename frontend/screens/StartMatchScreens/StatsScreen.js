@@ -12,6 +12,80 @@ export default function StatsScreen({ route }) {
   const [selectedPlayerId, setSelectedPlayerId] = useState(null);
   const [loading, setLoading] = useState(true);
   const [opponentsStats, setOpponentsStats] = useState(null);
+  const [teamAName, setTeamAName] = useState("UAB");
+  const [teamBName, setTeamBName] = useState("Opponent");
+  const [teamAScore, setTeamAScore] = useState(0);
+  const [teamBScore, setTeamBScore] = useState(0);
+  const [teamAFouls, setTeamAFouls] = useState(0);
+  const [teamBFouls, setTeamBFouls] = useState(0);
+
+  useEffect(() => {
+    async function fetchTeamData() {
+      try {
+        // Obtener el nombre del equipo del usuario
+        const teamRes = await fetch(`http://localhost:3001/teams/${teamId}`);
+        if (teamRes.ok) {
+          const teamData = await teamRes.json();
+          if (teamData.name) {
+            setTeamAName(teamData.name);
+          }
+        }
+
+        // Obtener datos del partido
+        const matchRes = await fetch(`http://localhost:3001/matches/${matchId}`);
+        if (matchRes.ok) {
+          const matchData = await matchRes.json();
+          
+          // Inicializar puntuaciones y faltas si existen
+          if (matchData.teamAScore !== undefined) setTeamAScore(matchData.teamAScore);
+          if (matchData.teamBScore !== undefined) setTeamBScore(matchData.teamBScore);
+          if (matchData.teamAFouls !== undefined) setTeamAFouls(matchData.teamAFouls);
+          if (matchData.teamBFouls !== undefined) setTeamBFouls(matchData.teamBFouls);
+          
+          // Si hay equipo rival con nombre
+          if (matchData.opponentTeam && matchData.opponentTeam.name) {
+            setTeamBName(matchData.opponentTeam.name);
+          }
+        }
+      } catch (error) {
+        console.error("Error al cargar datos del equipo:", error);
+      }
+    }
+    
+    fetchTeamData();
+  }, [teamId, matchId]);
+  
+  // Actualizar el partido cuando cambia la puntuación o las faltas
+  useEffect(() => {
+    const updateMatchScore = async () => {
+      try {
+        if (!matchId || loading) return;
+        
+        const response = await fetch(`http://localhost:3001/matches/${matchId}`, {
+          method: "PATCH",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ 
+            teamAScore, 
+            teamBScore,
+            teamAFouls,
+            teamBFouls
+          }),
+        });
+        
+        if (!response.ok) {
+          console.error("Error al actualizar el marcador en el partido");
+        }
+      } catch (error) {
+        console.error("Error al actualizar el marcador:", error);
+      }
+    };
+
+    const saveTimeout = setTimeout(() => {
+      if (!loading && matchId) updateMatchScore();
+    }, 1000);
+    
+    return () => clearTimeout(saveTimeout);
+  }, [teamAScore, teamBScore, teamAFouls, teamBFouls, loading, matchId]);
 
   useEffect(() => {
     async function fetchPlayers() {
@@ -134,12 +208,38 @@ export default function StatsScreen({ route }) {
       let payload = {};
       if (stat === "1pt") {
         payload = { points: 1, freeThrowsMade: 1, freeThrowsAttempted: 1 };
+        // Actualizar marcador según el equipo
+        if (selectedPlayerId === "opponent") {
+          setTeamBScore(prev => prev + 1);
+        } else {
+          setTeamAScore(prev => prev + 1);
+        }
       } else if (stat === "2pt") {
         payload = { points: 2, fieldGoalsMade: 1, fieldGoalsAttempted: 1 };
+        // Actualizar marcador según el equipo
+        if (selectedPlayerId === "opponent") {
+          setTeamBScore(prev => prev + 2);
+        } else {
+          setTeamAScore(prev => prev + 2);
+        }
       } else if (stat === "3pt") {
         payload = { points: 3, fieldGoalsMade: 1, fieldGoalsAttempted: 1 };
+        // Actualizar marcador según el equipo
+        if (selectedPlayerId === "opponent") {
+          setTeamBScore(prev => prev + 3);
+        } else {
+          setTeamAScore(prev => prev + 3);
+        }
       } else if (stat === "offRebounds" || stat === "defRebounds") {
         payload = { [stat]: 1, rebounds: 1 };
+      } else if (stat === "fouls") {
+        payload[stat] = 1;
+        // Actualizar faltas según el equipo
+        if (selectedPlayerId === "opponent") {
+          setTeamBFouls(prev => prev + 1);
+        } else {
+          setTeamAFouls(prev => prev + 1);
+        }
       } else {
         payload[stat] = 1;
       }
@@ -217,12 +317,13 @@ export default function StatsScreen({ route }) {
 
       <View style={styles.scoreboardContainer}>
         <Scoreboard
-          teamAName="UAB"
-          teamBName="Opponent"
-          teamAScore={0}
-          teamBScore={0}
-          teamAFouls={0}
-          teamBFouls={0}
+          matchId={matchId}
+          teamAName={teamAName}
+          teamBName={teamBName}
+          teamAScore={teamAScore}
+          teamBScore={teamBScore}
+          teamAFouls={teamAFouls}
+          teamBFouls={teamBFouls}
           period="H1"
           initialTime="10:00"
         />

@@ -1,4 +1,4 @@
-import { Controller, Post, Body, Patch, Param, BadRequestException } from '@nestjs/common';
+import { Controller, Post, Patch, Get, Param, Body, BadRequestException, NotFoundException } from '@nestjs/common';
 import { MatchesService } from './matches.service';
 import { CreateMatchDto } from './dto/create-match.dto';
 import { UpdateMatchDto } from './dto/update-match.dto';
@@ -18,6 +18,19 @@ export class MatchesController {
     return this.matchesService.create(createMatchDto);
     }
 
+    // Obtener un partido por su ID
+    @Get(':id')
+    async getMatchById(@Param('id') id: string) {
+      if (!isValidObjectId(id)) {
+        throw new BadRequestException(`Invalid match ID: ${id}`);
+      }
+      const match = await this.matchesService.update(id, {});
+      if (!match) {
+        throw new NotFoundException(`Match with ID ${id} not found`);
+      }
+      return match;
+    }
+
     // Nueva ruta: PATCH http://localhost:3001/matches/:id
     @Patch(':id')
     async updateMatch(
@@ -29,5 +42,44 @@ export class MatchesController {
         throw new BadRequestException(`Invalid match ID: ${id}`);
     }
     return this.matchesService.update(id, updateMatchDto);
+    }
+
+    // Nuevo endpoint para actualizar un periodo específico del partido
+    @Patch(':id/period')
+    async updatePeriodStats(
+      @Param('id') id: string,
+      @Body() periodStats: {
+        period: string;
+        teamAScore: number;
+        teamBScore: number;
+        teamAFouls: number;
+        teamBFouls: number;
+      },
+    ) {
+      if (!isValidObjectId(id)) {
+        throw new BadRequestException(`Invalid match ID: ${id}`);
+      }
+      
+      const result = await this.matchesService.updatePeriodStats(id, periodStats);
+      if (!result) {
+        throw new NotFoundException(`Match with ID ${id} not found`);
+      }
+      
+      return result;
+    }
+
+    // Nuevo endpoint para obtener el historial de periodos
+    @Get(':id/periods')
+    async getPeriodHistory(@Param('id') id: string) {
+      if (!isValidObjectId(id)) {
+        throw new BadRequestException(`Invalid match ID: ${id}`);
+      }
+      
+      const history = await this.matchesService.getPeriodHistory(id);
+      if (!history) {
+        throw new NotFoundException(`Match with ID ${id} not found`);
+      }
+      
+      return history;
     }
 }
