@@ -3,12 +3,12 @@ import { View, StyleSheet, TouchableOpacity, Text } from 'react-native';
 
 const StatsButtons = ({ onStatPress }) => {
     const buttons = [
-        { label: '1pt', color: '#58E053', stat: '1pt', enabled: true }, // Verde
-        { label: '1pt', color: '#F15656', stat: '1pt', enabled: false }, // Rojo
-        { label: '2pt', color: '#58E053', stat: '2pt', enabled: true }, // Verde
-        { label: '2pt', color: '#F15656', stat: '2pt', enabled: false }, // Rojo
-        { label: '3pt', color: '#58E053', stat: '3pt', enabled: true }, // Verde
-        { label: '3pt', color: '#F15656', stat: '3pt', enabled: false }, // Rojo
+        { label: '1pt', color: '#58E053', stat: '1ptmade', enabled: true }, // Verde
+        { label: '1pt', color: '#F15656', stat: '1ptmiss', enabled: false }, // Rojo
+        { label: '2pt', color: '#58E053', stat: '2ptmade', enabled: true }, // Verde
+        { label: '2pt', color: '#F15656', stat: '2ptmiss', enabled: false }, // Rojo
+        { label: '3pt', color: '#58E053', stat: '3ptmade', enabled: true }, // Verde
+        { label: '3pt', color: '#F15656', stat: '3ptmiss', enabled: false }, // Rojo
         { label: 'STL', color: '#D6B400', stat: 'steals', enabled: true },
         { label: 'ASS', color: '#D6B400', stat: 'assists', enabled: true },
         { label: 'BLK', color: '#D6B400', stat: 'blocks', enabled: true },
