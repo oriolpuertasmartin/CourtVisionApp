@@ -20,8 +20,6 @@ export default function StatsScreen({ route, navigation }) {
   const [teamAFouls, setTeamAFouls] = useState(0);
   const [teamBFouls, setTeamBFouls] = useState(0);
 
-  // En vez de obtener los datos del equipo por ID, 
-  // obtenemos datos básicos del partido
   useEffect(() => {
     async function fetchMatchData() {
       try {
@@ -37,9 +35,24 @@ export default function StatsScreen({ route, navigation }) {
             if (matchData.teamAFouls !== undefined) setTeamAFouls(matchData.teamAFouls);
             if (matchData.teamBFouls !== undefined) setTeamBFouls(matchData.teamBFouls);
             
-            // Si hay equipo rival con nombre
+            // Si hay equipo rival con nombre, establecerlo
             if (matchData.opponentTeam && matchData.opponentTeam.name) {
               setTeamBName(matchData.opponentTeam.name);
+            }
+            
+            // Obtener el nombre del equipo A 
+            if (matchData.teamId) {
+              try {
+                const teamRes = await fetch(`http://localhost:3001/teams/${matchData.teamId}`);
+                if (teamRes.ok) {
+                  const teamData = await teamRes.json();
+                  if (teamData && teamData.name) {
+                    setTeamAName(teamData.name);
+                  }
+                }
+              } catch (error) {
+                console.error("Error al obtener datos del equipo:", error);
+              }
             }
           } else {
             console.log("No se pudo obtener información del partido");
@@ -50,8 +63,9 @@ export default function StatsScreen({ route, navigation }) {
       }
     }
     
+    // Llamar a la función fetchMatchData
     fetchMatchData();
-  }, [matchId]);
+  }, [matchId]); // Agregar matchId como dependencia
   
   // Actualizar el partido cuando cambia la puntuación o las faltas
   useEffect(() => {
