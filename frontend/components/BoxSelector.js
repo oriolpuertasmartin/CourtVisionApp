@@ -1,25 +1,37 @@
 import React from 'react';
 import { View, Text, TouchableOpacity, StyleSheet, ScrollView } from 'react-native';
 
-export default function BoxSelector({ title, items, onSelect, children }) {
+export default function BoxSelector({ title, items, onSelect, children, renderItemButtons, emptyMessage }) {
   return (
     <View style={styles.container}>
-      <Text style={styles.title}>{title}</Text>
+      {title && <Text style={styles.title}>{title}</Text>}
       <View style={styles.box}>
         <ScrollView 
           contentContainerStyle={styles.scrollContainer} 
           showsVerticalScrollIndicator={false}
         >
-          {items.map((item, index) => (
-            <TouchableOpacity 
-              key={item._id || index} 
-              style={[styles.itemButton, item.style]}
-              onPress={() => onSelect(item)}
-            >
-              <Text style={styles.itemButtonText}>{item.name}</Text>
-            </TouchableOpacity>
-          ))}
+          {items.length === 0 ? (
+            <Text style={styles.emptyMessage}>{emptyMessage || "No items found"}</Text>
+          ) : (
+            items.map((item, index) => (
+              <View key={item._id || index} style={styles.itemContainer}>
+                <TouchableOpacity 
+                  style={[styles.itemButton, item.style]}
+                  onPress={() => onSelect(item)}
+                >
+                  <Text style={styles.itemButtonText}>{item.name}</Text>
+                  {item.subtitle && (
+                    <Text style={styles.itemSubtitle}>{item.subtitle}</Text>
+                  )}
+                </TouchableOpacity>
+                
+                {/* Renderizar botones personalizados si se proporcionan */}
+                {renderItemButtons && renderItemButtons(item)}
+              </View>
+            ))
+          )}
         </ScrollView>
+        
         {/* Children ahora va FUERA del ScrollView */}
         {children && (
           <View style={styles.childrenContainer}>
@@ -33,7 +45,7 @@ export default function BoxSelector({ title, items, onSelect, children }) {
 
 const styles = StyleSheet.create({
   container: {
-    width: '90%',
+    width: '100%',
     marginTop: 20,
     alignItems: 'center',
   },
@@ -44,7 +56,7 @@ const styles = StyleSheet.create({
   },
   box: {
     width: '100%',
-    maxHeight: 300,
+    maxHeight: 500, // Aumentado para dar más espacio
     backgroundColor: '#E6E0CE',
     borderRadius: 12,
     paddingVertical: 10,
@@ -55,22 +67,35 @@ const styles = StyleSheet.create({
     flexGrow: 1,
     alignItems: 'center',
   },
+  itemContainer: {
+    width: '95%',
+    marginBottom: 15,
+  },
   itemButton: {
     backgroundColor: '#FFF9E7',
     paddingVertical: 20,
-    marginBottom: 10,
     borderRadius: 8,
-    width: '95%',
+    width: '100%',
     alignItems: 'center',
   },
   itemButtonText: {
-    textAlign: 'center',
     fontSize: 18,
-    fontWeight: '600',
+    fontWeight: 'bold',
+  },
+  itemSubtitle: {
+    fontSize: 14,
+    color: '#777',
+    marginTop: 4,
   },
   childrenContainer: {
     width: '100%',
     alignItems: 'center',
-    paddingVertical: 10,
+    marginTop: 10,
+  },
+  emptyMessage: {
+    textAlign: 'center',
+    paddingVertical: 30,
+    fontSize: 16,
+    color: '#888',
   },
 });

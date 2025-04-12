@@ -11,7 +11,12 @@ import WelcomeScreen from './screens/WelcomeScreen';
 import LoginScreen from './screens/LoginScreen';
 import RegisterScreen from './screens/RegisterScreen';
 import HomeScreen from './screens/HomeScreen';
-import TeamsScreen from './screens/TeamsScreen';
+import TeamsScreen from './screens/TeamsScreens/TeamsScreen';
+import TeamMatchesScreen from './screens/TeamsScreens/TeamMatchesScreen';
+import TeamDetailsScreen from './screens/TeamsScreens/TeamDetailsScreen';
+import TeamPlayersScreen from './screens/TeamsScreens/TeamPlayersScreen';
+import CreateTeamsScreen from './screens/TeamsScreens/CreateTeamsScreen';
+import CreatePlayersScreen from './screens/TeamsScreens/CreatePlayersScreen';
 import SettingsScreen from './screens/SettingsScreen';
 import InfoScreen from './screens/InfoScreen';
 import FloatingUserButton from './components/FloatingUserButton';
@@ -39,6 +44,59 @@ function CustomDrawerContent(props) {
         <DrawerItemList {...props} />
       </DrawerContentScrollView>
     </View>
+  );
+}
+
+// Stack Navigator para la sección "Teams" y sus subpantallas
+function TeamsStack({ user }) {
+  return (
+    <Stack.Navigator screenOptions={{ headerShown: false }}>
+      <Stack.Screen 
+        name="TeamsList" 
+        options={{ headerShown: false }}
+        initialParams={{ user }}
+      >
+        {(props) => <TeamsScreen {...props} user={user} />}
+      </Stack.Screen>
+      <Stack.Screen 
+        name="CreateTeam" 
+        options={{ headerShown: false }}
+      >
+        {(props) => <CreateTeamsScreen {...props} user={user} />}
+      </Stack.Screen>
+      <Stack.Screen 
+        name="CreatePlayer" 
+        options={{ headerShown: false }}
+      >
+        {(props) => <CreatePlayersScreen {...props} />}
+      </Stack.Screen>
+      <Stack.Screen 
+        name="TeamPlayers" 
+        options={{ headerShown: false }}
+      >
+        {(props) => <TeamPlayersScreen {...props} />}
+      </Stack.Screen>
+      <Stack.Screen 
+        name="TeamMatches" 
+        options={{ headerShown: false }}
+      >
+        {(props) => <TeamMatchesScreen {...props} />}
+      </Stack.Screen>
+      
+      <Stack.Screen 
+        name="TeamDetails" 
+        options={{ headerShown: false }}
+      >
+        {(props) => <TeamDetailsScreen {...props} />}
+      </Stack.Screen>
+      
+      <Stack.Screen 
+        name="StatsView" 
+        options={{ headerShown: false }}
+      >
+        {(props) => <StatsView {...props} />}
+      </Stack.Screen>
+    </Stack.Navigator>
   );
 }
 
@@ -100,7 +158,9 @@ function DrawerNavigator({ user }) {
     >
       {/* Definición de las pantallas principales del Drawer */}
       <Drawer.Screen name="Home" component={HomeScreen} />
-      <Drawer.Screen name="Teams" component={TeamsScreen} />
+      <Drawer.Screen name="Teams">
+        {(props) => <TeamsStack {...props} user={user} />}
+      </Drawer.Screen>
       <Drawer.Screen name="Start a Match">
         {(props) => <StartMatchStack {...props} user={user} />}
       </Drawer.Screen>
