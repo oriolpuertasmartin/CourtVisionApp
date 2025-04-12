@@ -106,4 +106,35 @@ async updatePeriodStats(id: string, periodStats: {
     
     return match.periodsHistory;
   }
+
+  async findAll(): Promise<Match[]> {
+    return this.matchModel.find().populate('opponentTeam').exec();
+  }
+  
+  async findById(id: string): Promise<Match | null> {
+    return this.matchModel.findById(id).populate('opponentTeam').exec();
+  }
+  
+  async findByTeam(teamId: string): Promise<Match[]> {
+    return this.matchModel.find({ 
+      $or: [
+        { teamId: teamId },
+        { opponentTeam: { $exists: true, $ne: null }, 'opponentTeam._id': teamId }
+      ]
+    }).populate('opponentTeam').exec();
+  }
+  
+  async findByUser(userId: string): Promise<Match[]> {
+    return this.matchModel.find({ userId }).populate('opponentTeam').exec();
+  }
+  
+  async findByTeamAndUser(teamId: string, userId: string): Promise<Match[]> {
+    return this.matchModel.find({ 
+      userId,
+      $or: [
+        { teamId: teamId },
+        { opponentTeam: { $exists: true, $ne: null }, 'opponentTeam._id': teamId }
+      ]
+    }).populate('opponentTeam').exec();
+  }
 }
