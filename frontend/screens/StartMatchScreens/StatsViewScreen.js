@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { View, Text, StyleSheet, ScrollView, TouchableOpacity, ActivityIndicator, Alert, Platform } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
+import API_BASE_URL from "../../config/apiConfig";
 
 // NO importamos los módulos nativos directamente
 // Serán importados dinámicamente solo cuando se necesiten
@@ -27,7 +28,7 @@ export default function StatsView({ route, navigation }) {
         console.log('Fetching match data for matchId:', matchId);
         
         // 1. Obtener datos del partido
-        const matchResponse = await fetch(`http://localhost:3001/matches/${matchId}`);
+        const matchResponse = await fetch(`${API_BASE_URL}/matches/${matchId}`);
         if (!matchResponse.ok) {
           console.error('Error fetching match data:', matchResponse.status);
           throw new Error('Error al cargar datos del partido');
@@ -47,7 +48,7 @@ export default function StatsView({ route, navigation }) {
         if (matchData.teamId) {
           try {
             // Obtener todos los jugadores del equipo
-            const allPlayersResponse = await fetch(`http://localhost:3001/players/team/${matchData.teamId}`);
+            const allPlayersResponse = await fetch(`${API_BASE_URL}/players/team/${matchData.teamId}`);
             if (allPlayersResponse.ok) {
               const allPlayers = await allPlayersResponse.json();
               console.log('All team players retrieved:', allPlayers.length);
@@ -58,7 +59,7 @@ export default function StatsView({ route, navigation }) {
                 
                 // 3. Obtener todas las estadísticas de los jugadores
                 const allStatsResponse = await fetch(
-                  `http://localhost:3001/playerstats?matchId=${matchId}&playerIds=${allPlayerIds.join(',')}`
+                  `${API_BASE_URL}/playerstats?matchId=${matchId}&playerIds=${allPlayerIds.join(',')}`
                 );
                 
                 if (allStatsResponse.ok) {
@@ -142,7 +143,7 @@ export default function StatsView({ route, navigation }) {
             }
             
             // 7. Obtener nombre del equipo
-            const teamResponse = await fetch(`http://localhost:3001/teams/${matchData.teamId}`);
+            const teamResponse = await fetch(`${API_BASE_URL}/teams/${matchData.teamId}`);
             if (teamResponse.ok) {
               const teamData = await teamResponse.json();
               if (teamData.name) {

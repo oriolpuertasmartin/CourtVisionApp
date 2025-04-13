@@ -1,6 +1,8 @@
 import React, { useState, useEffect } from "react";
 import { View, Text, StyleSheet, TouchableOpacity, ActivityIndicator, ScrollView, Image, Alert } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
+import { useOrientation } from "../../components/OrientationHandler";
+import API_BASE_URL from "../../config/apiConfig";
 
 export default function TeamDetailsScreen({ route, navigation }) {
     const { teamId } = route.params;
@@ -15,11 +17,14 @@ export default function TeamDetailsScreen({ route, navigation }) {
         totalPoints: 0
     });
 
+    // Usar el hook de orientación
+    const orientation = useOrientation();
+
     useEffect(() => {
         async function loadData() {
             try {
                 // Cargar datos del equipo
-                const teamResponse = await fetch(`http://localhost:3001/teams/${teamId}`);
+                const teamResponse = await fetch(`${API_BASE_URL}/teams/${teamId}`);
                 if (!teamResponse.ok) {
                     throw new Error(`Error al cargar el equipo: ${teamResponse.status}`);
                 }
@@ -27,7 +32,7 @@ export default function TeamDetailsScreen({ route, navigation }) {
                 setTeam(teamData);
 
                 // Cargar jugadores del equipo
-                const playersResponse = await fetch(`http://localhost:3001/players/team/${teamId}`);
+                const playersResponse = await fetch(`${API_BASE_URL}/players/team/${teamId}`);
                 if (!playersResponse.ok) {
                     throw new Error(`Error al cargar los jugadores: ${playersResponse.status}`);
                 }
@@ -35,18 +40,20 @@ export default function TeamDetailsScreen({ route, navigation }) {
                 setPlayers(playersData);
 
                 // Cargar todos los partidos y filtrar por equipo
-                const matchesResponse = await fetch(`http://localhost:3001/matches`);
+                const matchesResponse = await fetch(`${API_BASE_URL}/matches`);
                 if (!matchesResponse.ok) {
                     throw new Error(`Error al cargar los partidos: ${matchesResponse.status}`);
                 }
                 
                 const allMatches = await matchesResponse.json();
                 
-                // Filtrar los partidos que pertenecen a este equipo
-                const teamMatches = allMatches.filter(match => 
-                    match.teamId === teamId || 
-                    (match.opponentTeam && match.opponentTeam._id === teamId)
-                );
+                // Filtrar los partidos que pertenecen a este equipo y ordenar por fecha (más recientes primero)
+                const teamMatches = allMatches
+                    .filter(match => 
+                        match.teamId === teamId || 
+                        (match.opponentTeam && match.opponentTeam._id === teamId)
+                    )
+                    .sort((a, b) => new Date(b.date) - new Date(a.date)); // Ordenar por fecha descendente
                 
                 setMatches(teamMatches);
 

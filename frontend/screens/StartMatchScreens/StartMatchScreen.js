@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { View, Alert, StyleSheet, TouchableOpacity, Text } from "react-native";
 import BoxSelector from "../../components/BoxSelector";
+import API_BASE_URL from "../../config/apiConfig";
 
 export default function StartMatchScreen({ user, navigation }) { 
   const [teams, setTeams] = useState([]);
@@ -13,7 +14,7 @@ export default function StartMatchScreen({ user, navigation }) {
           console.error("No se encontró el userId");
           return;
         }
-        const response = await fetch(`http://localhost:3001/teams/user/${user._id}`);
+        const response = await fetch(`${API_BASE_URL}/teams/user/${user._id}`);
         if (!response.ok) {
           throw new Error("Error al obtener equipos");
         }
@@ -31,7 +32,7 @@ export default function StartMatchScreen({ user, navigation }) {
   const handleSelectTeam = async (team) => {
     try {
       console.log("Equipo seleccionado:", team);
-      const response = await fetch(`http://localhost:3001/matches`, {
+      const response = await fetch(`${API_BASE_URL}/matches`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ teamId: team._id, userId: user._id }),

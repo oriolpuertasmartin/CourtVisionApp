@@ -3,8 +3,9 @@ import { StyleSheet, View, TouchableOpacity, Alert } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import BoxSelector from "../../components/BoxSelector";
 import PrimaryButton from "../../components/PrimaryButton";
+import API_BASE_URL from "../../config/apiConfig";
 
-export default function StartingPlayersScreen({ route, navigation }) {
+export default function StartingPlayers({ route, navigation }) {
   const { teamId: routeTeamId, updatedMatch } = route.params; // Recibe teamId y updatedMatch desde la navegación
   const teamId = routeTeamId || updatedMatch?.teamId; // Usa el teamId de updatedMatch si no se pasa directamente
 
@@ -27,7 +28,7 @@ export default function StartingPlayersScreen({ route, navigation }) {
 
         console.log("Fetching players for teamId:", teamId); // Log para depuración
 
-        const response = await fetch(`http://localhost:3001/players/team/${teamId}`);
+        const response = await fetch(`${API_BASE_URL}/players/team/${teamId}`);
         if (!response.ok) {
           throw new Error("Error al obtener los jugadores del equipo.");
         }
@@ -60,7 +61,7 @@ export default function StartingPlayersScreen({ route, navigation }) {
         console.log("Jugadores seleccionados para guardar:", selectedPlayers); // Log para depuración
   
         // Actualizar los jugadores titulares en el partido
-        const response = await fetch(`http://localhost:3001/matches/${updatedMatch._id}`, {
+        const response = await fetch(`${API_BASE_URL}/matches/${updatedMatch._id}`, {
           method: "PATCH",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({ startingPlayers: selectedPlayers }),
@@ -72,7 +73,7 @@ export default function StartingPlayersScreen({ route, navigation }) {
         console.log("Partido actualizado:", updatedMatchResponse); // Log para depuración
   
         // Obtener todos los jugadores del equipo
-        const playersResponse = await fetch(`http://localhost:3001/players/team/${teamId}`);
+        const playersResponse = await fetch(`${API_BASE_URL}/players/team/${teamId}`);
         if (!playersResponse.ok) {
           throw new Error("Error al obtener los jugadores del equipo.");
         }
@@ -80,7 +81,7 @@ export default function StartingPlayersScreen({ route, navigation }) {
         const allPlayerIds = allPlayers.map((player) => player._id);
   
         // Inicializar estadísticas de todos los jugadores
-        const statsResponse = await fetch(`http://localhost:3001/playerstats`, {
+        const statsResponse = await fetch(`${API_BASE_URL}/playerstats`, {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({ matchId: updatedMatch._id, playerIds: allPlayerIds }),

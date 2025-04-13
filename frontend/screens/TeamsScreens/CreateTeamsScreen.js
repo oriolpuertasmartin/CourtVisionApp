@@ -3,6 +3,8 @@ import { View, Text, StyleSheet, TouchableOpacity, Alert } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import BoxFill from "../../components/BoxFill";
 import PrimaryButton from "../../components/PrimaryButton";
+import { useOrientation } from "../../components/OrientationHandler";
+import API_BASE_URL from "../../config/apiConfig";
 
 export default function CreateTeamScreen({ route, navigation }) {
     const { userId } = route.params;
@@ -12,6 +14,9 @@ export default function CreateTeamScreen({ route, navigation }) {
         team_photo: ""
     });
 
+    // Usar el hook de orientación
+    const orientation = useOrientation();
+
     const handleSubmit = async () => {
         // Validar campos obligatorios
         if (!formData.name || !formData.category) {
@@ -20,7 +25,7 @@ export default function CreateTeamScreen({ route, navigation }) {
         }
 
         try {
-            const response = await fetch("http://localhost:3001/teams", {
+            const response = await fetch(`${API_BASE_URL}/teams`, {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify({

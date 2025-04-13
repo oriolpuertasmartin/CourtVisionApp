@@ -1,5 +1,6 @@
 import React, { useState } from "react";
 import { View, Text, StyleSheet, TextInput, TouchableOpacity, Alert } from "react-native";
+import API_BASE_URL from "../config/apiConfig";
 
 export default function LogIn({navigation, setUser}) {
   const [email, setEmail] = useState('');
@@ -13,7 +14,7 @@ export default function LogIn({navigation, setUser}) {
 
     try {
       console.log("📤 Enviando solicitud de inicio de sesión...", { email, password }); // <--- Agregado
-      const response = await fetch("http://localhost:3001/users/login", {
+      const response = await fetch(`${API_BASE_URL}/users/login`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json"

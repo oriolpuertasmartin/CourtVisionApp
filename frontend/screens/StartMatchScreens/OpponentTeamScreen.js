@@ -3,6 +3,7 @@ import { View, Text, TouchableOpacity, StyleSheet, Alert } from "react-native";
 import BoxFill from "../../components/BoxFill";
 import PrimaryButton from "../../components/PrimaryButton";
 import { Ionicons } from "@expo/vector-icons"; 
+import API_BASE_URL from "../../config/apiConfig";
 
 export default function OpponentTeamScreen({ route, navigation }) {
   const { matchId, teamId } = route.params;
@@ -14,7 +15,7 @@ export default function OpponentTeamScreen({ route, navigation }) {
 
   const handleSubmit = async () => {
     try {
-      const response = await fetch(`http://localhost:3001/matches/${matchId}`, {
+      const response = await fetch(`${API_BASE_URL}/matches/${matchId}`, {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({

@@ -3,6 +3,7 @@ import { View, Text, StyleSheet, TouchableOpacity, Alert, ScrollView, ActivityIn
 import { Ionicons } from "@expo/vector-icons";
 import BoxFill from "../../components/BoxFill";
 import PrimaryButton from "../../components/PrimaryButton";
+import API_BASE_URL from "../../config/apiConfig";
 
 export default function CreatePlayersScreen({ route, navigation }) {
     const { teamId } = route.params;
@@ -31,7 +32,7 @@ export default function CreatePlayersScreen({ route, navigation }) {
         const fetchTeamData = async () => {
             try {
                 setLoading(true);
-                const response = await fetch(`http://localhost:3001/teams/${teamId}`);
+                const response = await fetch(`${API_BASE_URL}/teams/${teamId}`);
                 if (response.ok) {
                     const data = await response.json();
                     setTeam(data);
@@ -48,7 +49,7 @@ export default function CreatePlayersScreen({ route, navigation }) {
 
         const fetchPlayers = async () => {
             try {
-                const response = await fetch(`http://localhost:3001/players/team/${teamId}`);
+                const response = await fetch(`${API_BASE_URL}/players/team/${teamId}`);
                 if (response.ok) {
                     const data = await response.json();
                     setPlayers(data);
@@ -79,7 +80,7 @@ export default function CreatePlayersScreen({ route, navigation }) {
         }
 
         try {
-            const response = await fetch("http://localhost:3001/players", {
+            const response = await fetch(`${API_BASE_URL}/players`, {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify({

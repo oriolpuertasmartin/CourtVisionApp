@@ -7,7 +7,7 @@ async function bootstrap() {
 
   // Habilitar CORS
   app.enableCors({
-    origin: '*', // Permitir solo este origen, para permitir todos los origenes '*'
+    origin: true, // Permitir cualquier origen
     methods: 'GET,HEAD,PUT,PATCH,POST,DELETE', // Métodos permitidos
     allowedHeaders: 'Content-Type, Authorization', // Headers permitidos
     credentials: true, // Si necesitas enviar cookies o autenticación

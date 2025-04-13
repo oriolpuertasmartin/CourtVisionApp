@@ -1,7 +1,7 @@
 import React from 'react';
 import { View, Text, TouchableOpacity, StyleSheet, ScrollView } from 'react-native';
 
-export default function BoxSelector({ title, items, onSelect, children, renderItemButtons, emptyMessage }) {
+export default function BoxSelector({ title, items, onSelect, children, renderItemButtons, emptyMessage, customRenderItem }) {
   return (
     <View style={styles.container}>
       {title && <Text style={styles.title}>{title}</Text>}
@@ -15,18 +15,25 @@ export default function BoxSelector({ title, items, onSelect, children, renderIt
           ) : (
             items.map((item, index) => (
               <View key={item._id || index} style={styles.itemContainer}>
-                <TouchableOpacity 
-                  style={[styles.itemButton, item.style]}
-                  onPress={() => onSelect(item)}
-                >
-                  <Text style={styles.itemButtonText}>{item.name}</Text>
-                  {item.subtitle && (
-                    <Text style={styles.itemSubtitle}>{item.subtitle}</Text>
-                  )}
-                </TouchableOpacity>
-                
-                {/* Renderizar botones personalizados si se proporcionan */}
-                {renderItemButtons && renderItemButtons(item)}
+                {customRenderItem ? (
+                  // Usar renderizado personalizado si está disponible
+                  customRenderItem(item)
+                ) : (
+                  <>
+                    <TouchableOpacity 
+                      style={[styles.itemButton, item.style]}
+                      onPress={() => onSelect(item)}
+                    >
+                      <Text style={styles.itemButtonText}>{item.name}</Text>
+                      {item.subtitle && (
+                        <Text style={styles.itemSubtitle}>{item.subtitle}</Text>
+                      )}
+                    </TouchableOpacity>
+                    
+                    {/* Renderizar botones personalizados si se proporcionan */}
+                    {renderItemButtons && renderItemButtons(item)}
+                  </>
+                )}
               </View>
             ))
           )}
@@ -75,17 +82,18 @@ const styles = StyleSheet.create({
     backgroundColor: '#FFF9E7',
     paddingVertical: 20,
     borderRadius: 8,
-    width: '100%',
-    alignItems: 'center',
+    paddingHorizontal: 15,
   },
   itemButtonText: {
     fontSize: 18,
-    fontWeight: 'bold',
+    fontWeight: '600',
+    textAlign: 'center',
   },
   itemSubtitle: {
     fontSize: 14,
-    color: '#777',
-    marginTop: 4,
+    color: '#666',
+    textAlign: 'center',
+    marginTop: 5,
   },
   childrenContainer: {
     width: '100%',
@@ -94,8 +102,8 @@ const styles = StyleSheet.create({
   },
   emptyMessage: {
     textAlign: 'center',
-    paddingVertical: 30,
+    color: '#666',
     fontSize: 16,
-    color: '#888',
+    padding: 20,
   },
 });

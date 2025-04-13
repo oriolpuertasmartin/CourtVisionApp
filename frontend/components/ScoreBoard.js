@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useRef } from "react";
 import { View, Text, StyleSheet, TouchableOpacity } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
+import API_BASE_URL from "../config/apiConfig";
 
 const Scoreboard = ({
   matchId,
@@ -19,6 +20,7 @@ const Scoreboard = ({
   const [match, setMatch] = useState(null);
   const [periodsHistory, setPeriodsHistory] = useState([]);
   const [showHistory, setShowHistory] = useState(false);
+  
 
   const [totalSeconds, setTotalSeconds] = useState(() => {
     const [min, sec] = initialTime.split(":").map(Number);
@@ -33,7 +35,7 @@ const Scoreboard = ({
       try {
         if (!matchId) return;
         
-        const response = await fetch(`http://localhost:3001/matches/${matchId}`);
+        const response = await fetch(`${API_BASE_URL}/matches/${matchId}`);
         if (!response.ok) throw new Error("Error al obtener datos del partido");
         
         const data = await response.json();
@@ -61,7 +63,7 @@ const Scoreboard = ({
         
         console.log("Actualizando período en el servidor:", currentPeriod);
         
-        const response = await fetch(`http://localhost:3001/matches/${matchId}`, {
+        const response = await fetch(`${API_BASE_URL}/matches/${matchId}`, {
           method: "PATCH",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({ 
@@ -150,7 +152,7 @@ const handlePeriodChange = async (newPeriod) => {
     if (matchId) {
       console.log("Guardando periodo usando endpoint general");
       
-      const response = await fetch(`http://localhost:3001/matches/${matchId}`, {
+      const response = await fetch(`${API_BASE_URL}/matches/${matchId}`, {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ 

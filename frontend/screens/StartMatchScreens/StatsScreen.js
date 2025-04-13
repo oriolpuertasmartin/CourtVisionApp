@@ -4,6 +4,7 @@ import PlayerButton from "../../components/PlayerButton";
 import StatsButtons from "../../components/StatsButtons";
 import Scoreboard from "../../components/ScoreBoard";
 import PrimaryButton from "../../components/PrimaryButton";
+import API_BASE_URL from "../../config/apiConfig";
 
 export default function StatsScreen({ route, navigation }) {
   const { selectedPlayers, matchId, teamId } = route.params;
@@ -25,7 +26,7 @@ export default function StatsScreen({ route, navigation }) {
       try {
         // Obtener datos del partido
         if (matchId) {
-          const matchRes = await fetch(`http://localhost:3001/matches/${matchId}`);
+          const matchRes = await fetch(`${API_BASE_URL}/matches/${matchId}`);
           if (matchRes.ok) {
             const matchData = await matchRes.json();
             
@@ -43,7 +44,7 @@ export default function StatsScreen({ route, navigation }) {
             // Obtener el nombre del equipo A 
             if (matchData.teamId) {
               try {
-                const teamRes = await fetch(`http://localhost:3001/teams/${matchData.teamId}`);
+                const teamRes = await fetch(`${API_BASE_URL}/teams/${matchData.teamId}`);
                 if (teamRes.ok) {
                   const teamData = await teamRes.json();
                   if (teamData && teamData.name) {
@@ -73,7 +74,7 @@ export default function StatsScreen({ route, navigation }) {
       try {
         if (!matchId || loading) return;
         
-        const response = await fetch(`http://localhost:3001/matches/${matchId}`, {
+        const response = await fetch(`${API_BASE_URL}/matches/${matchId}`, {
           method: "PATCH",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({ 
@@ -107,7 +108,7 @@ export default function StatsScreen({ route, navigation }) {
           return;
         }
 
-        const response = await fetch(`http://localhost:3001/players/team/${teamId}`);
+        const response = await fetch(`${API_BASE_URL}/players/team/${teamId}`);
         if (!response.ok) throw new Error("Error al obtener los jugadores del equipo.");
         const data = await response.json();
 
@@ -139,7 +140,7 @@ export default function StatsScreen({ route, navigation }) {
 
         // Fetch y combinar estadísticas de los jugadores titulares
         const responseStarting = await fetch(
-          `http://localhost:3001/playerstats?matchId=${matchId}&playerIds=${selectedPlayers.join(",")}`
+          `${API_BASE_URL}/playerstats?matchId=${matchId}&playerIds=${selectedPlayers.join(",")}`
         );
         if (!responseStarting.ok) {
           throw new Error("Error al obtener las estadísticas de los jugadores titulares");
@@ -147,7 +148,7 @@ export default function StatsScreen({ route, navigation }) {
         const startingStats = await responseStarting.json();
 
         const responsePlayers = await fetch(
-          `http://localhost:3001/players?ids=${selectedPlayers.join(",")}`
+          `${API_BASE_URL}/players?ids=${selectedPlayers.join(",")}`
         );
         if (!responsePlayers.ok) {
           throw new Error("Error al obtener los detalles de los jugadores titulares");
@@ -163,7 +164,7 @@ export default function StatsScreen({ route, navigation }) {
 
         // Obtener jugadores del banquillo
         if (teamId) {
-          const allPlayersRes = await fetch(`http://localhost:3001/players/team/${teamId}`);
+          const allPlayersRes = await fetch(`${API_BASE_URL}/players/team/${teamId}`);
           if (!allPlayersRes.ok) {
             throw new Error("Error al obtener todos los jugadores del equipo");
           }
@@ -175,7 +176,7 @@ export default function StatsScreen({ route, navigation }) {
           const benchIds = bench.map((p) => p._id);
           if (benchIds.length > 0) {
             const benchStatsRes = await fetch(
-              `http://localhost:3001/playerstats?matchId=${matchId}&playerIds=${benchIds.join(",")}`
+              `${API_BASE_URL}/playerstats?matchId=${matchId}&playerIds=${benchIds.join(",")}`
             );
             if (benchStatsRes.ok) {
               const stats = await benchStatsRes.json();
@@ -191,7 +192,7 @@ export default function StatsScreen({ route, navigation }) {
 
         // Obtener estadísticas del equipo oponente
         const opponentStatsRes = await fetch(
-          `http://localhost:3001/playerstats?matchId=${matchId}&playerIds=opponent`
+          `${API_BASE_URL}/playerstats?matchId=${matchId}&playerIds=opponent`
         );
         if (opponentStatsRes.ok) {
           const opponentStats = await opponentStatsRes.json();
@@ -344,7 +345,7 @@ export default function StatsScreen({ route, navigation }) {
   
       // Enviar actualización al servidor
       const response = await fetch(
-        `http://localhost:3001/playerstats/${playerStats.statsId}`,
+        `${API_BASE_URL}/playerstats/${playerStats.statsId}`,
         {
           method: "PATCH",
           headers: { "Content-Type": "application/json" },
@@ -390,7 +391,7 @@ export default function StatsScreen({ route, navigation }) {
         teamBFouls
       };
       
-      const response = await fetch(`http://localhost:3001/matches/${matchId}`, {
+      const response = await fetch(`${API_BASE_URL}/matches/${matchId}`, {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(updateData),
@@ -451,7 +452,10 @@ export default function StatsScreen({ route, navigation }) {
         <View style={styles.opponentButtonContainer}>
           <PlayerButton
             key="opponent"
-            player={{ name: "Opponent Team"}}
+            player={{ 
+              name: teamBName || "Opponent Team",
+              number: "",
+            }}
             playerstats={opponentsStats}
             onPress={() => handleSelectPlayer("opponent")}
             isSelected={selectedPlayerId === "opponent"}

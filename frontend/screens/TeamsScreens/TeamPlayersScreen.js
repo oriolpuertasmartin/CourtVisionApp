@@ -1,6 +1,8 @@
 import React, { useState, useEffect } from "react";
 import { View, Text, StyleSheet, TouchableOpacity, ActivityIndicator, FlatList, Alert } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
+import { useOrientation } from "../../components/OrientationHandler";
+import API_BASE_URL from "../../config/apiConfig";
 
 export default function TeamPlayersScreen({ route, navigation }) {
     const { teamId } = route.params;
@@ -8,13 +10,16 @@ export default function TeamPlayersScreen({ route, navigation }) {
     const [loading, setLoading] = useState(true);
     const [team, setTeam] = useState(null);
 
+    // Usar el hook de orientación
+    const orientation = useOrientation();
+
     useEffect(() => {
         async function loadData() {
             try {
                 setLoading(true);
                 
                 // Cargar información del equipo
-                const teamResponse = await fetch(`http://localhost:3001/teams/${teamId}`);
+                const teamResponse = await fetch(`${API_BASE_URL}/teams/${teamId}`);
                 if (!teamResponse.ok) {
                     throw new Error(`Error al cargar el equipo: ${teamResponse.status}`);
                 }
@@ -22,7 +27,7 @@ export default function TeamPlayersScreen({ route, navigation }) {
                 setTeam(teamData);
                 
                 // Cargar jugadores del equipo
-                const playersResponse = await fetch(`http://localhost:3001/players/team/${teamId}`);
+                const playersResponse = await fetch(`${API_BASE_URL}/players/team/${teamId}`);
                 if (!playersResponse.ok) {
                     throw new Error(`Error al cargar los jugadores: ${playersResponse.status}`);
                 }

@@ -1,5 +1,6 @@
 import React, { useState } from "react";
 import { View, Text, StyleSheet, TextInput, TouchableOpacity, Alert } from "react-native";
+import API_BASE_URL from "../config/apiConfig";
 
 export default function SignUp(props) {
   const [name, setFullname] = useState();
@@ -19,7 +20,7 @@ export default function SignUp(props) {
   
     try {
       console.log("📤 Enviando solicitud a backend..."); // <--- Agregado
-      const response = await fetch("http://localhost:3001/users/register", {
+      const response = await fetch(`${API_BASE_URL}/users/register`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json"

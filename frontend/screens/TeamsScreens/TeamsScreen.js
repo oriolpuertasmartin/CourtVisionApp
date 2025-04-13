@@ -1,7 +1,8 @@
 import React, { useState, useEffect } from "react";
 import { View, Text, StyleSheet, TouchableOpacity, Alert, Dimensions, ActivityIndicator } from "react-native";
 import BoxSelector from "../../components/BoxSelector";
-import { Ionicons } from "@expo/vector-icons";
+import { useOrientation } from "../../components/OrientationHandler";
+import API_BASE_URL from "../../config/apiConfig";
 
 export default function TeamsScreen({ navigation, route }) {
     const [teams, setTeams] = useState([]);
@@ -9,8 +10,8 @@ export default function TeamsScreen({ navigation, route }) {
     const [error, setError] = useState(null);
     const [user, setUser] = useState(route.params?.user || null);
 
-    // Obtener las dimensiones de la pantalla
-    const screenHeight = Dimensions.get('window').height;
+    // Usar el hook de orientación
+    const orientation = useOrientation();
 
     // Efecto combinado para manejar el usuario y cargar equipos
     useEffect(() => {
@@ -32,7 +33,7 @@ export default function TeamsScreen({ navigation, route }) {
                 setError(null);
                 console.log("Cargando equipos para usuario:", user._id);
                 
-                const response = await fetch(`http://localhost:3001/teams/user/${user._id}`);
+                const response = await fetch(`${API_BASE_URL}/teams/user/${user._id}`);
                 if (!response.ok) {
                     throw new Error(`Error ${response.status}: ${response.statusText}`);
                 }
@@ -91,30 +92,37 @@ export default function TeamsScreen({ navigation, route }) {
         navigation.navigate('CreateTeam', { userId: user._id });
     };
 
-    // Renderiza los botones de acción para cada equipo
-    const renderTeamButtons = (team) => {
+    // Personalización del renderizado de cada equipo
+    const renderTeamItem = (team) => {
         return (
-            <View style={styles.teamButtonsContainer}>
-                <TouchableOpacity 
-                    style={styles.teamActionButton}
-                    onPress={() => handleViewTeamMatches(team._id)}
-                >
-                    <Text style={styles.teamActionButtonText}>Matches</Text>
-                </TouchableOpacity>
+            <View style={styles.teamItemContainer}>
+                <View style={styles.teamInfoContainer}>
+                    <Text style={styles.teamName}>{team.name}</Text>
+                    <Text style={styles.teamCategory}>{team.category || 'Sin categoría'}</Text>
+                </View>
                 
-                <TouchableOpacity 
-                    style={styles.teamActionButton}
-                    onPress={() => handleViewTeamPlayers(team._id)}
-                >
-                    <Text style={styles.teamActionButtonText}>Players</Text>
-                </TouchableOpacity>
-                
-                <TouchableOpacity 
-                    style={styles.teamActionButton}
-                    onPress={() => handleViewTeamDetails(team._id)}
-                >
-                    <Text style={styles.teamActionButtonText}>Details</Text>
-                </TouchableOpacity>
+                <View style={styles.actionsRow}>
+                    <TouchableOpacity 
+                        style={styles.actionButton}
+                        onPress={() => handleViewTeamMatches(team._id)}
+                    >
+                        <Text style={styles.actionButtonText}>Matches</Text>
+                    </TouchableOpacity>
+                    
+                    <TouchableOpacity 
+                        style={styles.actionButton}
+                        onPress={() => handleViewTeamPlayers(team._id)}
+                    >
+                        <Text style={styles.actionButtonText}>Players</Text>
+                    </TouchableOpacity>
+                    
+                    <TouchableOpacity 
+                        style={styles.actionButton}
+                        onPress={() => handleViewTeamDetails(team._id)}
+                    >
+                        <Text style={styles.actionButtonText}>Details</Text>
+                    </TouchableOpacity>
+                </View>
             </View>
         );
     };
@@ -135,7 +143,7 @@ export default function TeamsScreen({ navigation, route }) {
                         style={styles.retryButton}
                         onPress={() => {
                             setLoading(true);
-                            loadTeams(); // Corregido: llama a loadTeams en lugar de fetchTeams
+                            loadTeams();
                         }}
                     >
                         <Text style={styles.retryButtonText}>Reintentar</Text>
@@ -145,8 +153,8 @@ export default function TeamsScreen({ navigation, route }) {
                 <View style={styles.boxSelectorContainer}>
                     <BoxSelector
                         items={teams}
-                        renderItemButtons={renderTeamButtons} // Nueva prop para renderizar botones personalizados
-                        onSelect={() => {}} // Ya no necesitamos esta función, ya que tenemos botones específicos
+                        customRenderItem={renderTeamItem}
+                        onSelect={() => {}} // Ya no necesitamos esta función
                         emptyMessage="No teams found. Create your first team!"
                     >
                         <TouchableOpacity 
@@ -225,23 +233,44 @@ const styles = StyleSheet.create({
         fontSize: 23,
         fontWeight: '600',
     },
-    teamButtonsContainer: {
-        flexDirection: 'row',
-        justifyContent: 'space-around',
+    // Estilos para el renderizado personalizado
+    teamItemContainer: {
         width: '100%',
-        marginTop: 8,
-        marginBottom: 5,
+        backgroundColor: '#FFF9E7',
+        borderRadius: 8,
+        padding: 15,
+        marginBottom: 15,
     },
-    teamActionButton: {
+    teamInfoContainer: {
+        marginBottom: 12,
+    },
+    teamName: {
+        fontSize: 18,
+        fontWeight: 'bold',
+        marginBottom: 3,
+    },
+    teamCategory: {
+        fontSize: 14,
+        color: '#777',
+    },
+    actionsRow: {
+        flexDirection: 'row',
+        justifyContent: 'space-between',
+        borderTopWidth: 1,
+        borderTopColor: '#E6E0CE',
+        paddingTop: 10,
+    },
+    actionButton: {
         backgroundColor: '#FFA500',
         paddingVertical: 8,
         paddingHorizontal: 15,
-        borderRadius: 5,
-        minWidth: 80,
+        borderRadius: 20,  // Esquinas más redondeadas
         alignItems: 'center',
+        justifyContent: 'center',
+        width: '30%',  // Ancho para que los tres botones quepan en la fila
     },
-    teamActionButtonText: {
-        color: 'white',
+    actionButtonText: {
+        color: 'white',  // Texto blanco para mejor contraste con fondo naranja
         fontWeight: 'bold',
         fontSize: 14,
     },
