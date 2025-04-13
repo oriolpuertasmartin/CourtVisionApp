@@ -1,41 +1,50 @@
 import React, { useState } from "react";
-import { View, Text, StyleSheet, TextInput, TouchableOpacity, Alert } from "react-native";
+import { View, Text, StyleSheet, TextInput, TouchableOpacity, Alert, ActivityIndicator } from "react-native";
 import API_BASE_URL from "../config/apiConfig";
+import { useMutation } from '@tanstack/react-query';
 
 export default function LogIn({navigation, setUser}) {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
-
-  const login = async () => {
-    if (!email || !password) {
-      Alert.alert('Error', 'Por favor, completa todos los campos.');
-      return;
-    }
-
-    try {
-      console.log("📤 Enviando solicitud de inicio de sesión...", { email, password }); // <--- Agregado
+  
+  // Usar useMutation para el proceso de inicio de sesión
+  const { mutate: loginUser, isPending, isError, error } = useMutation({
+    mutationFn: async (credentials) => {
       const response = await fetch(`${API_BASE_URL}/users/login`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json"
         },
-        body: JSON.stringify({ email, password })
+        body: JSON.stringify(credentials)
       });
-
+      
       const data = await response.json();
-      console.log("✅ Respuesta del backend:", data); // <--- Agregado
-
-      if (response.ok) {
-        Alert.alert('Inicio de sesión exitoso', 'Bienvenido de nuevo.');
-        setUser(data);
-        navigation.navigate('Main');
-      } else {
-        Alert.alert('Error en el inicio de sesión', data.message || 'Ha ocurrido un problema.');
+      
+      if (!response.ok) {
+        throw new Error(data.message || 'Error en el inicio de sesión');
       }
-    } catch (error) {
-      console.error("❌ Error en la solicitud:", error); // <--- Agregado
+      
+      return data;
+    },
+    onSuccess: (data) => {
+      setUser(data);
+      Alert.alert('Inicio de sesión exitoso', 'Bienvenido de nuevo.');
+      navigation.navigate('Main');
+    },
+    onError: (error) => {
       Alert.alert('Error en el inicio de sesión', error.message);
     }
+  });
+
+  const handleLogin = () => {
+    // Validación de campos
+    if (!email || !password) {
+      Alert.alert('Error', 'Por favor, completa todos los campos.');
+      return;
+    }
+    
+    // Ejecutar la mutación
+    loginUser({ email, password });
   };
 
   return (
@@ -48,6 +57,8 @@ export default function LogIn({navigation, setUser}) {
             style={[styles.input, { paddingHorizontal: 15 }]}
             onChangeText={(text) => setEmail(text)}
             value={email}
+            autoCapitalize="none"
+            keyboardType="email-address"
           />
         </View>
         <View style={styles.boxinside}>
@@ -60,13 +71,24 @@ export default function LogIn({navigation, setUser}) {
           />
         </View>
         <View style={styles.mainbuttonbox}>
-          <TouchableOpacity style={styles.buttonbox} onPress={login}>
-            <Text style={styles.buttontext}>Login</Text>
+          <TouchableOpacity 
+            style={[styles.buttonbox, isPending && styles.buttonDisabled]} 
+            onPress={handleLogin}
+            disabled={isPending}
+          >
+            {isPending ? (
+              <ActivityIndicator size="small" color="white" />
+            ) : (
+              <Text style={styles.buttontext}>Login</Text>
+            )}
           </TouchableOpacity>
         </View>
         <View style={styles.bottomtext}>
           <Text>¿No tienes una cuenta?</Text>
-          <TouchableOpacity onPress={() => navigation.navigate('Register')}>
+          <TouchableOpacity 
+            onPress={() => navigation.navigate('Register')}
+            disabled={isPending}
+          >
             <Text style={styles.signuptext}>Sign up</Text>
           </TouchableOpacity>
         </View>
@@ -120,6 +142,12 @@ const styles = StyleSheet.create({
     paddingVertical: 20,
     width: 150,
     marginTop: 20,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  buttonDisabled: {
+    backgroundColor: '#FFC966', // Un tono más claro para indicar estado deshabilitado
+    opacity: 0.7,
   },
   buttontext: {
     textAlign: 'center',

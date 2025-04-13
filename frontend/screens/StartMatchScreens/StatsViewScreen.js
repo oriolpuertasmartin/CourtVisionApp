@@ -1,18 +1,15 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { View, Text, StyleSheet, ScrollView, TouchableOpacity, ActivityIndicator, Alert, Platform } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import API_BASE_URL from "../../config/apiConfig";
+import { useQuery } from '@tanstack/react-query';
 
 // NO importamos los módulos nativos directamente
 // Serán importados dinámicamente solo cuando se necesiten
 
 export default function StatsView({ route, navigation }) {
   const { matchId } = route.params;
-  const [loading, setLoading] = useState(true);
-  const [playerStats, setPlayerStats] = useState([]);
   const [teamName, setTeamName] = useState('Mi Equipo');
-  const [match, setMatch] = useState(null);
-  const [periodsHistory, setPeriodsHistory] = useState([]);
   const [topPerformers, setTopPerformers] = useState({
     points: { player: null, value: 0 },
     rebounds: { player: null, value: 0 },
@@ -22,149 +19,204 @@ export default function StatsView({ route, navigation }) {
   });
   const [generatingPDF, setGeneratingPDF] = useState(false);
 
-  useEffect(() => {
-    async function fetchData() {
-      try {
-        console.log('Fetching match data for matchId:', matchId);
-        
-        // 1. Obtener datos del partido
-        const matchResponse = await fetch(`${API_BASE_URL}/matches/${matchId}`);
-        if (!matchResponse.ok) {
-          console.error('Error fetching match data:', matchResponse.status);
-          throw new Error('Error al cargar datos del partido');
-        }
-        
-        const matchData = await matchResponse.json();
-        console.log('Match data retrieved:', matchData);
-        setMatch(matchData);
-        
-        // Obtener historial de períodos si existe
-        if (matchData.periodsHistory && matchData.periodsHistory.length > 0) {
-          setPeriodsHistory(matchData.periodsHistory);
-          console.log('Periods history retrieved:', matchData.periodsHistory);
-        }
-        
-        // 2. Obtener todos los jugadores del equipo
-        if (matchData.teamId) {
-          try {
-            // Obtener todos los jugadores del equipo
-            const allPlayersResponse = await fetch(`${API_BASE_URL}/players/team/${matchData.teamId}`);
-            if (allPlayersResponse.ok) {
-              const allPlayers = await allPlayersResponse.json();
-              console.log('All team players retrieved:', allPlayers.length);
-              
-              if (allPlayers && allPlayers.length > 0) {
-                // Obtenemos IDs de todos los jugadores del equipo
-                const allPlayerIds = allPlayers.map(player => player._id);
-                
-                // 3. Obtener todas las estadísticas de los jugadores
-                const allStatsResponse = await fetch(
-                  `${API_BASE_URL}/playerstats?matchId=${matchId}&playerIds=${allPlayerIds.join(',')}`
-                );
-                
-                if (allStatsResponse.ok) {
-                  const allStatsData = await allStatsResponse.json();
-                  console.log('All player stats retrieved:', allStatsData.length);
-                  
-                  // 4. Combinar estadísticas con información de jugadores
-                  const combinedData = allStatsData.map(stat => ({
-                    ...stat,
-                    ...allPlayers.find(p => p._id === stat.playerId),
-                    isStarter: matchData.startingPlayers?.includes(stat.playerId)
-                  }));
-                  
-                  // 5. Ordenar para que los titulares aparezcan primero
-                  const sortedStats = combinedData.sort((a, b) => {
-                    // Si uno es titular y otro no, el titular va primero
-                    if (a.isStarter && !b.isStarter) return -1;
-                    if (!a.isStarter && b.isStarter) return 1;
-                    
-                    // Si ambos son del mismo tipo, ordenar por puntos
-                    return (b.points || 0) - (a.points || 0);
-                  });
-                  
-                  setPlayerStats(sortedStats);
-                  
-                  // 6. Calcular jugadores destacados
-                  const top = {
-                    points: { player: null, value: 0 },
-                    rebounds: { player: null, value: 0 },
-                    assists: { player: null, value: 0 },
-                    steals: { player: null, value: 0 },
-                    blocks: { player: null, value: 0 }
-                  };
-                  
-                  // Encontrar el mejor en cada categoría
-                  sortedStats.forEach(player => {
-                    // Máximo anotador
-                    if ((player.points || 0) > top.points.value) {
-                      top.points = { 
-                        player: `${player.name} #${player.number}`, 
-                        value: player.points || 0 
-                      };
-                    }
-                    
-                    // Máximo reboteador
-                    if ((player.rebounds || 0) > top.rebounds.value) {
-                      top.rebounds = { 
-                        player: `${player.name} #${player.number}`, 
-                        value: player.rebounds || 0 
-                      };
-                    }
-                    
-                    // Máximo asistente
-                    if ((player.assists || 0) > top.assists.value) {
-                      top.assists = { 
-                        player: `${player.name} #${player.number}`, 
-                        value: player.assists || 0 
-                      };
-                    }
-                    
-                    // Máximo en robos
-                    if ((player.steals || 0) > top.steals.value) {
-                      top.steals = { 
-                        player: `${player.name} #${player.number}`, 
-                        value: player.steals || 0 
-                      };
-                    }
-                    
-                    // Máximo en tapones
-                    if ((player.blocks || 0) > top.blocks.value) {
-                      top.blocks = { 
-                        player: `${player.name} #${player.number}`, 
-                        value: player.blocks || 0 
-                      };
-                    }
-                  });
-                  
-                  setTopPerformers(top);
-                }
-              }
-            }
-            
-            // 7. Obtener nombre del equipo
-            const teamResponse = await fetch(`${API_BASE_URL}/teams/${matchData.teamId}`);
-            if (teamResponse.ok) {
-              const teamData = await teamResponse.json();
-              if (teamData.name) {
-                setTeamName(teamData.name);
-              }
-            }
-            
-          } catch (error) {
-            console.error('Error fetching team data:', error);
-          }
-        }
-        
-      } catch (error) {
-        console.error('Error fetching match data:', error);
-      } finally {
-        setLoading(false);
+  // Consulta para obtener datos del partido
+  const {
+    data: match,
+    isLoading: isMatchLoading,
+    isError: isMatchError,
+    error: matchError
+  } = useQuery({
+    queryKey: ['match', matchId],
+    queryFn: async () => {
+      const response = await fetch(`${API_BASE_URL}/matches/${matchId}`);
+      if (!response.ok) {
+        throw new Error(`Error al cargar el partido: ${response.status}`);
       }
+      return await response.json();
+    },
+    enabled: !!matchId
+  });
+
+  // Consulta para obtener el historial de períodos
+  const {
+    data: periodsHistory = [],
+    isLoading: isPeriodsLoading
+  } = useQuery({
+    queryKey: ['periods', matchId],
+    queryFn: async () => {
+      // Usamos los datos del partido si ya están disponibles
+      if (match?.periodsHistory) {
+        return match.periodsHistory;
+      }
+      
+      // O hacemos una petición específica si es necesario
+      const response = await fetch(`${API_BASE_URL}/matches/${matchId}/periods`);
+      if (!response.ok) {
+        throw new Error(`Error al cargar los períodos: ${response.status}`);
+      }
+      return await response.json();
+    },
+    enabled: !!matchId,
+    initialData: []
+  });
+
+  // Consulta para obtener jugadores del equipo
+  const {
+    data: allPlayers = [],
+    isLoading: isPlayersLoading
+  } = useQuery({
+    queryKey: ['allplayers', match?.teamId],
+    queryFn: async () => {
+      const response = await fetch(`${API_BASE_URL}/players/team/${match.teamId}`);
+      if (!response.ok) {
+        throw new Error(`Error al cargar jugadores: ${response.status}`);
+      }
+      return await response.json();
+    },
+    enabled: !!match?.teamId
+  });
+
+  // Consulta para obtener el equipo
+  const {
+    data: team,
+    isLoading: isTeamLoading
+  } = useQuery({
+    queryKey: ['team', match?.teamId],
+    queryFn: async () => {
+      const response = await fetch(`${API_BASE_URL}/teams/${match.teamId}`);
+      if (!response.ok) {
+        throw new Error(`Error al cargar el equipo: ${response.status}`);
+      }
+      
+      const teamData = await response.json();
+      // Actualizamos el nombre del equipo
+      setTeamName(teamData.name || 'Mi Equipo');
+      return teamData;
+    },
+    enabled: !!match?.teamId
+  });
+
+  // Consulta para obtener las estadísticas de los jugadores
+  const {
+    data: allStatsData = [],
+    isLoading: isStatsLoading
+  } = useQuery({
+    queryKey: ['playerstats', 'match', matchId, allPlayers?.map(p => p._id)?.join(',')],
+    queryFn: async () => {
+      if (!allPlayers || allPlayers.length === 0) return [];
+      
+      const allPlayerIds = allPlayers.map(player => player._id);
+      
+      const response = await fetch(
+        `${API_BASE_URL}/playerstats?matchId=${matchId}&playerIds=${allPlayerIds.join(',')}`
+      );
+      
+      if (!response.ok) {
+        throw new Error(`Error al cargar estadísticas: ${response.status}`);
+      }
+      
+      return await response.json();
+    },
+    enabled: !!matchId && allPlayers.length > 0,
+    onSuccess: (data) => {
+      processPlayerStats(data);
     }
+  });
+
+  // Función para procesar los datos de estadísticas y jugadores
+  const processPlayerStats = (statsData) => {
+    if (!statsData || !allPlayers) return;
     
-    fetchData();
-  }, [matchId]);
+    // Combinar estadísticas con información de jugadores
+    const top = {
+      points: { player: null, value: 0 },
+      rebounds: { player: null, value: 0 },
+      assists: { player: null, value: 0 },
+      steals: { player: null, value: 0 },
+      blocks: { player: null, value: 0 }
+    };
+    
+    statsData.forEach(player => {
+      // Máximo anotador
+      if ((player.points || 0) > top.points.value) {
+        const playerInfo = allPlayers.find(p => p._id === player.playerId);
+        if (playerInfo) {
+          top.points = { 
+            player: `${playerInfo.name} #${playerInfo.number}`, 
+            value: player.points || 0 
+          };
+        }
+      }
+      
+      // Máximo reboteador
+      if ((player.rebounds || 0) > top.rebounds.value) {
+        const playerInfo = allPlayers.find(p => p._id === player.playerId);
+        if (playerInfo) {
+          top.rebounds = { 
+            player: `${playerInfo.name} #${playerInfo.number}`, 
+            value: player.rebounds || 0 
+          };
+        }
+      }
+      
+      // Máximo asistente
+      if ((player.assists || 0) > top.assists.value) {
+        const playerInfo = allPlayers.find(p => p._id === player.playerId);
+        if (playerInfo) {
+          top.assists = { 
+            player: `${playerInfo.name} #${playerInfo.number}`, 
+            value: player.assists || 0 
+          };
+        }
+      }
+      
+      // Máximo en robos
+      if ((player.steals || 0) > top.steals.value) {
+        const playerInfo = allPlayers.find(p => p._id === player.playerId);
+        if (playerInfo) {
+          top.steals = { 
+            player: `${playerInfo.name} #${playerInfo.number}`, 
+            value: player.steals || 0 
+          };
+        }
+      }
+      
+      // Máximo en tapones
+      if ((player.blocks || 0) > top.blocks.value) {
+        const playerInfo = allPlayers.find(p => p._id === player.playerId);
+        if (playerInfo) {
+          top.blocks = { 
+            player: `${playerInfo.name} #${playerInfo.number}`, 
+            value: player.blocks || 0 
+          };
+        }
+      }
+    });
+    
+    setTopPerformers(top);
+  };
+
+  // Procesamiento de los datos de los jugadores para la tabla
+  const playerStats = React.useMemo(() => {
+    if (!allStatsData.length || !allPlayers.length || !match) return [];
+    
+    // Combinar estadísticas con información de jugadores
+    const combinedData = allStatsData.map(stat => ({
+      ...stat,
+      ...allPlayers.find(p => p._id === stat.playerId),
+      isStarter: match.startingPlayers?.includes(stat.playerId)
+    }));
+    
+    // Ordenar para que los titulares aparezcan primero
+    return combinedData.sort((a, b) => {
+      // Si uno es titular y otro no, el titular va primero
+      if (a.isStarter && !b.isStarter) return -1;
+      if (!a.isStarter && b.isStarter) return 1;
+      
+      // Si ambos son del mismo tipo, ordenar por puntos
+      return (b.points || 0) - (a.points || 0);
+    });
+  }, [allStatsData, allPlayers, match]);
   
   // Simple función para volver a la pantalla principal
   const handleGoBack = () => {
@@ -499,12 +551,28 @@ export default function StatsView({ route, navigation }) {
       </html>
     `;
   };
+
+  // Verifica si está cargando cualquiera de las consultas
+  const isLoading = isMatchLoading || isPeriodsLoading || isPlayersLoading || 
+                   isTeamLoading || isStatsLoading;
   
-  if (loading) {
+  if (isLoading) {
     return (
       <View style={styles.container}>
         <ActivityIndicator size="large" color="#FFA500" />
         <Text style={styles.loadingText}>Cargando estadísticas...</Text>
+      </View>
+    );
+  }
+
+  // Verifica si hay error en la consulta principal
+  if (isMatchError) {
+    return (
+      <View style={styles.container}>
+        <Text style={styles.errorText}>{matchError?.message || "Error al cargar datos del partido"}</Text>
+        <TouchableOpacity style={styles.returnButton} onPress={handleGoBack}>
+          <Text style={styles.returnButtonText}>Volver al inicio</Text>
+        </TouchableOpacity>
       </View>
     );
   }
@@ -812,6 +880,24 @@ const styles = StyleSheet.create({
     marginTop: 10,
     fontSize: 16,
     textAlign: 'center',
+  },
+  errorText: {
+    fontSize: 16,
+    color: "#D32F2F",
+    textAlign: 'center',
+    marginBottom: 20,
+    paddingHorizontal: 30,
+  },
+  returnButton: {
+    backgroundColor: '#FFA500',
+    paddingVertical: 12,
+    paddingHorizontal: 25,
+    borderRadius: 8,
+  },
+  returnButtonText: {
+    color: 'white',
+    fontWeight: 'bold',
+    fontSize: 16,
   },
   matchSummary: {
     padding: 20,

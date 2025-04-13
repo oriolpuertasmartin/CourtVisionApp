@@ -1,80 +1,146 @@
 import React, { useState } from "react";
-import { View, Text, StyleSheet, TextInput, TouchableOpacity, Alert } from "react-native";
+import { View, Text, StyleSheet, TextInput, TouchableOpacity, Alert, ActivityIndicator } from "react-native";
 import API_BASE_URL from "../config/apiConfig";
+import { useMutation } from '@tanstack/react-query';
 
-export default function SignUp(props) {
-  const [name, setFullname] = useState();
-  const [username, setUsername] = useState();
-  const [email, setEmail] = useState();
-  const [password, setPassword] = useState();
-  const [phone, setPhone] = useState();
+export default function SignUp({ navigation }) {
+  const [formData, setFormData] = useState({
+    name: "",
+    username: "",
+    email: "",
+    password: "",
+    phone: ""
+  });
 
-  const signup = async () => {
-    console.log("🔹 Botón Sign Up presionado"); // <--- Agregado
-  
-    if (!name || !username || !email || !password || !phone) {
-      Alert.alert('Error', 'Por favor, completa todos los campos.');
-      console.log("⛔ Falta completar campos"); // <--- Agregado
-      return;
-    }
-  
-    try {
-      console.log("📤 Enviando solicitud a backend..."); // <--- Agregado
+  // Usar useMutation para el proceso de registro
+  const { mutate: registerUser, isPending, isError, error } = useMutation({
+    mutationFn: async (userData) => {
       const response = await fetch(`${API_BASE_URL}/users/register`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json"
         },
-        body: JSON.stringify({ name, username, email, password, phone })
+        body: JSON.stringify(userData)
       });
-  
+
       const data = await response.json();
-      console.log("✅ Respuesta del backend:", data); // <--- Agregado
-  
-      if (response.ok) {
-        Alert.alert('Registro exitoso', 'Bienvenido...');
-        props.navigation.navigate('Login'); // Redirigir a la pantalla de inicio de sesión
-      } else {
-        Alert.alert('Error en el registro', data.message || 'Ha ocurrido un problema.');
+      
+      if (!response.ok) {
+        throw new Error(data.message || 'Error en el registro');
       }
-    } catch (error) {
-      console.error("❌ Error en la solicitud:", error); // <--- Agregado
+      
+      return data;
+    },
+    onSuccess: (data) => {
+      Alert.alert('Registro exitoso', 'Tu cuenta ha sido creada correctamente.');
+      navigation.navigate('Login');
+    },
+    onError: (error) => {
       Alert.alert('Error en el registro', error.message);
     }
-  };  
+  });
+
+  const handleChange = (field, value) => {
+    setFormData(prev => ({
+      ...prev,
+      [field]: value
+    }));
+  };
+
+  const handleSubmit = () => {
+    // Validación de campos
+    const { name, username, email, password, phone } = formData;
+    
+    if (!name || !username || !email || !password || !phone) {
+      Alert.alert('Error', 'Por favor, completa todos los campos.');
+      return;
+    }
+
+    // Validación básica de email
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(email)) {
+      Alert.alert('Error', 'Por favor, introduce un email válido.');
+      return;
+    }
+    
+    // Ejecutar la mutación de registro
+    registerUser(formData);
+  };
 
   return (
     <View style={styles.screen}>
       <Text style={styles.principalText}>Register</Text>
       <View style={styles.box}>
         <View style={styles.boxinside}>
-          <TextInput placeholder='Full name' style={[styles.input, { paddingHorizontal: 15 }]}
-            onChangeText={(text) => setFullname(text)} />
+          <TextInput 
+            placeholder='Full name' 
+            style={[styles.input, { paddingHorizontal: 15 }]}
+            onChangeText={(text) => handleChange('name', text)}
+            value={formData.name}
+            autoCapitalize="words"
+            editable={!isPending}
+          />
         </View>
         <View style={styles.boxinside}>
-          <TextInput placeholder='Username' style={[styles.input, { paddingHorizontal: 15 }]}
-            onChangeText={(text) => setUsername(text)} />
+          <TextInput 
+            placeholder='Username' 
+            style={[styles.input, { paddingHorizontal: 15 }]}
+            onChangeText={(text) => handleChange('username', text)}
+            value={formData.username}
+            autoCapitalize="none"
+            editable={!isPending}
+          />
         </View>
         <View style={styles.boxinside}>
-          <TextInput placeholder='Email' style={[styles.input, { paddingHorizontal: 15 }]}
-            onChangeText={(text) => setEmail(text)} />
+          <TextInput 
+            placeholder='Email' 
+            style={[styles.input, { paddingHorizontal: 15 }]}
+            onChangeText={(text) => handleChange('email', text)}
+            value={formData.email}
+            keyboardType="email-address"
+            autoCapitalize="none"
+            editable={!isPending}
+          />
         </View>
         <View style={styles.boxinside}>
-          <TextInput placeholder='Password' style={[styles.input, { paddingHorizontal: 15 }]} secureTextEntry={true}
-            onChangeText={(text) => setPassword(text)} />
+          <TextInput 
+            placeholder='Password' 
+            style={[styles.input, { paddingHorizontal: 15 }]} 
+            secureTextEntry={true}
+            onChangeText={(text) => handleChange('password', text)}
+            value={formData.password}
+            editable={!isPending}
+          />
         </View>
         <View style={styles.boxinside}>
-          <TextInput placeholder='Phone' style={[styles.input, { paddingHorizontal: 15 }]}
-            onChangeText={(text) => setPhone(text)} />
+          <TextInput 
+            placeholder='Phone' 
+            style={[styles.input, { paddingHorizontal: 15 }]}
+            onChangeText={(text) => handleChange('phone', text)}
+            value={formData.phone}
+            keyboardType="phone-pad"
+            editable={!isPending}
+          />
         </View>
         <View style={styles.mainbuttonbox}>
-          <TouchableOpacity style={styles.buttonbox} onPress={signup}>
-            <Text style={styles.buttontext}>Sign up</Text>
+          <TouchableOpacity 
+            style={[styles.buttonbox, isPending && styles.buttonDisabled]} 
+            onPress={handleSubmit}
+            disabled={isPending}
+          >
+            {isPending ? (
+              <ActivityIndicator size="small" color="white" />
+            ) : (
+              <Text style={styles.buttontext}>Sign up</Text>
+            )}
           </TouchableOpacity>
         </View>
         <View style={styles.bottomtext}>
           <Text>Already have an account?</Text>
-          <TouchableOpacity onPress={() => props.navigation.navigate('Login')}>
+          <TouchableOpacity 
+            onPress={() => navigation.navigate('Login')}
+            disabled={isPending}
+          >
             <Text style={styles.signuptext}>Login</Text>
           </TouchableOpacity>
         </View>
@@ -85,10 +151,10 @@ export default function SignUp(props) {
 
 const styles = StyleSheet.create({
   principalText: {
-      fontSize: 40,
-      color: 'white',
-      marginBottom: 20,
-      fontWeight: 'bold',
+    fontSize: 40,
+    color: 'white',
+    marginBottom: 20,
+    fontWeight: 'bold',
   },
   screen: {
     flex: 1,
@@ -128,6 +194,12 @@ const styles = StyleSheet.create({
     paddingVertical: 20,
     width: 150,
     marginTop: 20,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  buttonDisabled: {
+    backgroundColor: '#FFC966', // Un tono más claro para indicar estado deshabilitado
+    opacity: 0.7,
   },
   buttontext: {
     textAlign: 'center',
