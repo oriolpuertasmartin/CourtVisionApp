@@ -21,7 +21,7 @@ export class Team {
   wins: number;
 
   @Prop({ default: 0 })
-  loses: number;
+  losses: number;
 
   @Prop({ default: Date.now })
   created_at: Date;

@@ -80,18 +80,19 @@ export default function TeamDetailsScreen({ route, navigation }) {
     // Calcular estadísticas del equipo también con useMemo
     const stats = useMemo(() => {
         const totalMatches = matches.length;
-        const completedMatches = matches.filter(match => match.status === 'completed');
-        const wins = completedMatches.filter(match => match.teamAScore > match.teamBScore).length;
-        const losses = completedMatches.filter(match => match.teamAScore <= match.teamBScore).length;
-        const totalPoints = completedMatches.reduce((sum, match) => sum + (match.teamAScore || 0), 0);
-
+        
+        // Usar los valores directamente del objeto team en lugar de calcularlos
+        const wins = team?.wins || 0;
+        const losses = team?.losses || 0;
+        const nPlayers = players.length;
+    
         return {
             totalMatches,
             wins,
             losses,
-            totalPoints
+            nPlayers,
         };
-    }, [matches]);
+    }, [matches, players, team]);
 
     // Verificar estado de carga y error
     const isLoading = isTeamLoading || isPlayersLoading || isMatchesLoading;
@@ -160,8 +161,8 @@ export default function TeamDetailsScreen({ route, navigation }) {
                             <Text style={styles.statLabel}>Losses</Text>
                         </View>
                         <View style={styles.statItem}>
-                            <Text style={styles.statValue}>{stats.totalPoints}</Text>
-                            <Text style={styles.statLabel}>Points</Text>
+                            <Text style={styles.statValue}>{stats.nPlayers}</Text>
+                            <Text style={styles.statLabel}>NPlayers</Text>
                         </View>
                     </View>
                 </View>

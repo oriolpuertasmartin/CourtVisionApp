@@ -401,7 +401,32 @@ export default function StatsScreen({ route, navigation }) {
         throw new Error("Error al finalizar el partido");
       }
       
-      // Navegar a la vista de estadísticas
+      // Update team stats based on game result
+      if (teamId) {
+        const statsUpdate = teamAScore > teamBScore 
+          ? { incrementWins: 1 } 
+          : { incrementLosses: 1 };
+
+        console.log("Enviando actualización de estadísticas:", statsUpdate);
+          
+        const teamStatsResponse = await fetch(`${API_BASE_URL}/teams/${teamId}/stats`, {
+          method: "PATCH",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(statsUpdate),
+        });
+        
+        if (!teamStatsResponse.ok) {
+          console.error("Error al actualizar estadísticas del equipo");
+        } else {
+          const updatedTeam = await teamStatsResponse.json();
+          console.log("Respuesta actualización equipo:", updatedTeam);
+          Alert.alert("Equipo actualizado", 
+            `Victorias: ${updatedTeam.wins}, Derrotas: ${updatedTeam.losses}`
+          );
+        }
+      }
+      
+      // Navigate to stats view
       navigation.reset({
         index: 0,
         routes: [

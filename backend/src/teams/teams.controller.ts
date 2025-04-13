@@ -1,5 +1,6 @@
-import { Controller, Post, Get, Param, Body, UnauthorizedException } from '@nestjs/common';
+import { Controller, Post, Get, Param, Body, UnauthorizedException, Patch, BadRequestException } from '@nestjs/common';
 import { TeamsService } from './teams.service';
+import { isValidObjectId } from 'mongoose';
 
 // http://localhost:3001/users
 @Controller('teams')
@@ -18,4 +19,16 @@ export class TeamsController {
      console.log("Buscando equipo con ID:", id); // Log para depuración
      return this.teamsService.findById(id);
    }
+
+  @Patch(':id/stats')
+  async updateTeamStats(
+    @Param('id') id: string,
+    @Body() statsUpdate: { incrementWins?: number; incrementLosses?: number; incrementDraws?: number }
+  ) {
+    if (!isValidObjectId(id)) {
+      throw new BadRequestException(`ID de equipo inválido: ${id}`);
+    }
+    
+    return this.teamsService.updateStats(id, statsUpdate);
+  }
 }

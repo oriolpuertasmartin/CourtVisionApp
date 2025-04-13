@@ -73,6 +73,12 @@ export default function TeamsScreen({ navigation, route }) {
                 <View style={styles.actionsRow}>
                     <TouchableOpacity 
                         style={styles.actionButton}
+                        onPress={() => handleViewTeamDetails(team._id)}
+                    >
+                        <Text style={styles.actionButtonText}>Details</Text>
+                    </TouchableOpacity>
+                    <TouchableOpacity 
+                        style={styles.actionButton}
                         onPress={() => handleViewTeamMatches(team._id)}
                     >
                         <Text style={styles.actionButtonText}>Matches</Text>
@@ -83,13 +89,6 @@ export default function TeamsScreen({ navigation, route }) {
                         onPress={() => handleViewTeamPlayers(team._id)}
                     >
                         <Text style={styles.actionButtonText}>Players</Text>
-                    </TouchableOpacity>
-                    
-                    <TouchableOpacity 
-                        style={styles.actionButton}
-                        onPress={() => handleViewTeamDetails(team._id)}
-                    >
-                        <Text style={styles.actionButtonText}>Details</Text>
                     </TouchableOpacity>
                 </View>
             </View>
