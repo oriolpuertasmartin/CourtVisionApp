@@ -1,49 +1,52 @@
-import React, { useState, useEffect } from "react";
+import React, { useState } from "react";
 import { View, Text, StyleSheet, TouchableOpacity, ActivityIndicator, FlatList, Alert } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { useOrientation } from "../../components/OrientationHandler";
 import API_BASE_URL from "../../config/apiConfig";
+import { useQuery } from "@tanstack/react-query";
 
 export default function TeamPlayersScreen({ route, navigation }) {
     const { teamId } = route.params;
-    const [players, setPlayers] = useState([]);
-    const [loading, setLoading] = useState(true);
-    const [team, setTeam] = useState(null);
-
+    
     // Usar el hook de orientación
     const orientation = useOrientation();
-
-    useEffect(() => {
-        async function loadData() {
-            try {
-                setLoading(true);
-                
-                // Cargar información del equipo
-                const teamResponse = await fetch(`${API_BASE_URL}/teams/${teamId}`);
-                if (!teamResponse.ok) {
-                    throw new Error(`Error al cargar el equipo: ${teamResponse.status}`);
-                }
-                const teamData = await teamResponse.json();
-                setTeam(teamData);
-                
-                // Cargar jugadores del equipo
-                const playersResponse = await fetch(`${API_BASE_URL}/players/team/${teamId}`);
-                if (!playersResponse.ok) {
-                    throw new Error(`Error al cargar los jugadores: ${playersResponse.status}`);
-                }
-                const playersData = await playersResponse.json();
-                setPlayers(playersData);
-                
-            } catch (error) {
-                console.error("Error al cargar datos:", error);
-                Alert.alert("Error", "No se pudieron cargar los datos del equipo");
-            } finally {
-                setLoading(false);
+    
+    // Consulta para obtener la información del equipo
+    const {
+        data: team,
+        isLoading: isTeamLoading,
+        isError: isTeamError,
+        error: teamError
+    } = useQuery({
+        queryKey: ['team', teamId],
+        queryFn: async () => {
+            const response = await fetch(`${API_BASE_URL}/teams/${teamId}`);
+            if (!response.ok) {
+                throw new Error(`Error al cargar el equipo: ${response.status}`);
             }
-        }
-        
-        loadData();
-    }, [teamId]);
+            return await response.json();
+        },
+        enabled: !!teamId
+    });
+    
+    // Consulta para obtener los jugadores del equipo
+    const {
+        data: players = [],
+        isLoading: isPlayersLoading,
+        isError: isPlayersError,
+        error: playersError,
+        refetch: refetchPlayers
+    } = useQuery({
+        queryKey: ['players', teamId],
+        queryFn: async () => {
+            const response = await fetch(`${API_BASE_URL}/players/team/${teamId}`);
+            if (!response.ok) {
+                throw new Error(`Error al cargar los jugadores: ${response.status}`);
+            }
+            return await response.json();
+        },
+        enabled: !!teamId
+    });
 
     const handleAddPlayer = () => {
         navigation.navigate('CreatePlayer', { teamId });
@@ -64,11 +67,29 @@ export default function TeamPlayersScreen({ route, navigation }) {
         </View>
     );
 
-    if (loading) {
+    const isLoading = isTeamLoading || isPlayersLoading;
+    const isError = isTeamError || isPlayersError;
+    const errorMessage = teamError?.message || playersError?.message;
+
+    if (isLoading) {
         return (
             <View style={styles.loadingContainer}>
                 <ActivityIndicator size="large" color="#FFA500" />
                 <Text style={styles.loadingText}>Cargando jugadores...</Text>
+            </View>
+        );
+    }
+
+    if (isError) {
+        return (
+            <View style={styles.loadingContainer}>
+                <Text style={styles.errorText}>{errorMessage || "Error al cargar datos"}</Text>
+                <TouchableOpacity 
+                    style={styles.retryButton}
+                    onPress={() => refetchPlayers()}
+                >
+                    <Text style={styles.retryButtonText}>Reintentar</Text>
+                </TouchableOpacity>
             </View>
         );
     }
@@ -126,6 +147,24 @@ const styles = StyleSheet.create({
         fontSize: 16,
         marginTop: 10,
         color: "#666",
+    },
+    errorText: {
+        fontSize: 16,
+        color: "#D32F2F",
+        textAlign: 'center',
+        marginBottom: 20,
+        paddingHorizontal: 30,
+    },
+    retryButton: {
+        backgroundColor: '#FFA500',
+        paddingVertical: 12,
+        paddingHorizontal: 25,
+        borderRadius: 8,
+    },
+    retryButtonText: {
+        color: 'white',
+        fontWeight: 'bold',
+        fontSize: 16,
     },
     backButton: {
         position: "absolute",

@@ -5,6 +5,7 @@ import BoxFill from "../../components/BoxFill";
 import PrimaryButton from "../../components/PrimaryButton";
 import { useOrientation } from "../../components/OrientationHandler";
 import API_BASE_URL from "../../config/apiConfig";
+import { useMutation } from '@tanstack/react-query';
 
 export default function CreateTeamScreen({ route, navigation }) {
     const { userId } = route.params;
@@ -17,28 +18,22 @@ export default function CreateTeamScreen({ route, navigation }) {
     // Usar el hook de orientación
     const orientation = useOrientation();
 
-    const handleSubmit = async () => {
-        // Validar campos obligatorios
-        if (!formData.name || !formData.category) {
-            Alert.alert("Error", "Please fill in the required fields: Name and Category");
-            return;
-        }
-
-        try {
+    // Usar useMutation para crear un equipo
+    const { mutate: createTeam, isPending } = useMutation({
+        mutationFn: async (teamData) => {
             const response = await fetch(`${API_BASE_URL}/teams`, {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({
-                    ...formData,
-                    user_id: userId
-                }),
+                body: JSON.stringify(teamData),
             });
-
+            
             if (!response.ok) {
                 throw new Error("Error creating team");
             }
-
-            const newTeam = await response.json();
+            
+            return await response.json();
+        },
+        onSuccess: (newTeam) => {
             Alert.alert(
                 "Success", 
                 "Team created successfully!",
@@ -54,10 +49,24 @@ export default function CreateTeamScreen({ route, navigation }) {
                     }
                 ]
             );
-        } catch (error) {
-            console.error("Error creating team:", error);
+        },
+        onError: (error) => {
             Alert.alert("Error", "Failed to create team");
         }
+    });
+
+    const handleSubmit = () => {
+        // Validar campos obligatorios
+        if (!formData.name || !formData.category) {
+            Alert.alert("Error", "Please fill in the required fields: Name and Category");
+            return;
+        }
+
+        // Ejecutar la mutación
+        createTeam({
+            ...formData,
+            user_id: userId
+        });
     };
 
     return (
@@ -80,9 +89,10 @@ export default function CreateTeamScreen({ route, navigation }) {
                 onChangeForm={setFormData}
             >
                 <PrimaryButton
-                    title="Create Team"
+                    title={isPending ? "Creating..." : "Create Team"}
                     onPress={handleSubmit}
                     style={styles.createButton}
+                    disabled={isPending}
                 />
                 <PrimaryButton
                     title="Add Players"
@@ -94,6 +104,7 @@ export default function CreateTeamScreen({ route, navigation }) {
                         handleSubmit();
                     }}
                     style={styles.addPlayersButton}
+                    disabled={isPending}
                 />
             </BoxFill>
         </View>

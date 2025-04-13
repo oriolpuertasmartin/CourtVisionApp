@@ -1,92 +1,122 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useMemo } from "react";
 import { View, Text, StyleSheet, TouchableOpacity, ActivityIndicator, ScrollView, Image, Alert } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { useOrientation } from "../../components/OrientationHandler";
 import API_BASE_URL from "../../config/apiConfig";
+import { useQuery } from '@tanstack/react-query';
 
 export default function TeamDetailsScreen({ route, navigation }) {
     const { teamId } = route.params;
-    const [team, setTeam] = useState(null);
-    const [players, setPlayers] = useState([]);
-    const [matches, setMatches] = useState([]);
-    const [loading, setLoading] = useState(true);
-    const [stats, setStats] = useState({
-        totalMatches: 0,
-        wins: 0,
-        losses: 0,
-        totalPoints: 0
-    });
-
+    
     // Usar el hook de orientación
     const orientation = useOrientation();
 
-    useEffect(() => {
-        async function loadData() {
-            try {
-                // Cargar datos del equipo
-                const teamResponse = await fetch(`${API_BASE_URL}/teams/${teamId}`);
-                if (!teamResponse.ok) {
-                    throw new Error(`Error al cargar el equipo: ${teamResponse.status}`);
-                }
-                const teamData = await teamResponse.json();
-                setTeam(teamData);
-
-                // Cargar jugadores del equipo
-                const playersResponse = await fetch(`${API_BASE_URL}/players/team/${teamId}`);
-                if (!playersResponse.ok) {
-                    throw new Error(`Error al cargar los jugadores: ${playersResponse.status}`);
-                }
-                const playersData = await playersResponse.json();
-                setPlayers(playersData);
-
-                // Cargar todos los partidos y filtrar por equipo
-                const matchesResponse = await fetch(`${API_BASE_URL}/matches`);
-                if (!matchesResponse.ok) {
-                    throw new Error(`Error al cargar los partidos: ${matchesResponse.status}`);
-                }
-                
-                const allMatches = await matchesResponse.json();
-                
-                // Filtrar los partidos que pertenecen a este equipo y ordenar por fecha (más recientes primero)
-                const teamMatches = allMatches
-                    .filter(match => 
-                        match.teamId === teamId || 
-                        (match.opponentTeam && match.opponentTeam._id === teamId)
-                    )
-                    .sort((a, b) => new Date(b.date) - new Date(a.date)); // Ordenar por fecha descendente
-                
-                setMatches(teamMatches);
-
-                // Calcular estadísticas del equipo
-                const totalMatches = teamMatches.length;
-                const completedMatches = teamMatches.filter(match => match.status === 'completed');
-                const wins = completedMatches.filter(match => match.teamAScore > match.teamBScore).length;
-                const losses = completedMatches.filter(match => match.teamAScore <= match.teamBScore).length;
-                const totalPoints = completedMatches.reduce((sum, match) => sum + (match.teamAScore || 0), 0);
-
-                setStats({
-                    totalMatches,
-                    wins,
-                    losses,
-                    totalPoints
-                });
-
-            } catch (error) {
-                console.error("Error al cargar datos:", error);
-                Alert.alert("Error", "No se pudieron cargar los datos del equipo");
-            } finally {
-                setLoading(false);
+    // Consulta para obtener los datos del equipo
+    const {
+        data: team,
+        isLoading: isTeamLoading,
+        isError: isTeamError,
+        error: teamError,
+        refetch: refetchTeam
+    } = useQuery({
+        queryKey: ['team', teamId],
+        queryFn: async () => {
+            const response = await fetch(`${API_BASE_URL}/teams/${teamId}`);
+            if (!response.ok) {
+                throw new Error(`Error al cargar el equipo: ${response.status}`);
             }
+            return await response.json();
+        },
+        enabled: !!teamId
+    });
+
+    // Consulta para obtener los jugadores del equipo
+    const {
+        data: players = [],
+        isLoading: isPlayersLoading,
+        isError: isPlayersError,
+        error: playersError
+    } = useQuery({
+        queryKey: ['players', 'team', teamId],
+        queryFn: async () => {
+            const response = await fetch(`${API_BASE_URL}/players/team/${teamId}`);
+            if (!response.ok) {
+                throw new Error(`Error al cargar los jugadores: ${response.status}`);
+            }
+            return await response.json();
+        },
+        enabled: !!teamId
+    });
+
+    // Consulta para obtener todos los partidos
+    const {
+        data: allMatches = [],
+        isLoading: isMatchesLoading,
+        isError: isMatchesError,
+        error: matchesError
+    } = useQuery({
+        queryKey: ['matches'],
+        queryFn: async () => {
+            const response = await fetch(`${API_BASE_URL}/matches`);
+            if (!response.ok) {
+                throw new Error(`Error al cargar los partidos: ${response.status}`);
+            }
+            return await response.json();
         }
+    });
 
-        loadData();
-    }, [teamId]);
+    // Filtrar los partidos del equipo usando useMemo para evitar cálculos innecesarios
+    const matches = useMemo(() => {
+        if (!allMatches.length || !teamId) return [];
+        
+        return allMatches
+            .filter(match => 
+                match.teamId === teamId || 
+                (match.opponentTeam && match.opponentTeam._id === teamId)
+            )
+            .sort((a, b) => new Date(b.date) - new Date(a.date));
+    }, [allMatches, teamId]);
 
-    if (loading) {
+    // Calcular estadísticas del equipo también con useMemo
+    const stats = useMemo(() => {
+        const totalMatches = matches.length;
+        const completedMatches = matches.filter(match => match.status === 'completed');
+        const wins = completedMatches.filter(match => match.teamAScore > match.teamBScore).length;
+        const losses = completedMatches.filter(match => match.teamAScore <= match.teamBScore).length;
+        const totalPoints = completedMatches.reduce((sum, match) => sum + (match.teamAScore || 0), 0);
+
+        return {
+            totalMatches,
+            wins,
+            losses,
+            totalPoints
+        };
+    }, [matches]);
+
+    // Verificar estado de carga y error
+    const isLoading = isTeamLoading || isPlayersLoading || isMatchesLoading;
+    const isError = isTeamError || isPlayersError || isMatchesError;
+    const errorMessage = teamError?.message || playersError?.message || matchesError?.message;
+
+    if (isLoading) {
         return (
             <View style={styles.loadingContainer}>
                 <ActivityIndicator size="large" color="#FFA500" />
                 <Text style={styles.loadingText}>Cargando información del equipo...</Text>
+            </View>
+        );
+    }
+
+    if (isError) {
+        return (
+            <View style={styles.loadingContainer}>
+                <Text style={styles.errorText}>{errorMessage || "Error al cargar datos"}</Text>
+                <TouchableOpacity 
+                    style={styles.retryButton}
+                    onPress={() => refetchTeam()}
+                >
+                    <Text style={styles.retryButtonText}>Reintentar</Text>
+                </TouchableOpacity>
             </View>
         );
     }
@@ -232,6 +262,24 @@ const styles = StyleSheet.create({
         fontSize: 16,
         marginTop: 10,
         color: "#666",
+    },
+    errorText: {
+        fontSize: 16,
+        color: "#D32F2F",
+        textAlign: 'center',
+        marginBottom: 20,
+        paddingHorizontal: 30,
+    },
+    retryButton: {
+        backgroundColor: '#FFA500',
+        paddingVertical: 12,
+        paddingHorizontal: 25,
+        borderRadius: 8,
+    },
+    retryButtonText: {
+        color: 'white',
+        fontWeight: 'bold',
+        fontSize: 16,
     },
     backButton: {
         position: "absolute",

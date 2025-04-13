@@ -1,15 +1,15 @@
-import React, { useState, useEffect } from "react";
+import React, { useState } from "react";
 import { View, Text, StyleSheet, TouchableOpacity, Alert, ScrollView, ActivityIndicator } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import BoxFill from "../../components/BoxFill";
 import PrimaryButton from "../../components/PrimaryButton";
 import API_BASE_URL from "../../config/apiConfig";
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 
 export default function CreatePlayersScreen({ route, navigation }) {
     const { teamId } = route.params;
-    const [team, setTeam] = useState(null);
-    const [players, setPlayers] = useState([]);
-    const [loading, setLoading] = useState(true);
+    const queryClient = useQueryClient();
+    
     const [formData, setFormData] = useState({
         name: "",
         number: "",
@@ -21,52 +21,88 @@ export default function CreatePlayersScreen({ route, navigation }) {
         player_photo: ""
     });
 
-    // Cargar datos del equipo
-    useEffect(() => {
-        if (!teamId) {
-            Alert.alert("Error", "No team ID provided");
+    // Consulta para obtener datos del equipo
+    const {
+        data: team,
+        isLoading: isTeamLoading,
+        isError: isTeamError
+    } = useQuery({
+        queryKey: ['team', teamId],
+        queryFn: async () => {
+            if (!teamId) return null;
+            
+            const response = await fetch(`${API_BASE_URL}/teams/${teamId}`);
+            if (!response.ok) {
+                throw new Error(`Error: ${response.status}`);
+            }
+            return await response.json();
+        },
+        enabled: !!teamId,
+        onError: (error) => {
+            Alert.alert("Error", "Failed to load team data");
             navigation.goBack();
-            return;
         }
+    });
 
-        const fetchTeamData = async () => {
-            try {
-                setLoading(true);
-                const response = await fetch(`${API_BASE_URL}/teams/${teamId}`);
-                if (response.ok) {
-                    const data = await response.json();
-                    setTeam(data);
-                } else {
-                    throw new Error(`Error: ${response.status}`);
-                }
-            } catch (error) {
-                console.error("Error loading team data:", error);
-                Alert.alert("Error", "Failed to load team data");
-            } finally {
-                setLoading(false);
+    // Consulta para obtener jugadores del equipo
+    const {
+        data: players = [],
+        isLoading: isPlayersLoading,
+        isError: isPlayersError,
+        refetch: refetchPlayers
+    } = useQuery({
+        queryKey: ['players', 'team', teamId],
+        queryFn: async () => {
+            if (!teamId) return [];
+            
+            const response = await fetch(`${API_BASE_URL}/players/team/${teamId}`);
+            if (!response.ok) {
+                throw new Error(`Error: ${response.status}`);
             }
-        };
+            return await response.json();
+        },
+        enabled: !!teamId
+    });
 
-        const fetchPlayers = async () => {
-            try {
-                const response = await fetch(`${API_BASE_URL}/players/team/${teamId}`);
-                if (response.ok) {
-                    const data = await response.json();
-                    setPlayers(data);
-                } else {
-                    throw new Error(`Error: ${response.status}`);
-                }
-            } catch (error) {
-                console.error("Error loading players:", error);
-                Alert.alert("Error", "Failed to load team players");
+    // Mutation para añadir un jugador
+    const { mutate: addPlayer, isPending: isAdding } = useMutation({
+        mutationFn: async (playerData) => {
+            const response = await fetch(`${API_BASE_URL}/players`, {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify(playerData),
+            });
+            
+            if (!response.ok) {
+                throw new Error("Error adding player");
             }
-        };
+            
+            return await response.json();
+        },
+        onSuccess: (newPlayer) => {
+            // Limpiar formulario
+            setFormData({
+                name: "",
+                number: "",
+                position: "",
+                height: "",
+                weight: "",
+                age: "",
+                nationality: "",
+                player_photo: ""
+            });
+            
+            // Actualizar caché de React Query
+            queryClient.invalidateQueries({ queryKey: ['players', 'team', teamId] });
+            
+            Alert.alert("Success", "Player added successfully!");
+        },
+        onError: (error) => {
+            Alert.alert("Error", "Failed to add player");
+        }
+    });
 
-        fetchTeamData();
-        fetchPlayers();
-    }, [teamId, navigation]);
-
-    const handleAddPlayer = async () => {
+    const handleAddPlayer = () => {
         // Validar campos obligatorios
         if (!formData.name || !formData.number || !formData.position) {
             Alert.alert("Error", "Please fill in the required fields: Name, Number, and Position");
@@ -79,48 +115,18 @@ export default function CreatePlayersScreen({ route, navigation }) {
             return;
         }
 
-        try {
-            const response = await fetch(`${API_BASE_URL}/players`, {
-                method: "POST",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({
-                    name: formData.name,
-                    number: parseInt(formData.number),
-                    position: formData.position,
-                    height: formData.height ? parseInt(formData.height) : null,
-                    weight: formData.weight ? parseInt(formData.weight) : null,
-                    age: formData.age ? parseInt(formData.age) : null,
-                    nationality: formData.nationality || "",
-                    player_photo: formData.player_photo || "",
-                    team_id: teamId
-                }),
-            });
-
-            if (!response.ok) {
-                throw new Error("Error adding player");
-            }
-
-            // Limpiar formulario
-            setFormData({
-                name: "",
-                number: "",
-                position: "",
-                height: "",
-                weight: "",
-                age: "",
-                nationality: "",
-                player_photo: ""
-            });
-
-            // Actualizar lista de jugadores
-            const newPlayer = await response.json();
-            setPlayers(prevPlayers => [...prevPlayers, newPlayer]);
-            
-            Alert.alert("Success", "Player added successfully!");
-        } catch (error) {
-            console.error("Error adding player:", error);
-            Alert.alert("Error", "Failed to add player");
-        }
+        // Ejecutar la mutación
+        addPlayer({
+            name: formData.name,
+            number: parseInt(formData.number),
+            position: formData.position,
+            height: formData.height ? parseInt(formData.height) : null,
+            weight: formData.weight ? parseInt(formData.weight) : null,
+            age: formData.age ? parseInt(formData.age) : null,
+            nationality: formData.nationality || "",
+            player_photo: formData.player_photo || "",
+            team_id: teamId
+        });
     };
 
     const handleFinish = () => {
@@ -129,21 +135,19 @@ export default function CreatePlayersScreen({ route, navigation }) {
             // Primero intentamos con navegación anidada
             navigation.navigate("Teams", { screen: "TeamsList" });
         } catch (error) {
-            console.error("Error navigating with nested navigation:", error);
-            
             // Si falla, intentamos navegar directamente al Stack de Teams
             try {
                 navigation.navigate("TeamsList");
             } catch (innerError) {
-                console.error("Error navigating to TeamsList:", innerError);
-                
                 // Si todo falla, simplemente volvemos atrás
                 navigation.goBack();
             }
         }
     };
 
-    if (loading) {
+    const isLoading = isTeamLoading || isPlayersLoading;
+
+    if (isLoading) {
         return (
             <View style={[styles.container, styles.loadingContainer]}>
                 <ActivityIndicator size="large" color="#FFA500" />
@@ -198,14 +202,16 @@ export default function CreatePlayersScreen({ route, navigation }) {
                 onChangeForm={setFormData}
             >
                 <PrimaryButton
-                    title="Add Player"
+                    title={isAdding ? "Adding..." : "Add Player"}
                     onPress={handleAddPlayer}
                     style={styles.addButton}
+                    disabled={isAdding}
                 />
                 <PrimaryButton
                     title="Finish"
                     onPress={handleFinish}
                     style={styles.finishButton}
+                    disabled={isAdding}
                 />
             </BoxFill>
         </View>

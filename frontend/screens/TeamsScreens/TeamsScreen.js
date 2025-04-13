@@ -1,94 +1,63 @@
 import React, { useState, useEffect } from "react";
-import { View, Text, StyleSheet, TouchableOpacity, Alert, Dimensions, ActivityIndicator } from "react-native";
+import { View, Text, StyleSheet, TouchableOpacity, Alert, ActivityIndicator } from "react-native";
 import BoxSelector from "../../components/BoxSelector";
 import { useOrientation } from "../../components/OrientationHandler";
 import API_BASE_URL from "../../config/apiConfig";
+import { useQuery } from '@tanstack/react-query';
 
 export default function TeamsScreen({ navigation, route }) {
-    const [teams, setTeams] = useState([]);
-    const [loading, setLoading] = useState(true);
-    const [error, setError] = useState(null);
     const [user, setUser] = useState(route.params?.user || null);
 
     // Usar el hook de orientación
     const orientation = useOrientation();
 
-    // Efecto combinado para manejar el usuario y cargar equipos
+    // Actualizar usuario si cambia en route.params
     useEffect(() => {
-        // Actualizar usuario si cambia en route.params
         if (route.params?.user) {
             setUser(route.params.user);
         }
-        
-        // Intentar cargar equipos si tenemos usuario
-        async function loadTeams() {
-            if (!user || !user._id) {
-                console.log("No hay usuario disponible para cargar equipos");
-                setLoading(false);
-                return;
-            }
-            
-            try {
-                setLoading(true);
-                setError(null);
-                console.log("Cargando equipos para usuario:", user._id);
-                
-                const response = await fetch(`${API_BASE_URL}/teams/user/${user._id}`);
-                if (!response.ok) {
-                    throw new Error(`Error ${response.status}: ${response.statusText}`);
-                }
-                
-                const data = await response.json();
-                console.log("Equipos cargados correctamente:", data.length);
-                setTeams(data);
-            } catch (error) {
-                console.error("Error al cargar equipos:", error);
-                setError("No se pudieron cargar los equipos. Por favor, intenta de nuevo.");
-                Alert.alert(
-                    "Error", 
-                    "No se pudieron cargar los equipos. ¿Quieres intentar de nuevo?",
-                    [
-                        {
-                            text: "Cancelar",
-                            style: "cancel"
-                        },
-                        {
-                            text: "Reintentar",
-                            onPress: () => loadTeams()
-                        }
-                    ]
-                );
-            } finally {
-                setLoading(false);
-            }
-        }
-        
-        loadTeams();
     }, [route.params?.user]);
 
+    // Implementación de useQuery para cargar equipos
+    const {
+        data: teams = [],        // (1) Destructura la propiedad data y le da un alias "teams" con valor por defecto []
+        isLoading,               // (2) Estado que indica si la consulta está cargando
+        isError,                 // (3) Estado que indica si hubo un error
+        error: queryError,       // (4) Destructura el error y le da un alias "queryError"
+        refetch                  // (5) Función para volver a ejecutar la consulta manualmente
+    } = useQuery({
+        queryKey: ['teams', user?._id],   // (6) Clave única para identificar esta consulta
+        queryFn: async () => {            // (7) Función que ejecuta la petición
+            if (!user || !user._id) return [];  // (8) Validación para no hacer la petición sin usuario
+            
+            const response = await fetch(`${API_BASE_URL}/teams/user/${user._id}`);  // (9) Llamada a la API
+            if (!response.ok) {                                                       // (10) Validación de respuesta
+                throw new Error(`Error ${response.status}: ${response.statusText}`);  // (11) Lanzar error si falla
+            }
+            
+            return await response.json();  // (12) Parsear y devolver los datos JSON
+        },
+        enabled: !!user?._id,             // (13) Control para activar/desactivar la consulta
+    });
+
     const handleViewTeamDetails = (teamId) => {
-        // Navegar a la pantalla de resumen del equipo
         navigation.navigate('TeamDetails', { teamId });
     };
 
     const handleViewTeamMatches = (teamId) => {
-        // Navegar a la pantalla de partidos del equipo
         navigation.navigate('TeamMatches', { teamId, userId: user?._id });
     };
 
     const handleViewTeamPlayers = (teamId) => {
-        // Navegar a los detalles del equipo seleccionado
         navigation.navigate('TeamPlayers', { teamId });
     };
 
     const handleCreateTeam = () => {
-        // Verificar que tenemos un usuario antes de navegar
         if (!user || !user._id) {
             Alert.alert("Error", "No se pudo identificar al usuario. Por favor, inicia sesión de nuevo.");
             return;
         }
         
-        // Navegar a la pantalla de creación de equipo
         navigation.navigate('CreateTeam', { userId: user._id });
     };
 
@@ -131,20 +100,17 @@ export default function TeamsScreen({ navigation, route }) {
         <View style={styles.container}>
             <Text style={styles.headerTitle}>My Teams</Text>
             
-            {loading ? (
+            {isLoading ? (
                 <View style={styles.loadingContainer}>
                     <ActivityIndicator size="large" color="#FFA500" />
                     <Text style={styles.loadingText}>Cargando equipos...</Text>
                 </View>
-            ) : error ? (
+            ) : isError ? (
                 <View style={styles.errorContainer}>
-                    <Text style={styles.errorText}>{error}</Text>
+                    <Text style={styles.errorText}>{queryError?.message || "No se pudieron cargar los equipos. Por favor, intenta de nuevo."}</Text>
                     <TouchableOpacity 
                         style={styles.retryButton}
-                        onPress={() => {
-                            setLoading(true);
-                            loadTeams();
-                        }}
+                        onPress={() => refetch()}
                     >
                         <Text style={styles.retryButtonText}>Reintentar</Text>
                     </TouchableOpacity>
@@ -154,7 +120,7 @@ export default function TeamsScreen({ navigation, route }) {
                     <BoxSelector
                         items={teams}
                         customRenderItem={renderTeamItem}
-                        onSelect={() => {}} // Ya no necesitamos esta función
+                        onSelect={() => {}}
                         emptyMessage="No teams found. Create your first team!"
                     >
                         <TouchableOpacity 
@@ -171,6 +137,7 @@ export default function TeamsScreen({ navigation, route }) {
 }
 
 const styles = StyleSheet.create({
+    // Todos los estilos se mantienen sin cambios
     container: {
         flex: 1,
         backgroundColor: "#FFF8E1",
@@ -233,7 +200,6 @@ const styles = StyleSheet.create({
         fontSize: 23,
         fontWeight: '600',
     },
-    // Estilos para el renderizado personalizado
     teamItemContainer: {
         width: '100%',
         backgroundColor: '#FFF9E7',
@@ -264,13 +230,13 @@ const styles = StyleSheet.create({
         backgroundColor: '#FFA500',
         paddingVertical: 8,
         paddingHorizontal: 15,
-        borderRadius: 20,  // Esquinas más redondeadas
+        borderRadius: 20,
         alignItems: 'center',
         justifyContent: 'center',
-        width: '30%',  // Ancho para que los tres botones quepan en la fila
+        width: '30%',
     },
     actionButtonText: {
-        color: 'white',  // Texto blanco para mejor contraste con fondo naranja
+        color: 'white',
         fontWeight: 'bold',
         fontSize: 14,
     },

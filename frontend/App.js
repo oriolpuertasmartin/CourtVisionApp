@@ -1,10 +1,12 @@
-import React, { useState, useEffect } from 'react';
-import { View, Text, StyleSheet, ActivityIndicator } from 'react-native';
+import React, { useState, useEffect, useRef } from 'react';
+import { View, Text, StyleSheet, ActivityIndicator, Platform } from 'react-native';
 import { StatusBar } from 'expo-status-bar';
 import { NavigationContainer } from '@react-navigation/native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { createDrawerNavigator, DrawerContentScrollView, DrawerItemList } from '@react-navigation/drawer';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
+import { ReactQueryDevtools } from '@tanstack/react-query-devtools';
 
 // Importación de pantallas y componentes personalizados
 import WelcomeScreen from './screens/WelcomeScreen';
@@ -25,6 +27,17 @@ import OpponentTeamScreen from './screens/StartMatchScreens/OpponentTeamScreen';
 import StartingPlayersScreen from './screens/StartMatchScreens/StartingPlayersScreen';
 import StatsScreen from './screens/StartMatchScreens/StatsScreen';
 import StatsView from './screens/StartMatchScreens/StatsViewScreen';
+
+// Creación del cliente de Query
+const queryClient = new QueryClient({
+  defaultOptions: {
+    queries: {
+      retry: 2,
+      refetchOnWindowFocus: false,
+      staleTime: 30000,
+    },
+  },
+});
 
 // Creación de los navegadores
 const Stack = createNativeStackNavigator();
@@ -139,7 +152,7 @@ function StartMatchStack({ user }) {
 }
 
 // Configuración del Drawer Navigator
-function DrawerNavigator({ user }) {
+function DrawerNavigator({ user, handleLogout }) {
   return (
     <Drawer.Navigator
       drawerContent={(props) => <CustomDrawerContent {...props} />}
@@ -165,7 +178,9 @@ function DrawerNavigator({ user }) {
         {(props) => <StartMatchStack {...props} user={user} />}
       </Drawer.Screen>
       <Drawer.Screen name="Info" component={InfoScreen} />
-      <Drawer.Screen name="Settings" component={SettingsScreen} />
+      <Drawer.Screen name="Settings">
+        {(props) => <SettingsScreen {...props} handleLogout={handleLogout} />}
+      </Drawer.Screen>
     </Drawer.Navigator>
   );
 }
@@ -174,6 +189,49 @@ function DrawerNavigator({ user }) {
 export default function App() {
   const [user, setUser] = useState(null); // Estado para almacenar el usuario autenticado
   const [loading, setLoading] = useState(true); // Estado para manejar la carga inicial
+  const [navigationReady, setNavigationReady] = useState(false);
+  const navigationRef = useRef(null);
+
+  // Función centralizada para manejar el cierre de sesión
+  const handleLogout = async () => {
+    try {
+      console.log('Cerrando sesión...');
+      
+      // Primero limpiar el almacenamiento y la caché
+      await AsyncStorage.removeItem('user');
+      queryClient.clear();
+      
+      // Luego actualizar el estado
+      setUser(null);
+      
+      // Finalmente, navegar a la pantalla de bienvenida
+      if (navigationRef.current) {
+        console.log('Navegando a Welcome...');
+        if (Platform.OS === 'web') {
+          // En web, a veces reset no funciona bien, usar navigate
+          navigationRef.current.navigate('Welcome');
+        } else {
+          // En móvil, usar reset que es más seguro
+          navigationRef.current.reset({
+            index: 0,
+            routes: [{ name: 'Welcome' }],
+          });
+        }
+      } else {
+        console.error('navigationRef no está disponible');
+        // Fallback para web
+        if (Platform.OS === 'web' && window) {
+          window.location.reload();
+        }
+      }
+    } catch (error) {
+      console.error('Error al cerrar sesión:', error);
+      // Intento alternativo para web
+      if (Platform.OS === 'web' && window) {
+        window.location.href = '/';
+      }
+    }
+  };
 
   // Restaurar el usuario desde AsyncStorage al iniciar la app
   useEffect(() => {
@@ -198,14 +256,15 @@ export default function App() {
       try {
         if (user) {
           await AsyncStorage.setItem('user', JSON.stringify(user));
-        } else {
-          await AsyncStorage.removeItem('user');
         }
       } catch (error) {
         console.error('Error al guardar el usuario en AsyncStorage:', error);
       }
     };
-    saveUser();
+    
+    if (user !== null) {
+      saveUser();
+    }
   }, [user]);
 
   if (loading) {
@@ -218,57 +277,64 @@ export default function App() {
   }
 
   return (
-    <View style={{ flex: 1 }}>
-      {/* Contenedor de navegación */}
-      <NavigationContainer>
-        <StatusBar style="auto" />
-        <Stack.Navigator initialRouteName={user ? "Main" : "Welcome"}>
-          {/* Pantalla de bienvenida */}
-          <Stack.Screen 
-            name="Welcome" 
-            component={WelcomeScreen} 
-            options={{ headerShown: false }}
+    <QueryClientProvider client={queryClient}>
+      <View style={{ flex: 1 }}>
+        {/* Contenedor de navegación */}
+        <NavigationContainer 
+          ref={navigationRef}
+          onReady={() => setNavigationReady(true)}
+        >
+          <StatusBar style="auto" />
+          <Stack.Navigator initialRouteName={user ? "Main" : "Welcome"}>
+            {/* Pantalla de bienvenida */}
+            <Stack.Screen 
+              name="Welcome" 
+              component={WelcomeScreen} 
+              options={{ headerShown: false }}
+            />
+            {/* Pantalla de inicio de sesión */}
+            <Stack.Screen 
+              name="Login"
+              options={{
+                headerBackTitleVisible: false,
+                headerTransparent: true,
+                title: '',
+                headerTintColor: 'white',
+              }}
+            >
+              {(props) => <LoginScreen {...props} setUser={setUser} />}
+            </Stack.Screen>
+            {/* Pantalla de registro */}
+            <Stack.Screen 
+              name="Register" 
+              component={RegisterScreen} 
+              options={{
+                headerBackTitleVisible: false,
+                headerTransparent: true,
+                title: '',
+                headerTintColor: 'white',
+              }}
+            />
+            {/* Pantalla principal con el Drawer */}
+            <Stack.Screen 
+              name="Main" 
+              options={{ headerShown: false }}
+            >
+              {(props) => <DrawerNavigator {...props} user={user} handleLogout={handleLogout} />}
+            </Stack.Screen>
+          </Stack.Navigator>
+        </NavigationContainer>
+        {/* Botón flotante para mostrar información del usuario */}
+        {user && (
+          <FloatingUserButton 
+            user={user}
+            onPress={() => console.log('Floating button pressed')}
+            onLogout={handleLogout}
           />
-          {/* Pantalla de inicio de sesión */}
-          <Stack.Screen 
-            name="Login"
-            options={{
-              headerBackTitleVisible: false,
-              headerTransparent: true,
-              title: '',
-              headerTintColor: 'white',
-            }}
-          >
-            {(props) => <LoginScreen {...props} setUser={setUser} />}
-          </Stack.Screen>
-          {/* Pantalla de registro */}
-          <Stack.Screen 
-            name="Register" 
-            component={RegisterScreen} 
-            options={{
-              headerBackTitleVisible: false,
-              headerTransparent: true,
-              title: '',
-              headerTintColor: 'white',
-            }}
-          />
-          {/* Pantalla principal con el Drawer */}
-          <Stack.Screen 
-            name="Main" 
-            options={{ headerShown: false }}
-          >
-            {(props) => <DrawerNavigator {...props} user={user} />}
-          </Stack.Screen>
-        </Stack.Navigator>
-      </NavigationContainer>
-      {/* Botón flotante para mostrar información del usuario */}
-      {user && (
-        <FloatingUserButton 
-          user={user}
-          onPress={() => console.log('Floating button pressed')}
-        />
-      )}
-    </View>
+        )}
+      </View>
+      {Platform.OS === 'web' && __DEV__ && <ReactQueryDevtools />}
+    </QueryClientProvider>
   );
 }
 
