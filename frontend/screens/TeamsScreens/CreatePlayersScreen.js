@@ -55,18 +55,33 @@ export default function CreatePlayersScreen({ route, navigation }) {
         queryFn: async () => {
             if (!teamId) return [];
             
-            const response = await fetch(`${API_BASE_URL}/players/team/${teamId}`);
-            if (!response.ok) {
-                throw new Error(`Error: ${response.status}`);
+            try {
+                const response = await fetch(`${API_BASE_URL}/players/team/${teamId}`);
+                if (!response.ok) {
+                    console.error(`Error obteniendo jugadores: ${response.status}`);
+                    // Si es un 404, podríamos asumir que es un equipo nuevo sin jugadores
+                    if (response.status === 404) {
+                        return [];
+                    }
+                    throw new Error(`Error: ${response.status}`);
+                }
+                return await response.json();
+            } catch (error) {
+                console.error("Error completo:", error);
+                // Si es un equipo nuevo, es normal que no tenga jugadores todavía
+                return [];
             }
-            return await response.json();
         },
-        enabled: !!teamId
+        enabled: !!teamId,
+        retry: 3,        // Aumentar el número de reintentos
+        retryDelay: 1000 // Esperar 1 segundo entre reintentos
     });
 
     // Mutation para añadir un jugador
     const { mutate: addPlayer, isPending: isAdding } = useMutation({
         mutationFn: async (playerData) => {
+            console.log("Intentando crear jugador con datos:", playerData);
+            
             const response = await fetch(`${API_BASE_URL}/players`, {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
@@ -74,13 +89,16 @@ export default function CreatePlayersScreen({ route, navigation }) {
             });
             
             if (!response.ok) {
-                throw new Error("Error adding player");
+                console.error("Error al crear jugador:", response.status);
+                const errorData = await response.text();
+                console.error("Detalles del error:", errorData);
+                throw new Error(`Error creating player: ${response.status}`);
             }
             
             return await response.json();
         },
         onSuccess: (newPlayer) => {
-            // Limpiar formulario
+            console.log("Jugador creado exitosamente:", newPlayer);
             setFormData({
                 name: "",
                 number: "",
@@ -98,7 +116,8 @@ export default function CreatePlayersScreen({ route, navigation }) {
             Alert.alert("Success", "Player added successfully!");
         },
         onError: (error) => {
-            Alert.alert("Error", "Failed to add player");
+            console.error("Error en la mutación:", error);
+            Alert.alert("Error", `Failed to add player: ${error.message}`);
         }
     });
 
@@ -130,14 +149,17 @@ export default function CreatePlayersScreen({ route, navigation }) {
     };
 
     const handleFinish = () => {
+        // Invalidar la caché de equipos para forzar una recarga de datos
+        queryClient.invalidateQueries({ queryKey: ['teams'] });
+        
         // Navegar correctamente según la estructura de tu navegación
         try {
             // Primero intentamos con navegación anidada
-            navigation.navigate("Teams", { screen: "TeamsList" });
+            navigation.navigate("Teams", { screen: "TeamsList", params: { refresh: true } });
         } catch (error) {
             // Si falla, intentamos navegar directamente al Stack de Teams
             try {
-                navigation.navigate("TeamsList");
+                navigation.navigate("TeamsList", { refresh: true });
             } catch (innerError) {
                 // Si todo falla, simplemente volvemos atrás
                 navigation.goBack();
@@ -171,17 +193,18 @@ export default function CreatePlayersScreen({ route, navigation }) {
             {players.length > 0 && (
                 <View style={styles.playersListContainer}>
                     <Text style={styles.listTitle}>Team Players ({players.length})</Text>
-                    <ScrollView style={styles.playersList}>
+                    <View style={styles.playersGrid}>
                         {players.map(player => (
-                            <View key={player._id} style={styles.playerItem}>
-                                <Text style={styles.playerNumber}>#{player.number}</Text>
-                                <View style={styles.playerInfo}>
-                                    <Text style={styles.playerName}>{player.name}</Text>
-                                    <Text style={styles.playerPosition}>{player.position}</Text>
-                                </View>
-                            </View>
+                            <TouchableOpacity 
+                                key={player._id} 
+                                style={styles.playerChip}
+                                onPress={() => Alert.alert(`${player.name}`, `Position: ${player.position}\nNumber: ${player.number}`)}
+                            >
+                                <Text style={styles.playerChipNumber}>#{player.number}</Text>
+                                <Text style={styles.playerChipName}>{player.name}</Text>
+                            </TouchableOpacity>
                         ))}
-                    </ScrollView>
+                    </View>
                 </View>
             )}
 

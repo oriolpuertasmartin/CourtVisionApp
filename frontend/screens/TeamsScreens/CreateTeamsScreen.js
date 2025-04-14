@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { View, Text, StyleSheet, TouchableOpacity, Alert } from "react-native";
+import { View, Text, StyleSheet, TouchableOpacity, Alert, ActivityIndicator } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import BoxFill from "../../components/BoxFill";
 import PrimaryButton from "../../components/PrimaryButton";
@@ -34,21 +34,12 @@ export default function CreateTeamScreen({ route, navigation }) {
             return await response.json();
         },
         onSuccess: (newTeam) => {
-            Alert.alert(
-                "Success", 
-                "Team created successfully!",
-                [
-                    {
-                        text: "Add Players",
-                        onPress: () => navigation.navigate("CreatePlayer", { teamId: newTeam._id }),
-                    },
-                    {
-                        text: "OK",
-                        onPress: () => navigation.goBack(),
-                        style: "cancel"
-                    }
-                ]
-            );
+            // Redirigir automáticamente a la pantalla de añadir jugadores
+            navigation.replace("CreatePlayer", { 
+                teamId: newTeam._id, 
+                teamName: newTeam.name,
+                isNewTeam: true // Flag para indicar que es un equipo recién creado
+            });
         },
         onError: (error) => {
             Alert.alert("Error", "Failed to create team");
@@ -89,24 +80,18 @@ export default function CreateTeamScreen({ route, navigation }) {
                 onChangeForm={setFormData}
             >
                 <PrimaryButton
-                    title={isPending ? "Creating..." : "Create Team"}
+                    title={isPending ? "Creating..." : "Create Team & Add Players"}
                     onPress={handleSubmit}
                     style={styles.createButton}
                     disabled={isPending}
                 />
-                <PrimaryButton
-                    title="Add Players"
-                    onPress={() => {
-                        if (!formData.name || !formData.category) {
-                            Alert.alert("Error", "Please create the team first");
-                            return;
-                        }
-                        handleSubmit();
-                    }}
-                    style={styles.addPlayersButton}
-                    disabled={isPending}
-                />
             </BoxFill>
+            
+            {isPending && (
+                <View style={styles.loadingOverlay}>
+                    <ActivityIndicator size="large" color="#FFA500" />
+                </View>
+            )}
         </View>
     );
 }
@@ -134,8 +119,14 @@ const styles = StyleSheet.create({
         backgroundColor: "#FFA500",
         marginTop: 10,
     },
-    addPlayersButton: {
-        backgroundColor: "#007BFF",
-        marginTop: 10,
-    },
+    loadingOverlay: {
+        position: 'absolute',
+        top: 0,
+        left: 0,
+        right: 0,
+        bottom: 0,
+        backgroundColor: 'rgba(0,0,0,0.3)',
+        justifyContent: 'center',
+        alignItems: 'center',
+    }
 });

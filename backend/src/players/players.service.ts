@@ -21,4 +21,10 @@ export class PlayersService {
     // Return all players in the collection
     return this.playerModel.find().exec();
   }
+
+  async create(playerData: any): Promise<Player> {
+    console.log("Creando jugador con datos:", playerData);
+    const newPlayer = new this.playerModel(playerData);
+    return newPlayer.save();
+  }
 }

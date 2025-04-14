@@ -20,6 +20,12 @@ export class TeamsController {
      return this.teamsService.findById(id);
    }
 
+   @Post()
+   async createTeam(@Body() createTeamDto: any) {
+     console.log("Datos recibidos para crear equipo:", createTeamDto);
+     return this.teamsService.create(createTeamDto);
+   }
+
   @Patch(':id/stats')
   async updateTeamStats(
     @Param('id') id: string,

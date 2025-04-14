@@ -11,22 +11,22 @@ export class Player {
   @Prop({ required: true })
   number: number;
 
-  @Prop({ required: true })
+  @Prop({ required: false })
   height: number;
 
-  @Prop({ required: true })
+  @Prop({ required: false })
   weight: number;
 
   @Prop({ required: true })
   position: string;
 
-  @Prop({ required: true })
+  @Prop({ required: false })
   nationality: string;
 
-  @Prop({ required: true })
+  @Prop({ required: false })
   age: number;
 
-  @Prop({ required: true })
+  @Prop({ required: false })
   player_photo: string;
 
   @Prop({ required: true })
