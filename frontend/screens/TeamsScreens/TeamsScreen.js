@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { View, Text, StyleSheet, TouchableOpacity, ActivityIndicator } from "react-native";
+import { View, Text, StyleSheet, TouchableOpacity, ActivityIndicator, Image, Alert, Platform } from "react-native";
 import BoxSelector from "../../components/BoxSelector";
 import { useOrientation } from "../../components/OrientationHandler";
 import API_BASE_URL from "../../config/apiConfig";
@@ -158,9 +158,22 @@ export default function TeamsScreen({ navigation, route }) {
                     <Ionicons name="trash-outline" size={24} color="#FF3B30" />
                 </TouchableOpacity>
                 
-                <View style={styles.teamInfoContainer}>
-                    <Text style={styles.teamName}>{team.name}</Text>
-                    <Text style={styles.teamCategory}>{team.category || 'Sin categoría'}</Text>
+                <View style={styles.teamContentRow}>
+                    {/* Team logo/photo */}
+                    {team.team_photo ? (
+                        <Image source={{ uri: team.team_photo }} style={styles.teamLogo} />
+                    ) : (
+                        <View style={styles.teamLogoPlaceholder}>
+                            <Text style={styles.teamLogoPlaceholderText}>
+                                {team.name.substring(0, 2).toUpperCase()}
+                            </Text>
+                        </View>
+                    )}
+                    
+                    <View style={styles.teamInfoContainer}>
+                        <Text style={styles.teamName}>{team.name}</Text>
+                        <Text style={styles.teamCategory}>{team.category || 'Sin categoría'}</Text>
+                    </View>
                 </View>
                 
                 <View style={styles.actionsRow}>
@@ -349,5 +362,32 @@ const styles = StyleSheet.create({
     actionButtonText: {
         color: 'white',
         fontWeight: 'bold',
+    },
+    teamContentRow: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        marginBottom: 10,
+    },
+    teamLogo: {
+        width: 50,
+        height: 50,
+        borderRadius: 25,
+        marginRight: 15,
+        borderWidth: 1,
+        borderColor: '#E6E0CE',
+    },
+    teamLogoPlaceholder: {
+        width: 50,
+        height: 50,
+        borderRadius: 25,
+        backgroundColor: '#FFA500',
+        justifyContent: 'center',
+        alignItems: 'center',
+        marginRight: 15,
+    },
+    teamLogoPlaceholderText: {
+        color: 'white',
+        fontWeight: 'bold',
+        fontSize: 18,
     }
 });

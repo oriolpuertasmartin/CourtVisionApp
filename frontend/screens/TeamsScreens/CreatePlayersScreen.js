@@ -1,10 +1,11 @@
 import React, { useState } from "react";
-import { View, Text, StyleSheet, TouchableOpacity, Alert, ScrollView, ActivityIndicator } from "react-native";
+import { View, Text, StyleSheet, TouchableOpacity, Alert, ScrollView, ActivityIndicator, Image } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import BoxFill from "../../components/BoxFill";
 import PrimaryButton from "../../components/PrimaryButton";
 import API_BASE_URL from "../../config/apiConfig";
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import * as ImagePicker from 'expo-image-picker';
 
 export default function CreatePlayersScreen({ route, navigation }) {
     const { teamId } = route.params;
@@ -20,6 +21,59 @@ export default function CreatePlayersScreen({ route, navigation }) {
         nationality: "",
         player_photo: ""
     });
+    const [imagePreview, setImagePreview] = useState(null);
+
+    // Función para seleccionar una imagen
+    const pickImage = async () => {
+        // Pedir permisos para acceder a la galería
+        const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
+        
+        if (status !== 'granted') {
+            Alert.alert('Permission Denied', 'We need camera roll permissions to upload images.');
+            return;
+        }
+        
+        let result = await ImagePicker.launchImageLibraryAsync({
+            mediaTypes: ImagePicker.MediaTypeOptions.Images,
+            allowsEditing: true,
+            aspect: [1, 1],
+            quality: 0.2, // Reduced quality (0.2 = 20% quality)
+            base64: true,
+        });
+        
+        if (!result.cancelled && result.assets && result.assets[0]) {
+            // Limit the image size by checking the base64 length
+            const base64Data = result.assets[0].base64;
+            
+            // If the base64 string is too large (over ~800KB), compress further or alert the user
+            if (base64Data && base64Data.length > 800000) {
+                Alert.alert(
+                    "Image too large", 
+                    "Please select a smaller image or use lower quality photos (under 1MB)."
+                );
+                return;
+            }
+            
+            // Extract file extension reliably using a regex pattern
+            let fileExtension = 'png'; // Default extension
+            try {
+                const match = result.assets[0].uri.match(/\.([a-zA-Z0-9]+)$/);
+                if (match && match[1]) {
+                    fileExtension = match[1].toLowerCase();
+                }
+            } catch (error) {
+                console.log("Error extracting file extension:", error);
+            }
+            
+            // Create base64 URL with proper format
+            const imageUri = `data:image/${fileExtension};base64,${base64Data}`;
+            setFormData({
+                ...formData,
+                player_photo: imageUri
+            });
+            setImagePreview(result.assets[0].uri);
+        }
+    };
 
     // Consulta para obtener datos del equipo
     const {
@@ -109,6 +163,7 @@ export default function CreatePlayersScreen({ route, navigation }) {
                 nationality: "",
                 player_photo: ""
             });
+            setImagePreview(null);
             
             // Actualizar caché de React Query
             queryClient.invalidateQueries({ queryKey: ['players', 'team', teamId] });
@@ -189,54 +244,79 @@ export default function CreatePlayersScreen({ route, navigation }) {
                 {team ? `Add Players to ${team.name}` : "Add Players"}
             </Text>
 
-            {/* Lista de jugadores existentes */}
-            {players.length > 0 && (
-                <View style={styles.playersListContainer}>
-                    <Text style={styles.listTitle}>Team Players ({players.length})</Text>
-                    <View style={styles.playersGrid}>
-                        {players.map(player => (
-                            <TouchableOpacity 
-                                key={player._id} 
-                                style={styles.playerChip}
-                                onPress={() => Alert.alert(`${player.name}`, `Position: ${player.position}\nNumber: ${player.number}`)}
-                            >
-                                <Text style={styles.playerChipNumber}>#{player.number}</Text>
-                                <Text style={styles.playerChipName}>{player.name}</Text>
-                            </TouchableOpacity>
-                        ))}
+            {/* ScrollView para hacer todo el contenido desplazable */}
+            <ScrollView 
+                contentContainerStyle={styles.scrollContainer} 
+                showsVerticalScrollIndicator={true}
+                bounces={true}
+            >
+                {/* Lista de jugadores existentes */}
+                {players.length > 0 && (
+                    <View style={styles.playersListContainer}>
+                        <Text style={styles.listTitle}>Team Players ({players.length})</Text>
+                        <View style={styles.playersGrid}>
+                            {players.map(player => (
+                                <TouchableOpacity 
+                                    key={player._id} 
+                                    style={styles.playerChip}
+                                    onPress={() => Alert.alert(`${player.name}`, `Position: ${player.position}\nNumber: ${player.number}`)}
+                                >
+                                    <Text style={styles.playerChipNumber}>#{player.number}</Text>
+                                    <Text style={styles.playerChipName}>{player.name}</Text>
+                                </TouchableOpacity>
+                            ))}
+                        </View>
+                    </View>
+                )}
+
+                {/* Sección para subir imagen */}
+                <View style={styles.whiteBox}>
+                    <Text style={styles.sectionTitle}>Player Photo</Text>
+                    <View style={styles.imageSection}>
+                        {imagePreview ? (
+                            <Image source={{ uri: imagePreview }} style={styles.imagePreview} />
+                        ) : (
+                            <View style={styles.imagePlaceholder}>
+                                <Ionicons name="person-outline" size={40} color="#FFA500" />
+                                <Text style={styles.imagePlaceholderText}>Player Photo</Text>
+                            </View>
+                        )}
+                        <TouchableOpacity style={styles.uploadButton} onPress={pickImage}>
+                            <Ionicons name="cloud-upload-outline" size={20} color="white" />
+                            <Text style={styles.uploadButtonText}>Upload Photo</Text>
+                        </TouchableOpacity>
                     </View>
                 </View>
-            )}
 
-            {/* Formulario para añadir jugador */}
-            <BoxFill
-                title="Player Information"
-                fields={[
-                    { name: "name", placeholder: "Name *", required: true },
-                    { name: "number", placeholder: "Number *", keyboardType: "numeric", required: true },
-                    { name: "position", placeholder: "Position *", required: true },
-                    { name: "height", placeholder: "Height (cm)", keyboardType: "numeric" },
-                    { name: "weight", placeholder: "Weight (kg)", keyboardType: "numeric" },
-                    { name: "age", placeholder: "Age", keyboardType: "numeric" },
-                    { name: "nationality", placeholder: "Nationality" },
-                    { name: "player_photo", placeholder: "Player Photo URL" },
-                ]}
-                formData={formData}
-                onChangeForm={setFormData}
-            >
-                <PrimaryButton
-                    title={isAdding ? "Adding..." : "Add Player"}
-                    onPress={handleAddPlayer}
-                    style={styles.addButton}
-                    disabled={isAdding}
-                />
-                <PrimaryButton
-                    title="Finish"
-                    onPress={handleFinish}
-                    style={styles.finishButton}
-                    disabled={isAdding}
-                />
-            </BoxFill>
+                {/* Formulario para añadir jugador */}
+                <BoxFill
+                    title="Player Information"
+                    fields={[
+                        { name: "name", placeholder: "Name *", required: true },
+                        { name: "number", placeholder: "Number *", keyboardType: "numeric", required: true },
+                        { name: "position", placeholder: "Position *", required: true },
+                        { name: "height", placeholder: "Height (cm)", keyboardType: "numeric" },
+                        { name: "weight", placeholder: "Weight (kg)", keyboardType: "numeric" },
+                        { name: "age", placeholder: "Age", keyboardType: "numeric" },
+                        { name: "nationality", placeholder: "Nationality" },
+                    ]}
+                    formData={formData}
+                    onChangeForm={setFormData}
+                >
+                    <PrimaryButton
+                        title={isAdding ? "Adding..." : "Add Player"}
+                        onPress={handleAddPlayer}
+                        style={styles.addButton}
+                        disabled={isAdding}
+                    />
+                    <PrimaryButton
+                        title="Finish"
+                        onPress={handleFinish}
+                        style={styles.finishButton}
+                        disabled={isAdding}
+                    />
+                </BoxFill>
+            </ScrollView>
         </View>
     );
 }
@@ -247,6 +327,11 @@ const styles = StyleSheet.create({
         backgroundColor: "#FFF8E1",
         paddingTop: 50,
         alignItems: "center",
+    },
+    scrollContainer: {
+        width: "100%",
+        alignItems: "center",
+        paddingBottom: 30, // Extra padding at the bottom for safe scrolling
     },
     loadingContainer: {
         justifyContent: 'center',
@@ -280,6 +365,88 @@ const styles = StyleSheet.create({
     },
     playersList: {
         maxHeight: 150,
+    },
+    whiteBox: {
+        width: "70%",
+        backgroundColor: "#FFF9E7",
+        borderRadius: 12,
+        padding: 20,
+        marginVertical: 15,
+        alignItems: "center",
+        shadowColor: "#000",
+        shadowOffset: { width: 0, height: 2 },
+        shadowOpacity: 0.1,
+        shadowRadius: 3,
+        elevation: 2,
+    },
+    sectionTitle: {
+        fontSize: 16,
+        fontWeight: "bold",
+        marginBottom: 15,
+        textAlign: "center",
+        color: "#333",
+    },
+    imageSection: {
+        alignItems: "center",
+        width: "100%",
+    },
+    imagePreview: {
+        width: 120,
+        height: 120,
+        borderRadius: 60,
+        marginBottom: 10,
+        borderWidth: 2,
+        borderColor: "#FFA500",
+    },
+    imagePlaceholder: {
+        width: 120,
+        height: 120,
+        borderRadius: 60,
+        backgroundColor: "#E6E0CE",
+        justifyContent: "center",
+        alignItems: "center",
+        marginBottom: 10,
+    },
+    imagePlaceholderText: {
+        marginTop: 5,
+        color: "#FFA500",
+        fontWeight: "bold",
+    },
+    uploadButton: {
+        flexDirection: "row",
+        alignItems: "center",
+        backgroundColor: "#FFA500",
+        paddingVertical: 8,
+        paddingHorizontal: 15,
+        borderRadius: 20,
+        marginTop: 5,
+    },
+    uploadButtonText: {
+        color: "white",
+        fontWeight: "bold",
+        marginLeft: 5,
+    },
+    playersGrid: {
+        flexDirection: 'row',
+        flexWrap: 'wrap',
+        justifyContent: 'flex-start',
+    },
+    playerChip: {
+        backgroundColor: "#E6E0CE",
+        borderRadius: 20,
+        paddingVertical: 8,
+        paddingHorizontal: 12,
+        margin: 5,
+        flexDirection: 'row',
+        alignItems: 'center',
+    },
+    playerChipNumber: {
+        fontWeight: "bold",
+        marginRight: 5,
+        color: "#FFA500",
+    },
+    playerChipName: {
+        fontSize: 14,
     },
     playerItem: {
         backgroundColor: "#E6E0CE",

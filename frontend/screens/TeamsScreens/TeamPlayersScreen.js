@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { View, Text, StyleSheet, TouchableOpacity, ActivityIndicator, FlatList, Alert } from "react-native";
+import { View, Text, StyleSheet, TouchableOpacity, ActivityIndicator, FlatList, Alert, Image } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { useOrientation } from "../../components/OrientationHandler";
 import API_BASE_URL from "../../config/apiConfig";
@@ -54,11 +54,18 @@ export default function TeamPlayersScreen({ route, navigation }) {
 
     const renderPlayerItem = ({ item }) => (
         <View style={styles.playerCard}>
-            <View style={styles.playerNumber}>
-                <Text style={styles.numberText}>#{item.number || '0'}</Text>
-            </View>
+            {item.player_photo ? (
+                <Image source={{ uri: item.player_photo }} style={styles.playerPhoto} />
+            ) : (
+                <View style={styles.playerNumber}>
+                    <Text style={styles.numberText}>#{item.number || '0'}</Text>
+                </View>
+            )}
             <View style={styles.playerInfo}>
-                <Text style={styles.playerName}>{item.name}</Text>
+                <View style={styles.nameNumberContainer}>
+                    <Text style={styles.playerName}>{item.name}</Text>
+                    <Text style={styles.playerNumberText}>#{item.number || '0'}</Text>
+                </View>
                 <Text style={styles.playerPosition}>{item.position || 'No position'}</Text>
                 <Text style={styles.playerDetails}>
                     Height: {item.height || 'N/A'} • Weight: {item.weight || 'N/A'}
@@ -268,5 +275,25 @@ const styles = StyleSheet.create({
         fontSize: 14,
         color: '#777',
         textAlign: 'center',
+    
+    },
+    playerPhoto: {
+        width: 50,
+        height: 50,
+        borderRadius: 25,
+        marginRight: 15,
+        borderWidth: 2,
+        borderColor: "#FFA500",
+    },
+    nameNumberContainer: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        marginBottom: 3,
+    },
+    playerNumberText: {
+        fontSize: 16,
+        fontWeight: 'bold',
+        color: '#FFA500',
+        marginLeft: 8,
     }
 });

@@ -20,6 +20,7 @@
     "@tanstack/react-query-devtools": "^5.73.3",
     "expo": "~52.0.38",
     "expo-constants": "~15.3.0",
+    "expo-image-picker": "^16.0.6",
     "expo-sharing": "^13.0.1",
     "expo-status-bar": "~2.0.1",
     "frontend": "file:",
