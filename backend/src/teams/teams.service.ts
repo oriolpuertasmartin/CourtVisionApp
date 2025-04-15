@@ -30,10 +30,6 @@ export class TeamsService {
       .exec();
   }
 
-  async remove(id: string): Promise<Team | null> {
-    return this.teamModel.findByIdAndDelete(id).exec();
-  }
-
   async findAll(): Promise<Team[]> {
     return this.teamModel.find().exec();
   }
@@ -78,5 +74,13 @@ export class TeamsService {
     const savedTeam = await team.save();
     console.log("Equipo guardado:", savedTeam);
     return savedTeam;
+  }
+
+  async remove(id: string): Promise<Team | null> {
+    const deletedTeam = await this.teamModel.findByIdAndDelete(id).exec();
+    if (!deletedTeam) {
+      throw new NotFoundException(`Equipo con ID ${id} no encontrado`);
+    }
+    return deletedTeam;
   }
 }

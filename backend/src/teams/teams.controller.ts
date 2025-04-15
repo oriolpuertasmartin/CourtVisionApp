@@ -1,4 +1,4 @@
-import { Controller, Post, Get, Param, Body, UnauthorizedException, Patch, BadRequestException } from '@nestjs/common';
+import { Controller, Post, Get, Param, Body, UnauthorizedException, Patch, BadRequestException, Delete } from '@nestjs/common';
 import { TeamsService } from './teams.service';
 import { isValidObjectId } from 'mongoose';
 
@@ -7,24 +7,24 @@ import { isValidObjectId } from 'mongoose';
 export class TeamsController {
   constructor(private readonly teamsService: TeamsService) {}
 
-   // Ruta completa: GET http://localhost:3001/teams/user/:userId
-   @Get('user/:userId')
-   async getTeamsByUser(@Param('userId') userId: string) {
+  // Ruta completa: GET http://localhost:3001/teams/user/:userId
+  @Get('user/:userId')
+  async getTeamsByUser(@Param('userId') userId: string) {
     console.log("Recibido userId en controlador:", userId); // Log para depuración
     return this.teamsService.findByUserId(userId);
-   }
+  }
 
-   @Get(':id')
-   async getTeamById(@Param('id') id: string) {
-     console.log("Buscando equipo con ID:", id); // Log para depuración
-     return this.teamsService.findById(id);
-   }
+  @Get(':id')
+  async getTeamById(@Param('id') id: string) {
+    console.log("Buscando equipo con ID:", id); // Log para depuración
+    return this.teamsService.findById(id);
+  }
 
-   @Post()
-   async createTeam(@Body() createTeamDto: any) {
-     console.log("Datos recibidos para crear equipo:", createTeamDto);
-     return this.teamsService.create(createTeamDto);
-   }
+  @Post()
+  async createTeam(@Body() createTeamDto: any) {
+    console.log("Datos recibidos para crear equipo:", createTeamDto);
+    return this.teamsService.create(createTeamDto);
+  }
 
   @Patch(':id/stats')
   async updateTeamStats(
@@ -36,5 +36,14 @@ export class TeamsController {
     }
     
     return this.teamsService.updateStats(id, statsUpdate);
+  }
+
+  @Delete(':id')
+  async deleteTeam(@Param('id') id: string) {
+    if (!isValidObjectId(id)) {
+      throw new BadRequestException(`ID de equipo inválido: ${id}`);
+    }
+    
+    return this.teamsService.remove(id);
   }
 }

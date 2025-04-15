@@ -1,12 +1,17 @@
 import React, { useState, useEffect } from "react";
-import { View, Text, StyleSheet, TouchableOpacity, Alert, ActivityIndicator } from "react-native";
+import { View, Text, StyleSheet, TouchableOpacity, ActivityIndicator } from "react-native";
 import BoxSelector from "../../components/BoxSelector";
 import { useOrientation } from "../../components/OrientationHandler";
 import API_BASE_URL from "../../config/apiConfig";
-import { useQuery } from '@tanstack/react-query';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { Ionicons } from "@expo/vector-icons";
+import ConfirmModal from "../../components/ConfirmModal"; // Importar el modal personalizado
 
 export default function TeamsScreen({ navigation, route }) {
     const [user, setUser] = useState(route.params?.user || null);
+    const queryClient = useQueryClient();
+    const [modalVisible, setModalVisible] = useState(false);
+    const [teamToDelete, setTeamToDelete] = useState(null);
 
     // Usar el hook de orientación
     const orientation = useOrientation();
@@ -20,25 +25,96 @@ export default function TeamsScreen({ navigation, route }) {
 
     // Implementación de useQuery para cargar equipos
     const {
-        data: teams = [],        // (1) Destructura la propiedad data y le da un alias "teams" con valor por defecto []
-        isLoading,               // (2) Estado que indica si la consulta está cargando
-        isError,                 // (3) Estado que indica si hubo un error
-        error: queryError,       // (4) Destructura el error y le da un alias "queryError"
-        refetch                  // (5) Función para volver a ejecutar la consulta manualmente
+        data: teams = [],
+        isLoading,
+        isError,
+        error: queryError,
+        refetch
     } = useQuery({
-        queryKey: ['teams', user?._id],   // (6) Clave única para identificar esta consulta
-        queryFn: async () => {            // (7) Función que ejecuta la petición
-            if (!user || !user._id) return [];  // (8) Validación para no hacer la petición sin usuario
+        queryKey: ['teams', user?._id],
+        queryFn: async () => {
+            if (!user || !user._id) return [];
             
-            const response = await fetch(`${API_BASE_URL}/teams/user/${user._id}`);  // (9) Llamada a la API
-            if (!response.ok) {                                                       // (10) Validación de respuesta
-                throw new Error(`Error ${response.status}: ${response.statusText}`);  // (11) Lanzar error si falla
+            console.log("Buscando equipos para usuario:", user._id);
+            
+            const response = await fetch(`${API_BASE_URL}/teams/user/${user._id}`);
+            if (!response.ok) {
+                throw new Error(`Error ${response.status}: ${response.statusText}`);
             }
             
-            return await response.json();  // (12) Parsear y devolver los datos JSON
+            const data = await response.json();
+            console.log("Equipos recibidos:", data.length);
+            return data;
         },
-        enabled: !!user?._id,             // (13) Control para activar/desactivar la consulta
+        enabled: !!user?._id,
     });
+
+    // Mutación para eliminar un equipo
+    const { mutate: deleteTeam, isPending: isDeleting } = useMutation({
+        mutationFn: async (teamId) => {
+            console.log("Intentando eliminar equipo con ID:", teamId);
+            
+            try {
+                const response = await fetch(`${API_BASE_URL}/teams/${teamId}`, {
+                    method: 'DELETE',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                });
+                
+                console.log("Respuesta del servidor:", response.status);
+                
+                if (!response.ok) {
+                    const errorData = await response.text();
+                    console.error("Error al eliminar:", errorData);
+                    throw new Error(`Error al eliminar el equipo: ${response.status} ${errorData}`);
+                }
+                
+                const data = await response.json();
+                console.log("Datos de respuesta:", data);
+                return data;
+            } catch (error) {
+                console.error("Error en la solicitud:", error);
+                throw error;
+            }
+        },
+        onSuccess: (data, teamId) => {
+            console.log("Equipo eliminado exitosamente:", teamId);
+            // Invalidar la caché para refrescar la lista
+            queryClient.invalidateQueries({ queryKey: ['teams', user?._id] });
+            setModalVisible(false);
+            setTeamToDelete(null);
+        },
+        onError: (error) => {
+            console.error("Error en mutación:", error);
+            setModalVisible(false);
+            setTeamToDelete(null);
+            // Puedes usar una alerta básica aquí ya que se maneja después del modal
+            if (Platform.OS === 'web') {
+                window.alert(`Error: No se pudo eliminar el equipo: ${error.message}`);
+            } else {
+                Alert.alert("Error", `No se pudo eliminar el equipo: ${error.message}`);
+            }
+        }
+    });
+
+    const handleDeleteTeam = (teamId) => {
+        console.log("handleDeleteTeam llamado para teamId:", teamId);
+        if (!teamId) {
+            console.error("ID de equipo inválido");
+            return;
+        }
+        
+        // En lugar de Alert.alert, usamos nuestro estado para controlar el modal
+        setTeamToDelete(teamId);
+        setModalVisible(true);
+    };
+    
+    const confirmDelete = () => {
+        if (teamToDelete) {
+            deleteTeam(teamToDelete);
+        }
+    };
 
     const handleViewTeamDetails = (teamId) => {
         navigation.navigate('TeamDetails', { teamId });
@@ -63,8 +139,25 @@ export default function TeamsScreen({ navigation, route }) {
 
     // Personalización del renderizado de cada equipo
     const renderTeamItem = (team) => {
+        if (!team || !team._id) {
+            console.error("Equipo inválido:", team);
+            return null;
+        }
+        
         return (
             <View style={styles.teamItemContainer}>
+                {/* Botón de eliminar */}
+                <TouchableOpacity 
+                    style={styles.deleteButton} 
+                    onPress={() => {
+                        console.log("Botón de eliminar presionado para equipo:", team._id);
+                        handleDeleteTeam(team._id);
+                    }}
+                    disabled={isDeleting}
+                >
+                    <Ionicons name="trash-outline" size={24} color="#FF3B30" />
+                </TouchableOpacity>
+                
                 <View style={styles.teamInfoContainer}>
                     <Text style={styles.teamName}>{team.name}</Text>
                     <Text style={styles.teamCategory}>{team.category || 'Sin categoría'}</Text>
@@ -131,12 +224,23 @@ export default function TeamsScreen({ navigation, route }) {
                     </BoxSelector>
                 </View>
             )}
+            
+            {/* Modal de confirmación personalizado */}
+            <ConfirmModal
+                visible={modalVisible}
+                title="Confirmar eliminación"
+                message="¿Estás seguro que deseas eliminar este equipo? Esta acción no se puede deshacer."
+                onConfirm={confirmDelete}
+                onCancel={() => {
+                    setModalVisible(false);
+                    setTeamToDelete(null);
+                }}
+            />
         </View>
     );
 }
 
 const styles = StyleSheet.create({
-    // Todos los estilos se mantienen sin cambios
     container: {
         flex: 1,
         backgroundColor: "#FFF8E1",
@@ -205,6 +309,14 @@ const styles = StyleSheet.create({
         borderRadius: 8,
         padding: 15,
         marginBottom: 15,
+        position: 'relative', // Para posicionar el botón de eliminar
+    },
+    deleteButton: {
+        position: 'absolute',
+        top: 10,
+        right: 10,
+        zIndex: 10,
+        padding: 10, // Incrementado para área de toque más grande
     },
     teamInfoContainer: {
         marginBottom: 12,
@@ -237,6 +349,5 @@ const styles = StyleSheet.create({
     actionButtonText: {
         color: 'white',
         fontWeight: 'bold',
-        fontSize: 14,
-    },
+    }
 });
