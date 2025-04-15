@@ -7,6 +7,9 @@ import { createDrawerNavigator, DrawerContentScrollView, DrawerItemList } from '
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { ReactQueryDevtools } from '@tanstack/react-query-devtools';
+import { Ionicons } from "@expo/vector-icons"; // Añade esta importación
+
+// Resto de las importaciones...
 
 // Importación de pantallas y componentes personalizados
 import WelcomeScreen from './screens/WelcomeScreen';
@@ -165,20 +168,92 @@ function DrawerNavigator({ user, handleLogout }) {
         drawerActiveTintColor: 'black', // Color del texto de los elementos activos
         drawerActiveBackgroundColor: '#D9C6AE', // Color de fondo de los elementos activos
         drawerInactiveTintColor: 'black', // Color del texto de los elementos inactivos
-        drawerItemStyle: { marginVertical: 10 }, // Espaciado entre elementos
-        drawerLabelStyle: { fontSize: 15 }, // Tamaño de fuente de los elementos
+        drawerItemStyle: { 
+          marginVertical: 20, // Aumentado de 10 a 20 para mayor separación
+          borderRadius: 8, // Añadido para dar bordes redondeados a los elementos
+          paddingVertical: 5, // Añadido para dar más altura a cada elemento
+        },
+        drawerLabelStyle: { 
+          fontSize: 15, // Tamaño de fuente de los elementos
+          fontWeight: '500', // Añadido para hacer el texto un poco más visible
+        },
+        drawerContentContainerStyle: {
+          paddingTop: 10, // Espacio adicional en la parte superior de la lista
+          paddingBottom: 30, // Espacio adicional en la parte inferior de la lista
+        }
       }}
     >
       {/* Definición de las pantallas principales del Drawer */}
-      <Drawer.Screen name="Home" component={HomeScreen} />
-      <Drawer.Screen name="Teams">
+      <Drawer.Screen 
+        name="Home" 
+        component={HomeScreen} 
+        options={{
+          drawerIcon: ({ focused, color, size }) => (
+            <Ionicons 
+              name={focused ? "home" : "home-outline"} 
+              size={24} 
+              color={color} 
+            />
+          )
+        }}
+      />
+      
+      <Drawer.Screen 
+        name="Teams" 
+        options={{
+          drawerIcon: ({ focused, color, size }) => (
+            <Ionicons 
+              name={focused ? "people" : "people-outline"} 
+              size={24} 
+              color={color} 
+            />
+          )
+        }}
+      >
         {(props) => <TeamsStack {...props} user={user} />}
       </Drawer.Screen>
-      <Drawer.Screen name="Start a Match">
+      
+      <Drawer.Screen 
+        name="Start a Match" 
+        options={{
+          drawerIcon: ({ focused, color, size }) => (
+            <Ionicons 
+              name={focused ? "basketball" : "basketball-outline"} 
+              size={24} 
+              color={color} 
+            />
+          )
+        }}
+      >
         {(props) => <StartMatchStack {...props} user={user} />}
       </Drawer.Screen>
-      <Drawer.Screen name="Info" component={InfoScreen} />
-      <Drawer.Screen name="Settings">
+      
+      <Drawer.Screen 
+        name="Info" 
+        component={InfoScreen} 
+        options={{
+          drawerIcon: ({ focused, color, size }) => (
+            <Ionicons 
+              name={focused ? "information-circle" : "information-circle-outline"} 
+              size={24} 
+              color={color} 
+            />
+          )
+        }}
+      />
+      
+      <Drawer.Screen 
+        name="Settings" 
+        options={{
+          drawerIcon: ({ focused, color, size }) => (
+            <Ionicons 
+              name={focused ? "settings" : "settings-outline"} 
+              size={24} 
+              color={color} 
+            />
+          )
+        }}
+      >
         {(props) => <SettingsScreen {...props} handleLogout={handleLogout} />}
       </Drawer.Screen>
     </Drawer.Navigator>
