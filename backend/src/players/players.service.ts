@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, NotFoundException } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model } from 'mongoose';
 import { Player, PlayerDocument } from './schema/players.schema';
@@ -26,5 +26,18 @@ export class PlayersService {
     console.log("Creando jugador con datos:", playerData);
     const newPlayer = new this.playerModel(playerData);
     return newPlayer.save();
+  }
+
+  async delete(id: string): Promise<any> {
+    // Primero verifica si el jugador existe
+    const player = await this.playerModel.findById(id);
+    if (!player) {
+      throw new NotFoundException(`Player with ID ${id} not found`);
+    }
+    
+    // También puedes eliminar las estadísticas relacionadas con este jugador si es necesario
+    
+    // Eliminar el jugador
+    return this.playerModel.findByIdAndDelete(id);
   }
 }

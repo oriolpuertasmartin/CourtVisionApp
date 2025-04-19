@@ -125,7 +125,7 @@ export default function TeamMatchesScreen({ route, navigation }) {
 const styles = StyleSheet.create({
     container: {
         flex: 1,
-        backgroundColor: "#FFF8E1",
+        backgroundColor: "white",
         paddingTop: 50,
         alignItems: "center",
     },
@@ -143,8 +143,9 @@ const styles = StyleSheet.create({
         marginBottom: 20,
     },
     boxSelectorContainer: {
-        width: '90%',
+        width: '100%',
         flex: 1,
+        paddingHorizontal: 40,
     },
     loadingContainer: {
         flex: 1,

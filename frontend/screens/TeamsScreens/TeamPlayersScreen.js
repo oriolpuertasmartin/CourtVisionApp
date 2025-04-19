@@ -3,10 +3,15 @@ import { View, Text, StyleSheet, TouchableOpacity, ActivityIndicator, FlatList, 
 import { Ionicons } from "@expo/vector-icons";
 import { useOrientation } from "../../components/OrientationHandler";
 import API_BASE_URL from "../../config/apiConfig";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import ConfirmModal from "../../components/ConfirmModal";
+
 
 export default function TeamPlayersScreen({ route, navigation }) {
     const { teamId } = route.params;
+    const queryClient = useQueryClient();
+    const [modalVisible, setModalVisible] = useState(false);
+    const [playerToDelete, setPlayerToDelete] = useState(null);
     
     // Usar el hook de orientación
     const orientation = useOrientation();
@@ -52,8 +57,76 @@ export default function TeamPlayersScreen({ route, navigation }) {
         navigation.navigate('CreatePlayer', { teamId });
     };
 
+    // Mutación para eliminar un jugador
+    const { mutate: deletePlayer, isPending: isDeleting } = useMutation({
+        mutationFn: async (playerId) => {
+            console.log("Intentando eliminar jugador con ID:", playerId);
+            
+            try {
+                const response = await fetch(`${API_BASE_URL}/players/${playerId}`, {
+                    method: 'DELETE',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                });
+                
+                console.log("Respuesta del servidor:", response.status);
+                
+                if (!response.ok) {
+                    const errorData = await response.text();
+                    throw new Error(`Error al eliminar el jugador: ${response.status} ${errorData}`);
+                }
+                
+                return await response.json();
+            } catch (error) {
+                console.error("Error en la solicitud:", error);
+                throw error;
+            }
+        },
+        onSuccess: (data, playerId) => {
+            console.log("Jugador eliminado exitosamente:", playerId);
+            // Invalidar la caché para refrescar la lista
+            queryClient.invalidateQueries({ queryKey: ['players', teamId] });
+            setModalVisible(false);
+            setPlayerToDelete(null);
+        },
+        onError: (error) => {
+            console.error("Error en mutación:", error);
+            setModalVisible(false);
+            setPlayerToDelete(null);
+            Alert.alert("Error", `No se pudo eliminar el jugador: ${error.message}`);
+        }
+    });
+
+    const handleDeletePlayer = (playerId) => {
+        console.log("handleDeletePlayer llamado para playerId:", playerId);
+        if (!playerId) {
+            console.error("ID de jugador inválido");
+            return;
+        }
+        
+        // Mostrar el modal de confirmación
+        setPlayerToDelete(playerId);
+        setModalVisible(true);
+    };
+    
+    const confirmDelete = () => {
+        if (playerToDelete) {
+            deletePlayer(playerToDelete);
+        }
+    };
+
     const renderPlayerItem = ({ item }) => (
         <View style={styles.playerCard}>
+            {/* Botón de eliminar */}
+            <TouchableOpacity 
+                style={styles.deleteButton} 
+                onPress={() => handleDeletePlayer(item._id)}
+                disabled={isDeleting}
+            >
+                <Ionicons name="trash-outline" size={24} color="#FF3B30" />
+            </TouchableOpacity>
+    
             {item.player_photo ? (
                 <Image source={{ uri: item.player_photo }} style={styles.playerPhoto} />
             ) : (
@@ -62,6 +135,7 @@ export default function TeamPlayersScreen({ route, navigation }) {
                 </View>
             )}
             <View style={styles.playerInfo}>
+                {/* Resto del contenido existente */}
                 <View style={styles.nameNumberContainer}>
                     <Text style={styles.playerName}>{item.name}</Text>
                     <Text style={styles.playerNumberText}>#{item.number || '0'}</Text>
@@ -134,6 +208,18 @@ export default function TeamPlayersScreen({ route, navigation }) {
                 <Ionicons name="add" size={24} color="white" />
                 <Text style={styles.addButtonText}>Add New Player</Text>
             </TouchableOpacity>
+            
+            {/* Modal de confirmación */}
+            <ConfirmModal
+                visible={modalVisible}
+                title="Confirmar eliminación"
+                message="¿Estás seguro que deseas eliminar este jugador? Esta acción no se puede deshacer."
+                onConfirm={confirmDelete}
+                onCancel={() => {
+                    setModalVisible(false);
+                    setPlayerToDelete(null);
+                }}
+            />
         </View>
     );
 }
@@ -141,7 +227,7 @@ export default function TeamPlayersScreen({ route, navigation }) {
 const styles = StyleSheet.create({
     container: {
         flex: 1,
-        backgroundColor: "#FFF8E1",
+        backgroundColor: "white",
         paddingTop: 50,
     },
     loadingContainer: {
@@ -188,12 +274,12 @@ const styles = StyleSheet.create({
         textAlign: 'center',
     },
     listContainer: {
-        paddingHorizontal: 20,
+        paddingHorizontal: 200,
         paddingBottom: 90, // Espacio para el botón de añadir
     },
     playerCard: {
         flexDirection: 'row',
-        backgroundColor: 'white',
+        backgroundColor: '#F9F6EE',
         borderRadius: 10,
         padding: 15,
         marginBottom: 10,
@@ -203,6 +289,14 @@ const styles = StyleSheet.create({
         shadowOpacity: 0.1,
         shadowRadius: 2,
         elevation: 2,
+        position: 'relative', // Para posicionar el botón de eliminar
+    },
+    deleteButton: {
+        position: 'absolute',
+        top: 10,
+        right: 10,
+        zIndex: 10,
+        padding: 10, // Aumentado para área de toque más grande
     },
     playerNumber: {
         backgroundColor: '#FFA500',
@@ -275,7 +369,6 @@ const styles = StyleSheet.create({
         fontSize: 14,
         color: '#777',
         textAlign: 'center',
-    
     },
     playerPhoto: {
         width: 50,

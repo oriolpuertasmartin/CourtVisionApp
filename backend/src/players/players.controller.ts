@@ -1,5 +1,6 @@
-import { Controller, Get, Post, Param, Query, Body, NotFoundException, BadRequestException } from '@nestjs/common';
+import { Controller, Get, Post, Delete, Param, Query, Body, NotFoundException, BadRequestException } from '@nestjs/common';
 import { PlayersService } from './players.service';
+import { isValidObjectId } from 'mongoose';
 
 // http://localhost:3001/players
 @Controller('players')
@@ -41,5 +42,14 @@ export class PlayersController {
     }
     
     return this.playersService.create(createPlayerDto);
+  }
+
+  // DELETE http://localhost:3001/players/:id
+  @Delete(':id')
+  async deletePlayer(@Param('id') id: string) {
+    if (!isValidObjectId(id)) {
+      throw new BadRequestException(`Invalid player ID: ${id}`);
+    }
+    return this.playersService.delete(id);
   }
 }
