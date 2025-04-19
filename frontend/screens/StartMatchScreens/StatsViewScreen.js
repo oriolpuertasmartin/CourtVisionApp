@@ -1,11 +1,8 @@
 import React, { useState } from 'react';
-import { View, Text, StyleSheet, ScrollView, TouchableOpacity, ActivityIndicator, Alert, Platform } from 'react-native';
+import { View, Text, StyleSheet, ScrollView, TouchableOpacity, ActivityIndicator, Alert, Platform, Image } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import API_BASE_URL from "../../config/apiConfig";
 import { useQuery } from '@tanstack/react-query';
-
-// NO importamos los módulos nativos directamente
-// Serán importados dinámicamente solo cuando se necesiten
 
 export default function StatsView({ route, navigation }) {
   const { matchId } = route.params;
@@ -598,12 +595,51 @@ export default function StatsView({ route, navigation }) {
       
       {/* Resumen del partido */}
       <View style={styles.matchSummary}>
-        <Text style={styles.teamTitle}>{teamName}</Text>
-        <View style={styles.scoreContainer}>
-          <Text style={styles.scoreText}>
-            {match?.teamAScore || 0} - {match?.teamBScore || 0}
-          </Text>
-          <Text style={styles.opponentText}>{match?.opponentTeam?.name || 'Oponente'}</Text>
+        <View style={styles.scoreboardRow}>
+          {/* Lado izquierdo: Equipo A (Logo + Nombre) */}
+          <View style={styles.teamSide}>
+            {/* Logo Equipo A */}
+            <View style={styles.teamLogoContainer}>
+              {team?.team_photo ? (
+                <Image source={{ uri: team.team_photo }} style={styles.teamLogo} />
+              ) : (
+                <View style={styles.logoPlaceholder}>
+                  <Text style={styles.logoPlaceholderText}>
+                    {teamName.substring(0, 2).toUpperCase()}
+                  </Text>
+                </View>
+              )}
+            </View>
+            {/* Nombre Equipo A */}
+            <Text style={styles.teamName}>{teamName}</Text>
+          </View>
+          
+          {/* Centro: Puntuación */}
+          <View style={styles.scoreContainer}>
+            <Text style={styles.scoreText}>
+              <Text style={styles.teamScore}>{match?.teamAScore || 0}</Text>
+              <Text style={styles.scoreSeparator}> - </Text>
+              <Text style={styles.teamScore}>{match?.teamBScore || 0}</Text>
+            </Text>
+          </View>
+          
+          {/* Lado derecho: Equipo B (Nombre + Logo) */}
+          <View style={styles.teamSideRight}>
+            {/* Nombre Equipo B */}
+            <Text style={styles.teamName}>{match?.opponentTeam?.name || 'Oponente'}</Text>
+            {/* Logo Equipo B */}
+            <View style={styles.teamLogoContainer}>
+              {match?.opponentTeam?.photo ? (
+                <Image source={{ uri: match.opponentTeam.photo }} style={styles.teamLogo} />
+              ) : (
+                <View style={styles.logoPlaceholder}>
+                  <Text style={styles.logoPlaceholderText}>
+                    {(match?.opponentTeam?.name || 'OP').substring(0, 2).toUpperCase()}
+                  </Text>
+                </View>
+              )}
+            </View>
+          </View>
         </View>
       </View>
       
@@ -903,19 +939,77 @@ const styles = StyleSheet.create({
     padding: 20,
     alignItems: 'center',
     marginTop: 30,
+    width: '100%',
   },
-  teamTitle: {
-    fontSize: 24,
+  scoreboardRow: {
+    flexDirection: 'row',
+    justifyContent: 'center',
+    alignItems: 'center',
+    width: '90%',
+  },
+  teamSide: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    flex: 1.5,
+    justifyContent: 'flex-end',
+  },
+  teamSideRight: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    flex: 1.5,
+    justifyContent: 'flex-start',
+  },
+  teamLogoContainer: {
+    marginHorizontal: 10,
+  },
+  teamLogo: {
+    width: 60,
+    height: 60,
+    borderRadius: 30,
+    borderWidth: 1,
+    borderColor: '#E6E0CE',
+  },
+  logoPlaceholder: {
+    width: 60,
+    height: 60,
+    borderRadius: 30,
+    backgroundColor: '#FFA500',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  logoPlaceholderText: {
+    color: 'white',
     fontWeight: 'bold',
-    marginBottom: 10,
+    fontSize: 20,
+  },
+  teamName: {
+    fontSize: 18,
+    fontWeight: 'bold',
+    flexShrink: 1,
   },
   scoreContainer: {
+    flex: 1,
     alignItems: 'center',
+    justifyContent: 'center',
   },
   scoreText: {
     fontSize: 32,
     fontWeight: 'bold',
     marginBottom: 5,
+  },
+  teamScore: {
+    fontSize: 30,
+    fontWeight: 'bold',
+  },
+  scoreSeparator: {
+    fontSize: 30,
+    fontWeight: 'bold',
+    color: '#888',
+  },
+  teamTitle: {
+    fontSize: 24,
+    fontWeight: 'bold',
+    marginBottom: 10,
   },
   opponentText: {
     fontSize: 18,

@@ -1,10 +1,11 @@
 import React, { useState } from "react";
-import { View, Text, TouchableOpacity, StyleSheet, Alert, ActivityIndicator } from "react-native";
+import { View, Text, TouchableOpacity, StyleSheet, Alert, ActivityIndicator, Image } from "react-native";
 import BoxFill from "../../components/BoxFill";
 import PrimaryButton from "../../components/PrimaryButton";
 import { Ionicons } from "@expo/vector-icons"; 
 import API_BASE_URL from "../../config/apiConfig";
 import { useMutation } from '@tanstack/react-query';
+import * as ImagePicker from 'expo-image-picker';
 
 export default function OpponentTeamScreen({ route, navigation }) {
   const { matchId, teamId } = route.params;
@@ -13,6 +14,7 @@ export default function OpponentTeamScreen({ route, navigation }) {
     category: "",
     photo: "",
   });
+  const [imagePreview, setImagePreview] = useState(null);
 
   // Mutación para actualizar el equipo oponente en el partido
   const { mutate: updateOpponentTeam, isPending } = useMutation({
@@ -44,6 +46,58 @@ export default function OpponentTeamScreen({ route, navigation }) {
     }
   });
 
+  const pickImage = async () => {
+    // Pedir permisos para acceder a la galería
+    const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
+    
+    if (status !== 'granted') {
+      Alert.alert('Permission Denied', 'We need camera roll permissions to upload images.');
+      return;
+    }
+    
+    let result = await ImagePicker.launchImageLibraryAsync({
+      mediaTypes: ImagePicker.MediaTypeOptions.Images,
+      allowsEditing: true,
+      aspect: [1, 1],
+      quality: 0.2, // Calidad reducida para minimizar tamaño
+      base64: true,
+    });
+    
+    if (!result.canceled && result.assets[0].base64) {
+      const base64Data = result.assets[0].base64;
+      
+      // Verificar el tamaño de la imagen (limitar a ~800KB)
+      if (base64Data.length > 800000) {
+        Alert.alert(
+          "Image too large", 
+          "Please select a smaller image or use lower quality photos (under 1MB)."
+        );
+        return;
+      }
+      
+      // Extraer la extensión para el tipo MIME
+      let fileExtension = 'png';
+      try {
+        const match = result.assets[0].uri.match(/\.([a-zA-Z0-9]+)$/);
+        if (match && match[1]) {
+          fileExtension = match[1].toLowerCase();
+        }
+      } catch (error) {
+        console.log("Error extracting file extension:", error);
+      }
+      
+      // Crear URL base64 con formato adecuado
+      const imageUri = `data:image/${fileExtension};base64,${base64Data}`;
+      
+      // Actualizar estado del formulario y la vista previa
+      setFormData({
+        ...formData,
+        photo: imageUri
+      });
+      setImagePreview(result.assets[0].uri);
+    }
+  };
+
   const handleSubmit = () => {
     // Validamos que al menos haya un nombre
     if (!formData.nombre.trim()) {
@@ -61,12 +115,27 @@ export default function OpponentTeamScreen({ route, navigation }) {
         <Ionicons name="arrow-back" size={24} color="black" />
       </TouchableOpacity>
 
+      {/* Sección para subir imagen */}
+      <View style={styles.imageSection}>
+        {imagePreview ? (
+          <Image source={{ uri: imagePreview }} style={styles.imagePreview} />
+        ) : (
+          <View style={styles.imagePlaceholder}>
+            <Ionicons name="image-outline" size={40} color="#FFA500" />
+            <Text style={styles.imagePlaceholderText}>Team Logo</Text>
+          </View>
+        )}
+        <TouchableOpacity style={styles.uploadButton} onPress={pickImage}>
+          <Ionicons name="cloud-upload-outline" size={20} color="white" />
+          <Text style={styles.uploadButtonText}>Upload Logo</Text>
+        </TouchableOpacity>
+      </View>
+
       <BoxFill
         title="New match"
         fields={[
           { name: "nombre", placeholder: "Opponent Name" },
           { name: "category", placeholder: "Category" },
-          { name: "photo", placeholder: "Photo", style: { height: 80 } },
         ]}
         formData={formData}
         onChangeForm={setFormData}
@@ -110,5 +179,46 @@ const styles = StyleSheet.create({
     backgroundColor: 'rgba(0,0,0,0.3)',
     justifyContent: 'center',
     alignItems: 'center',
-  }
+  },
+  imageSection: {
+    alignItems: "center",
+    width: "100%",
+    marginVertical: 20,
+  },
+  imagePreview: {
+    width: 120,
+    height: 120,
+    borderRadius: 60,
+    marginBottom: 10,
+    borderWidth: 2,
+    borderColor: "#FFA500",
+  },
+  imagePlaceholder: {
+    width: 120,
+    height: 120,
+    borderRadius: 60,
+    backgroundColor: "#E6E0CE",
+    justifyContent: "center",
+    alignItems: "center",
+    marginBottom: 10,
+  },
+  imagePlaceholderText: {
+    marginTop: 5,
+    color: "#FFA500",
+    fontWeight: "bold",
+  },
+  uploadButton: {
+    flexDirection: "row",
+    alignItems: "center",
+    backgroundColor: "#FFA500",
+    paddingVertical: 8,
+    paddingHorizontal: 15,
+    borderRadius: 20,
+    marginTop: 5,
+  },
+  uploadButtonText: {
+    color: "white",
+    fontWeight: "bold",
+    marginLeft: 5,
+  },
 });
