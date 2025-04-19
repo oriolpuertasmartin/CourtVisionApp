@@ -1,17 +1,30 @@
 import React, { useState } from "react";
-import { View, Text, StyleSheet, TouchableOpacity, ActivityIndicator, FlatList, Alert, Image } from "react-native";
+import { View, Text, StyleSheet, TouchableOpacity, ActivityIndicator, FlatList, Alert, Image, TextInput } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { useOrientation } from "../../components/OrientationHandler";
 import API_BASE_URL from "../../config/apiConfig";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import ConfirmModal from "../../components/ConfirmModal";
-
+import * as ImagePicker from 'expo-image-picker';
 
 export default function TeamPlayersScreen({ route, navigation }) {
     const { teamId } = route.params;
     const queryClient = useQueryClient();
     const [modalVisible, setModalVisible] = useState(false);
     const [playerToDelete, setPlayerToDelete] = useState(null);
+    
+    // Estados para la edición de jugadores
+    const [isEditing, setIsEditing] = useState(false);
+    const [playerToEdit, setPlayerToEdit] = useState(null);
+    const [editablePlayer, setEditablePlayer] = useState({
+        name: '',
+        number: '',
+        position: '',
+        height: '',
+        weight: '',
+        player_photo: ''
+    });
+    const [imagePreview, setImagePreview] = useState(null);
     
     // Usar el hook de orientación
     const orientation = useOrientation();
@@ -98,6 +111,42 @@ export default function TeamPlayersScreen({ route, navigation }) {
         }
     });
 
+    // Mutación para actualizar un jugador
+    const { mutate: updatePlayer, isPending: isUpdating } = useMutation({
+        mutationFn: async (playerData) => {
+            const { id, ...updateData } = playerData;
+            
+            console.log("Actualizando jugador:", id, updateData);
+            
+            const response = await fetch(`${API_BASE_URL}/players/${id}`, {
+                method: 'PATCH',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify(updateData),
+            });
+            
+            if (!response.ok) {
+                const errorData = await response.text();
+                throw new Error(`Error al actualizar el jugador: ${response.status} ${errorData}`);
+            }
+            
+            return await response.json();
+        },
+        onSuccess: (data) => {
+            console.log("Jugador actualizado exitosamente:", data);
+            queryClient.invalidateQueries({ queryKey: ['players', teamId] });
+            setIsEditing(false);
+            setPlayerToEdit(null);
+            setImagePreview(null);
+            Alert.alert("Éxito", "Jugador actualizado correctamente");
+        },
+        onError: (error) => {
+            console.error("Error en mutación:", error);
+            Alert.alert("Error", `No se pudo actualizar el jugador: ${error.message}`);
+        }
+    });
+
     const handleDeletePlayer = (playerId) => {
         console.log("handleDeletePlayer llamado para playerId:", playerId);
         if (!playerId) {
@@ -116,37 +165,216 @@ export default function TeamPlayersScreen({ route, navigation }) {
         }
     };
 
-    const renderPlayerItem = ({ item }) => (
-        <View style={styles.playerCard}>
-            {/* Botón de eliminar */}
-            <TouchableOpacity 
-                style={styles.deleteButton} 
-                onPress={() => handleDeletePlayer(item._id)}
-                disabled={isDeleting}
-            >
-                <Ionicons name="trash-outline" size={24} color="#FF3B30" />
-            </TouchableOpacity>
-    
-            {item.player_photo ? (
-                <Image source={{ uri: item.player_photo }} style={styles.playerPhoto} />
-            ) : (
-                <View style={styles.playerNumber}>
-                    <Text style={styles.numberText}>#{item.number || '0'}</Text>
+    // Funciones para manejar la edición
+    const handleEditPlayer = (player) => {
+        setPlayerToEdit(player);
+        setEditablePlayer({
+            name: player.name || '',
+            number: player.number?.toString() || '',
+            position: player.position || '',
+            height: player.height?.toString() || '',
+            weight: player.weight?.toString() || '',
+            player_photo: player.player_photo || ''
+        });
+        setImagePreview(player.player_photo || null);
+        setIsEditing(true);
+    };
+
+    const handleCancelEdit = () => {
+        setIsEditing(false);
+        setPlayerToEdit(null);
+        setImagePreview(null);
+    };
+
+    const handleSaveChanges = () => {
+        if (!editablePlayer.name || !editablePlayer.number || !editablePlayer.position) {
+            Alert.alert("Error", "Nombre, número y posición son campos obligatorios");
+            return;
+        }
+        
+        updatePlayer({
+            id: playerToEdit._id,
+            name: editablePlayer.name,
+            number: parseInt(editablePlayer.number),
+            position: editablePlayer.position,
+            height: editablePlayer.height ? parseInt(editablePlayer.height) : null,
+            weight: editablePlayer.weight ? parseInt(editablePlayer.weight) : null,
+            player_photo: editablePlayer.player_photo
+        });
+    };
+
+    // Función para seleccionar una imagen
+    const pickImage = async () => {
+        // Pedir permisos para acceder a la galería
+        const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
+        
+        if (status !== 'granted') {
+            Alert.alert('Permission Denied', 'We need camera roll permissions to upload images.');
+            return;
+        }
+        
+        let result = await ImagePicker.launchImageLibraryAsync({
+            mediaTypes: ImagePicker.MediaTypeOptions.Images,
+            allowsEditing: true,
+            aspect: [1, 1],
+            quality: 0.5,
+            base64: true,
+        });
+        
+        if (!result.canceled && result.assets[0].base64) {
+            const base64Data = result.assets[0].base64;
+            
+            // Verificar el tamaño de la imagen (limitar a 1MB)
+            if (base64Data.length > 1000000) {
+                Alert.alert("Image too large", "Please select a smaller image or use lower quality photos (under 1MB).");
+                return;
+            }
+            
+            // Extraer la extensión para el tipo MIME
+            let fileExtension = 'png';
+            try {
+                const match = result.assets[0].uri.match(/\.([a-zA-Z0-9]+)$/);
+                if (match && match[1]) {
+                    fileExtension = match[1].toLowerCase();
+                }
+            } catch (error) {
+                console.log("Error extracting file extension:", error);
+            }
+            
+            // Crear URL base64 con formato adecuado
+            const imageUri = `data:image/${fileExtension};base64,${base64Data}`;
+            setEditablePlayer({
+                ...editablePlayer,
+                player_photo: imageUri
+            });
+            setImagePreview(result.assets[0].uri);
+        }
+    };
+
+    const renderPlayerItem = ({ item }) => {
+        // Si este jugador está siendo editado, mostrar el formulario de edición
+        if (isEditing && playerToEdit && playerToEdit._id === item._id) {
+            return (
+                <View style={styles.playerCard}>
+                    {/* Área para la foto */}
+                    <TouchableOpacity onPress={pickImage} style={styles.photoEditArea}>
+                        {imagePreview ? (
+                            <Image source={{ uri: imagePreview }} style={styles.playerPhotoEdit} />
+                        ) : (
+                            <View style={styles.photoPlaceholder}>
+                                <Ionicons name="person" size={30} color="#FFA500" />
+                            </View>
+                        )}
+                        <Text style={styles.photoEditText}>Tap to change photo</Text>
+                    </TouchableOpacity>
+                    
+                    <View style={styles.playerEditForm}>
+                        <TextInput
+                            style={styles.playerEditInput}
+                            value={editablePlayer.name}
+                            onChangeText={(text) => setEditablePlayer(prev => ({...prev, name: text}))}
+                            placeholder="Nombre"
+                        />
+                        <TextInput
+                            style={styles.playerEditInput}
+                            value={editablePlayer.number}
+                            onChangeText={(text) => setEditablePlayer(prev => ({...prev, number: text}))}
+                            placeholder="Número"
+                            keyboardType="numeric"
+                        />
+                        <TextInput
+                            style={styles.playerEditInput}
+                            value={editablePlayer.position}
+                            onChangeText={(text) => setEditablePlayer(prev => ({...prev, position: text}))}
+                            placeholder="Posición"
+                        />
+                        <View style={styles.playerEditRow}>
+                            <TextInput
+                                style={[styles.playerEditInput, { flex: 1, marginRight: 5 }]}
+                                value={editablePlayer.height}
+                                onChangeText={(text) => setEditablePlayer(prev => ({...prev, height: text}))}
+                                placeholder="Altura"
+                                keyboardType="numeric"
+                            />
+                            <TextInput
+                                style={[styles.playerEditInput, { flex: 1, marginLeft: 5 }]}
+                                value={editablePlayer.weight}
+                                onChangeText={(text) => setEditablePlayer(prev => ({...prev, weight: text}))}
+                                placeholder="Peso"
+                                keyboardType="numeric"
+                            />
+                        </View>
+                        
+                        <View style={styles.editButtons}>
+                            <TouchableOpacity 
+                                style={styles.saveButton}
+                                onPress={handleSaveChanges}
+                                disabled={isUpdating}
+                            >
+                                {isUpdating ? (
+                                    <ActivityIndicator size="small" color="white" />
+                                ) : (
+                                    <>
+                                        <Ionicons name="save-outline" size={20} color="white" />
+                                        <Text style={styles.editButtonText}>Guardar</Text>
+                                    </>
+                                )}
+                            </TouchableOpacity>
+                            <TouchableOpacity 
+                                style={styles.cancelEditButton}
+                                onPress={handleCancelEdit}
+                                disabled={isUpdating}
+                            >
+                                <Ionicons name="close-outline" size={20} color="white" />
+                                <Text style={styles.editButtonText}>Cancelar</Text>
+                            </TouchableOpacity>
+                        </View>
+                    </View>
                 </View>
-            )}
-            <View style={styles.playerInfo}>
-                {/* Resto del contenido existente */}
-                <View style={styles.nameNumberContainer}>
-                    <Text style={styles.playerName}>{item.name}</Text>
-                    <Text style={styles.playerNumberText}>#{item.number || '0'}</Text>
+            );
+        }
+
+        // Vista normal del jugador
+        return (
+            <View style={styles.playerCard}>
+                {/* Botón de eliminar */}
+                <TouchableOpacity 
+                    style={styles.deleteButton} 
+                    onPress={() => handleDeletePlayer(item._id)}
+                    disabled={isDeleting || isEditing}
+                >
+                    <Ionicons name="trash-outline" size={24} color="#FF3B30" />
+                </TouchableOpacity>
+
+                {/* Botón de editar */}
+                <TouchableOpacity 
+                    style={styles.editButton} 
+                    onPress={() => handleEditPlayer(item)}
+                    disabled={isEditing}
+                >
+                    <Ionicons name="create-outline" size={24} color="#FFA500" />
+                </TouchableOpacity>
+        
+                {item.player_photo ? (
+                    <Image source={{ uri: item.player_photo }} style={styles.playerPhoto} />
+                ) : (
+                    <View style={styles.playerNumber}>
+                        <Text style={styles.numberText}>#{item.number || '0'}</Text>
+                    </View>
+                )}
+                <View style={styles.playerInfo}>
+                    <View style={styles.nameNumberContainer}>
+                        <Text style={styles.playerName}>{item.name}</Text>
+                        <Text style={styles.playerNumberText}>#{item.number || '0'}</Text>
+                    </View>
+                    <Text style={styles.playerPosition}>{item.position || 'No position'}</Text>
+                    <Text style={styles.playerDetails}>
+                        Height: {item.height || 'N/A'} • Weight: {item.weight || 'N/A'}
+                    </Text>
                 </View>
-                <Text style={styles.playerPosition}>{item.position || 'No position'}</Text>
-                <Text style={styles.playerDetails}>
-                    Height: {item.height || 'N/A'} • Weight: {item.weight || 'N/A'}
-                </Text>
             </View>
-        </View>
-    );
+        );
+    };
 
     const isLoading = isTeamLoading || isPlayersLoading;
     const isError = isTeamError || isPlayersError;
@@ -298,6 +526,13 @@ const styles = StyleSheet.create({
         zIndex: 10,
         padding: 10, // Aumentado para área de toque más grande
     },
+    editButton: {
+        position: 'absolute',
+        top: 10,
+        right: 50, // Posicionado a la derecha del botón de borrar
+        zIndex: 10,
+        padding: 10,
+    },
     playerNumber: {
         backgroundColor: '#FFA500',
         width: 50,
@@ -371,9 +606,9 @@ const styles = StyleSheet.create({
         textAlign: 'center',
     },
     playerPhoto: {
-        width: 50,
-        height: 50,
-        borderRadius: 25,
+        width: 80,
+        height: 80,
+        borderRadius: 40,
         marginRight: 15,
         borderWidth: 2,
         borderColor: "#FFA500",
@@ -388,5 +623,80 @@ const styles = StyleSheet.create({
         fontWeight: 'bold',
         color: '#FFA500',
         marginLeft: 8,
+    },
+    // Estilos para el formulario de edición
+    playerEditForm: {
+        flex: 1,
+        padding: 10,
+    },
+    playerEditInput: {
+        backgroundColor: 'white',
+        borderWidth: 1,
+        borderColor: '#FFA500',
+        borderRadius: 5,
+        padding: 8,
+        marginBottom: 10,
+        fontSize: 16,
+    },
+    playerEditRow: {
+        flexDirection: 'row',
+        justifyContent: 'space-between',
+    },
+    editButtons: {
+        flexDirection: 'row',
+        justifyContent: 'space-between',
+        marginTop: 5,
+    },
+    saveButton: {
+        backgroundColor: '#FFA500',
+        flexDirection: 'row',
+        alignItems: 'center',
+        padding: 8,
+        borderRadius: 15,
+        flex: 1,
+        justifyContent: 'center',
+        marginRight: 5,
+    },
+    cancelEditButton: {
+        backgroundColor: '#999',
+        flexDirection: 'row',
+        alignItems: 'center',
+        padding: 8,
+        borderRadius: 15,
+        flex: 1,
+        justifyContent: 'center',
+        marginLeft: 5,
+    },
+    editButtonText: {
+        color: 'white',
+        fontWeight: 'bold',
+        marginLeft: 5,
+    },
+    photoEditArea: {
+        width: 100,
+        alignItems: 'center',
+        marginRight: 10,
+    },
+    playerPhotoEdit: {
+        width: 80,
+        height: 80,
+        borderRadius: 40,
+        marginBottom: 5,
+        borderWidth: 2,
+        borderColor: "#FFA500",
+    },
+    photoPlaceholder: {
+        width: 80,
+        height: 80,
+        borderRadius: 40,
+        backgroundColor: '#E6E0CE',
+        justifyContent: 'center',
+        alignItems: 'center',
+        marginBottom: 5,
+    },
+    photoEditText: {
+        fontSize: 12,
+        color: '#FFA500',
+        textAlign: 'center',
     }
 });

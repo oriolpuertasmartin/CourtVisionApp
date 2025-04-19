@@ -40,4 +40,19 @@ export class PlayersService {
     // Eliminar el jugador
     return this.playerModel.findByIdAndDelete(id);
   }
+
+  async update(id: string, updatePlayerDto: any): Promise<Player | null> {
+    // Verificar si el jugador existe
+    const player = await this.playerModel.findById(id);
+    if (!player) {
+      throw new NotFoundException(`Player with ID ${id} not found`);
+    }
+    
+    // Actualizar y devolver el jugador actualizado
+    return this.playerModel.findByIdAndUpdate(
+      id, 
+      { $set: updatePlayerDto },
+      { new: true } // Para devolver el documento actualizado
+    ).exec();
+  }
 }

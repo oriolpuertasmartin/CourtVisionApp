@@ -1,4 +1,4 @@
-import { Controller, Get, Post, Delete, Param, Query, Body, NotFoundException, BadRequestException } from '@nestjs/common';
+import { Controller, Get, Post, Delete, Patch, Param, Query, Body, NotFoundException, BadRequestException } from '@nestjs/common';
 import { PlayersService } from './players.service';
 import { isValidObjectId } from 'mongoose';
 
@@ -51,5 +51,20 @@ export class PlayersController {
       throw new BadRequestException(`Invalid player ID: ${id}`);
     }
     return this.playersService.delete(id);
+  }
+
+  // PATCH http://localhost:3001/players/:id
+  @Patch(':id')
+  async updatePlayer(@Param('id') id: string, @Body() updatePlayerDto: any) {
+    if (!isValidObjectId(id)) {
+      throw new BadRequestException(`Invalid player ID: ${id}`);
+    }
+    
+    // Validar campos requeridos si se están actualizando
+    if (updatePlayerDto.name === '' || updatePlayerDto.number === '' || updatePlayerDto.position === '') {
+      throw new BadRequestException('Name, number, and position cannot be empty');
+    }
+    
+    return this.playersService.update(id, updatePlayerDto);
   }
 }
