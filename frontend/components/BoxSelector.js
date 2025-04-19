@@ -14,7 +14,13 @@ export default function BoxSelector({ title, items, onSelect, children, renderIt
             <Text style={styles.emptyMessage}>{emptyMessage || "No items found"}</Text>
           ) : (
             items.map((item, index) => (
-              <View key={item._id || index} style={styles.itemContainer}>
+              <View 
+                key={item._id || index} 
+                style={[
+                  styles.itemContainer, 
+                  index === 0 ? { marginTop: 20 } : null // Aplica margen superior solo al primer item
+                ]}
+              >
                 {customRenderItem ? (
                   // Usar renderizado personalizado si está disponible
                   customRenderItem(item)
@@ -39,7 +45,7 @@ export default function BoxSelector({ title, items, onSelect, children, renderIt
           )}
         </ScrollView>
         
-        {/* Children ahora va FUERA del ScrollView */}
+        {/* Children va fuera de ScrollView */}
         {children && (
           <View style={styles.childrenContainer}>
             {children}
@@ -52,7 +58,7 @@ export default function BoxSelector({ title, items, onSelect, children, renderIt
 
 const styles = StyleSheet.create({
   container: {
-    width: '100%',
+    width: '80%',
     marginTop: 20,
     alignItems: 'center',
   },
@@ -63,7 +69,7 @@ const styles = StyleSheet.create({
   },
   box: {
     width: '100%',
-    maxHeight: 500, // Aumentado para dar más espacio
+    maxHeight: 900, // Aumentado para dar más espacio
     backgroundColor: '#E6E0CE',
     borderRadius: 12,
     paddingVertical: 10,
@@ -79,7 +85,7 @@ const styles = StyleSheet.create({
     marginBottom: 15,
   },
   itemButton: {
-    backgroundColor: '#FFF9E7',
+    backgroundColor: 'white',
     paddingVertical: 20,
     borderRadius: 8,
     paddingHorizontal: 15,

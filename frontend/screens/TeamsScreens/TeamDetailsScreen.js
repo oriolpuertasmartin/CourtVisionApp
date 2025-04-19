@@ -1,15 +1,22 @@
-import React, { useState, useMemo } from "react";
-import { View, Text, StyleSheet, TouchableOpacity, ActivityIndicator, ScrollView, Image, Alert } from "react-native";
+import React, { useState, useEffect, useMemo } from "react";
+import { View, Text, StyleSheet, TouchableOpacity, ActivityIndicator, ScrollView, Image, Alert, TextInput } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { useOrientation } from "../../components/OrientationHandler";
 import API_BASE_URL from "../../config/apiConfig";
-import { useQuery } from '@tanstack/react-query';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import * as ImagePicker from 'expo-image-picker';
 
 export default function TeamDetailsScreen({ route, navigation }) {
     const { teamId } = route.params;
+    const queryClient = useQueryClient();
     
-    // Usar el hook de orientación
-    const orientation = useOrientation();
+    const [isEditing, setIsEditing] = useState(false);
+    const [editableTeam, setEditableTeam] = useState({
+        name: '',
+        category: '',
+        team_photo: ''
+    });
+    const [imagePreview, setImagePreview] = useState(null);
 
     // Consulta para obtener los datos del equipo
     const {
@@ -27,8 +34,87 @@ export default function TeamDetailsScreen({ route, navigation }) {
             }
             return await response.json();
         },
-        enabled: !!teamId
+        enabled: !!teamId,
+        onSuccess: (data) => {
+            // Inicializar los valores editables cuando se carga el equipo
+            setEditableTeam({
+                name: data.name || '',
+                category: data.category || '',
+                team_photo: data.team_photo || ''
+            });
+            if(data.team_photo) {
+                setImagePreview(data.team_photo);
+            }
+        }
     });
+
+    // Asegurar que editableTeam tenga los valores actualizados cuando cambia el equipo
+    useEffect(() => {
+        if (team && !isEditing) {
+            setEditableTeam({
+                name: team.name || '',
+                category: team.category || '',
+                team_photo: team.team_photo || ''
+            });
+            if(team.team_photo) {
+                setImagePreview(team.team_photo);
+            }
+        }
+    }, [team, isEditing]);
+
+    // Función para seleccionar una imagen
+    const pickImage = async () => {
+        if (!isEditing) return;
+        
+        // Pedir permisos para acceder a la galería
+        const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
+        
+        if (status !== 'granted') {
+            Alert.alert('Permission Denied', 'We need camera roll permissions to upload images.');
+            return;
+        }
+        
+        let result = await ImagePicker.launchImageLibraryAsync({
+            mediaTypes: ImagePicker.MediaTypeOptions.Images,
+            allowsEditing: true,
+            aspect: [1, 1],
+            quality: 0.2, // Reduced quality (0.2 = 20% quality)
+            base64: true,
+        });
+        
+        if (!result.canceled && result.assets && result.assets[0]) {
+            // Limit the image size by checking the base64 length
+            const base64Data = result.assets[0].base64;
+            
+            // If the base64 string is too large (over ~800KB), compress further or alert the user
+            if (base64Data && base64Data.length > 800000) {
+                Alert.alert(
+                    "Image too large", 
+                    "Please select a smaller image or use lower quality photos (under 1MB)."
+                );
+                return;
+            }
+            
+            // Extract file extension reliably using a regex pattern
+            let fileExtension = 'png'; // Default extension
+            try {
+                const match = result.assets[0].uri.match(/\.([a-zA-Z0-9]+)$/);
+                if (match && match[1]) {
+                    fileExtension = match[1].toLowerCase();
+                }
+            } catch (error) {
+                console.log("Error extracting file extension:", error);
+            }
+            
+            // Create base64 URL with proper format
+            const imageUri = `data:image/${fileExtension};base64,${base64Data}`;
+            setEditableTeam({
+                ...editableTeam,
+                team_photo: imageUri
+            });
+            setImagePreview(result.assets[0].uri);
+        }
+    };
 
     // Consulta para obtener los jugadores del equipo
     const {
@@ -64,6 +150,51 @@ export default function TeamDetailsScreen({ route, navigation }) {
             return await response.json();
         }
     });
+    
+    // Mutación para actualizar el equipo
+    const { mutate: updateTeam, isPending: isSaving } = useMutation({
+        mutationFn: async (updatedTeamData) => {
+            console.log("Enviando datos de actualización:", updatedTeamData);
+            const response = await fetch(`${API_BASE_URL}/teams/${teamId}`, {
+                method: 'PATCH',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify(updatedTeamData),
+            });
+            
+            if (!response.ok) {
+                const errorText = await response.text();
+                console.error("Error de respuesta:", errorText);
+                throw new Error(`Error al actualizar el equipo: ${response.status}`);
+            }
+            
+            return await response.json();
+        },
+        onSuccess: (data) => {
+            console.log("Equipo actualizado con éxito:", data);
+            
+            // Actualizar editableTeam con los datos confirmados desde el servidor
+            setEditableTeam({
+                name: data.name || '',
+                category: data.category || '',
+                team_photo: data.team_photo || ''
+            });
+            
+            // Invalidar la consulta para recargar los datos
+            queryClient.invalidateQueries({ queryKey: ['team', teamId] });
+            queryClient.invalidateQueries({ queryKey: ['teams'] });
+            
+            // Salir del modo edición
+            setIsEditing(false);
+            
+            Alert.alert("Success", "Team updated successfully!");
+        },
+        onError: (error) => {
+            console.error("Error al actualizar:", error);
+            Alert.alert("Error", `Failed to update team: ${error.message}`);
+        }
+    });
 
     // Filtrar los partidos del equipo usando useMemo para evitar cálculos innecesarios
     const matches = useMemo(() => {
@@ -93,6 +224,43 @@ export default function TeamDetailsScreen({ route, navigation }) {
             nPlayers,
         };
     }, [matches, players, team]);
+    
+    // Función para manejar la edición
+    const handleEditToggle = () => {
+        if (isEditing) {
+            // Si estábamos editando, cancelamos y restauramos los valores originales
+            setEditableTeam({
+                name: team?.name || '',
+                category: team?.category || '',
+                team_photo: team?.team_photo || ''
+            });
+            setImagePreview(team?.team_photo || null);
+        } else {
+            // Si vamos a empezar a editar, aseguramos que tengamos los valores actuales
+            setEditableTeam({
+                name: team?.name || '',
+                category: team?.category || '',
+                team_photo: team?.team_photo || ''
+            });
+            setImagePreview(team?.team_photo || null);
+        }
+        setIsEditing(!isEditing);
+    };
+    
+    // Función para guardar cambios
+    const handleSaveChanges = () => {
+        if (!editableTeam.name.trim()) {
+            Alert.alert("Error", "Team name cannot be empty");
+            return;
+        }
+        
+        console.log("Guardando cambios:", editableTeam);
+        updateTeam({
+            name: editableTeam.name,
+            category: editableTeam.category,
+            team_photo: editableTeam.team_photo
+        });
+    };
 
     // Verificar estado de carga y error
     const isLoading = isTeamLoading || isPlayersLoading || isMatchesLoading;
@@ -132,15 +300,93 @@ export default function TeamDetailsScreen({ route, navigation }) {
             <ScrollView style={styles.scrollContainer}>
                 {/* Cabecera del equipo */}
                 <View style={styles.teamHeader}>
-                    {team?.team_photo ? (
-                        <Image source={{ uri: team.team_photo }} style={styles.teamPhoto} />
-                    ) : (
-                        <View style={styles.photoPlaceholder}>
-                            <Text style={styles.photoPlaceholderText}>{team?.name?.substring(0, 2) || 'T'}</Text>
-                        </View>
+                    <TouchableOpacity 
+                        onPress={isEditing ? pickImage : undefined}
+                        activeOpacity={isEditing ? 0.7 : 1}
+                    >
+                        {imagePreview || team?.team_photo ? (
+                            <View>
+                                <Image source={{ uri: imagePreview || team.team_photo }} style={styles.teamPhoto} />
+                                {isEditing && (
+                                    <View style={styles.photoOverlay}>
+                                        <Ionicons name="camera" size={24} color="white" />
+                                    </View>
+                                )}
+                            </View>
+                        ) : (
+                            <View style={styles.photoPlaceholder}>
+                                <Text style={styles.photoPlaceholderText}>
+                                    {editableTeam.name?.substring(0, 2) || 'T'}
+                                </Text>
+                                {isEditing && (
+                                    <View style={styles.photoOverlay}>
+                                        <Ionicons name="camera" size={24} color="white" />
+                                    </View>
+                                )}
+                            </View>
+                        )}
+                        {isEditing && (
+                            <Text style={styles.changePhotoText}>Tap to change photo</Text>
+                        )}
+                    </TouchableOpacity>
+                    
+                    {/* Botón para editar/guardar */}
+                    <TouchableOpacity 
+                        style={styles.editButton}
+                        onPress={isEditing ? handleSaveChanges : handleEditToggle}
+                        disabled={isSaving}
+                    >
+                        {isSaving ? (
+                            <ActivityIndicator size="small" color="white" />
+                        ) : (
+                            <Ionicons 
+                                name={isEditing ? "save-outline" : "create-outline"} 
+                                size={20} 
+                                color="white" 
+                            />
+                        )}
+                        <Text style={styles.editButtonText}>
+                            {isEditing ? " Save" : " Edit"}
+                        </Text>
+                    </TouchableOpacity>
+                    
+                    {/* Botón para cancelar edición - solo visible en modo edición */}
+                    {isEditing && (
+                        <TouchableOpacity 
+                            style={styles.cancelButton}
+                            onPress={handleEditToggle}
+                            disabled={isSaving}
+                        >
+                            <Ionicons name="close-outline" size={20} color="white" />
+                            <Text style={styles.editButtonText}>Cancel</Text>
+                        </TouchableOpacity>
                     )}
-                    <Text style={styles.teamName}>{team?.name || 'Team'}</Text>
-                    <Text style={styles.teamCategory}>{team?.category || 'No category'}</Text>
+                    
+                    {/* Nombre del equipo - editable o no según el modo */}
+                    {isEditing ? (
+                        <TextInput
+                            style={styles.teamNameInput}
+                            value={editableTeam.name}
+                            onChangeText={(text) => setEditableTeam(prev => ({...prev, name: text}))}
+                            placeholder="Team Name"
+                            maxLength={30}
+                        />
+                    ) : (
+                        <Text style={styles.teamName}>{team?.name || 'Team'}</Text>
+                    )}
+                    
+                    {/* Categoría del equipo - editable o no según el modo */}
+                    {isEditing ? (
+                        <TextInput
+                            style={styles.teamCategoryInput}
+                            value={editableTeam.category}
+                            onChangeText={(text) => setEditableTeam(prev => ({...prev, category: text}))}
+                            placeholder="Category"
+                            maxLength={20}
+                        />
+                    ) : (
+                        <Text style={styles.teamCategory}>{team?.category || 'No category'}</Text>
+                    )}
                 </View>
 
                 {/* Resumen de estadísticas */}
@@ -157,12 +403,12 @@ export default function TeamDetailsScreen({ route, navigation }) {
                             <Text style={styles.statLabel}>Wins</Text>
                         </View>
                         <View style={styles.statItem}>
-                            <Text style={styles.statValue}>{stats.losses}</Text>
-                            <Text style={styles.statLabel}>Losses</Text>
+                            <Text style={styles.statValue}>{stats.nPlayers}</Text>
+                            <Text style={styles.statLabel}>Players</Text>
                         </View>
                         <View style={styles.statItem}>
-                            <Text style={styles.statValue}>{stats.nPlayers}</Text>
-                            <Text style={styles.statLabel}>NPlayers</Text>
+                            <Text style={styles.statValue}>{stats.losses}</Text>
+                            <Text style={styles.statLabel}>Losses</Text>
                         </View>
                     </View>
                 </View>
@@ -251,13 +497,13 @@ export default function TeamDetailsScreen({ route, navigation }) {
 const styles = StyleSheet.create({
     container: {
         flex: 1,
-        backgroundColor: "#FFF8E1",
+        backgroundColor: "white",
     },
     loadingContainer: {
         flex: 1,
         justifyContent: 'center',
         alignItems: 'center',
-        backgroundColor: "#FFF8E1",
+        backgroundColor: "#F9F6EE",
     },
     loadingText: {
         fontSize: 16,
@@ -292,22 +538,22 @@ const styles = StyleSheet.create({
     scrollContainer: {
         flex: 1,
         paddingTop: 80,
-        paddingHorizontal: 20,
+        paddingHorizontal: 100,
     },
     teamHeader: {
         alignItems: 'center',
         marginBottom: 30,
     },
     teamPhoto: {
-        width: 100,
-        height: 100,
-        borderRadius: 50,
+        width: 170,
+        height: 170,
+        borderRadius: 100,
         marginBottom: 10,
     },
     photoPlaceholder: {
-        width: 100,
-        height: 100,
-        borderRadius: 50,
+        width: 170,
+        height: 170,
+        borderRadius: 100,
         backgroundColor: '#E6E0CE',
         justifyContent: 'center',
         alignItems: 'center',
@@ -318,6 +564,25 @@ const styles = StyleSheet.create({
         fontWeight: 'bold',
         color: '#FFA500',
     },
+    photoOverlay: {
+        position: 'absolute',
+        top: 0,
+        left: 0,
+        right: 0,
+        bottom: 0,
+        width: 170,
+        height: 170,
+        backgroundColor: 'rgba(0, 0, 0, 0.3)',
+        borderRadius: 100,
+        justifyContent: 'center',
+        alignItems: 'center',
+    },
+    changePhotoText: {
+        fontSize: 14,
+        color: '#FFA500',
+        textAlign: 'center',
+        marginBottom: 10,
+    },
     teamName: {
         fontSize: 28,
         fontWeight: 'bold',
@@ -326,6 +591,58 @@ const styles = StyleSheet.create({
     teamCategory: {
         fontSize: 18,
         color: '#666',
+    },
+    teamNameInput: {
+        fontSize: 28,
+        fontWeight: 'bold',
+        marginBottom: 5,
+        textAlign: 'center',
+        borderWidth: 1,
+        borderColor: '#FFA500',
+        borderRadius: 5,
+        padding: 5,
+        paddingHorizontal: 10,
+        backgroundColor: 'white',
+        minWidth: 200,
+    },
+    teamCategoryInput: {
+        fontSize: 18,
+        color: '#666',
+        textAlign: 'center',
+        borderWidth: 1,
+        borderColor: '#FFA500',
+        borderRadius: 5,
+        padding: 5,
+        paddingHorizontal: 10,
+        backgroundColor: 'white',
+        minWidth: 150,
+    },
+    editButton: {
+        position: 'absolute',
+        top: 5,
+        right: 5,
+        backgroundColor: '#FFA500',
+        flexDirection: 'row',
+        alignItems: 'center',
+        padding: 8,
+        borderRadius: 15,
+        zIndex: 5,
+    },
+    cancelButton: {
+        position: 'absolute',
+        top: 5,
+        left: 5,
+        backgroundColor: '#999',
+        flexDirection: 'row',
+        alignItems: 'center',
+        padding: 8,
+        borderRadius: 15,
+        zIndex: 5,
+    },
+    editButtonText: {
+        color: 'white',
+        fontWeight: 'bold',
+        marginLeft: 2,
     },
     sectionHeader: {
         flexDirection: 'row',
@@ -342,14 +659,17 @@ const styles = StyleSheet.create({
     },
     viewAllButton: {
         backgroundColor: '#FFA500',
-        paddingHorizontal: 12,
-        paddingVertical: 5,
+        padding: 8, 
         borderRadius: 15,
+        flexDirection: 'row', 
+        alignItems: 'center', 
     },
     viewAllButtonText: {
         color: 'white',
         fontWeight: 'bold',
         fontSize: 12,
+        textAlign: 'center', 
+        flex: 1, 
     },
     statsContainer: {
         marginBottom: 20,
@@ -360,7 +680,7 @@ const styles = StyleSheet.create({
         flexWrap: 'wrap',
     },
     statItem: {
-        backgroundColor: 'white',
+        backgroundColor: '#F9F6EE',
         borderRadius: 10,
         padding: 15,
         alignItems: 'center',
@@ -387,7 +707,7 @@ const styles = StyleSheet.create({
     },
     playerCard: {
         flexDirection: 'row',
-        backgroundColor: 'white',
+        backgroundColor: '#F9F6EE',
         borderRadius: 10,
         padding: 15,
         marginBottom: 10,
@@ -433,7 +753,7 @@ const styles = StyleSheet.create({
         marginBottom: 30,
     },
     matchCard: {
-        backgroundColor: 'white',
+        backgroundColor: '#F9F6EE',
         borderRadius: 10,
         padding: 15,
         marginBottom: 10,

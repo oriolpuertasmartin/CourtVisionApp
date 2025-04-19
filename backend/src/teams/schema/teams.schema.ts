@@ -10,6 +10,9 @@ export class Team {
 
   @Prop({ required: true })
   category: string;
+  
+  @Prop()
+  team_photo: string;
 
   @Prop({ type: [String], default: [] })
   players: string[];
@@ -34,9 +37,6 @@ export class Team {
 
   @Prop({ type: [String], default: [] })
   matches: string[];
-
-  @Prop()
-  team_photo: string;
 
   @Prop({required: true})
   user_id: string;
