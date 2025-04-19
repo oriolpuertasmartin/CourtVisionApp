@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { View, Alert, StyleSheet, TouchableOpacity, Text, ActivityIndicator } from "react-native";
+import { View, Alert, StyleSheet, TouchableOpacity, Text, ActivityIndicator, Image } from "react-native";
 import BoxSelector from "../../components/BoxSelector";
 import API_BASE_URL from "../../config/apiConfig";
 import { useQuery, useMutation } from '@tanstack/react-query';
@@ -57,6 +57,33 @@ export default function StartMatchScreen({ user, navigation }) {
     createMatch(team._id);
   };
 
+  // Función para renderizar cada equipo con su logo/foto y categoría
+  const renderTeamItem = (team, isSelected) => {
+    return (
+      // Envuelve todo en TouchableOpacity para que siga siendo un botón
+      <TouchableOpacity 
+        style={[styles.itemButton]} 
+        onPress={() => handleSelectTeam(team)}
+      >
+        <View style={[styles.teamItemContainer, isSelected ? styles.selectedTeamItem : null]}>
+          {team.team_photo ? (
+            <Image source={{ uri: team.team_photo }} style={styles.teamLogo} />
+          ) : (
+            <View style={styles.teamLogoPlaceholder}>
+              <Text style={styles.teamLogoPlaceholderText}>
+                {team.name.substring(0, 2).toUpperCase()}
+              </Text>
+            </View>
+          )}
+          <View style={styles.teamInfoContainer}>
+            <Text style={styles.teamName}>{team.name}</Text>
+            <Text style={styles.teamCategory}>{team.category || 'Sin categoría'}</Text>
+          </View>
+        </View>
+      </TouchableOpacity>
+    );
+  };
+
   if (isLoading || isPending) {
     return (
       <View style={[styles.container, styles.loadingContainer]}>
@@ -87,6 +114,7 @@ export default function StartMatchScreen({ user, navigation }) {
         items={teams}
         onSelect={handleSelectTeam}
         emptyMessage="No teams found. Create a team first!"
+        customRenderItem={renderTeamItem}
       >
         <TouchableOpacity 
           style={styles.createButton} 
@@ -104,7 +132,7 @@ const styles = StyleSheet.create({
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
-    backgroundColor: '#FFF8E1',
+    backgroundColor: 'white',
     paddingHorizontal: 20,
   },
   loadingContainer: {
@@ -151,4 +179,57 @@ const styles = StyleSheet.create({
     fontSize: 23,
     fontWeight: '600',
   },
+  // Nuevos estilos para mostrar equipos con foto y categoría
+  itemButton: {
+    backgroundColor: 'white',
+    paddingVertical: 10,
+    borderRadius: 8,
+    width: '100%',
+  },
+  teamItemContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingVertical: 12,
+    paddingHorizontal: 15,
+    width: '100%',
+  },
+  selectedTeamItem: {
+    backgroundColor: '#FFF8E1',
+  },
+  teamLogo: {
+    width: 80,
+    height: 80,
+    borderRadius: 45,
+    marginRight: 30,
+    marginLeft: 30,
+    borderWidth: 1,
+    borderColor: '#E6E0CE',
+  },
+  teamLogoPlaceholder: {
+    width: 60,
+    height: 60,
+    borderRadius: 30,
+    backgroundColor: '#FFA500',
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginRight: 15,
+  },
+  teamLogoPlaceholderText: {
+    color: 'white',
+    fontWeight: 'bold',
+    fontSize: 20,
+  },
+  teamInfoContainer: {
+    flex: 1,
+    justifyContent: 'center',
+  },
+  teamName: {
+    fontSize: 18,
+    fontWeight: 'bold',
+    marginBottom: 4,
+  },
+  teamCategory: {
+    fontSize: 14,
+    color: '#777',
+  }
 });

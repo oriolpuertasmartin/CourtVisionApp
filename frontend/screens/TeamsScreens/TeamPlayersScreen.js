@@ -621,7 +621,7 @@ const styles = StyleSheet.create({
     playerNumberText: {
         fontSize: 16,
         fontWeight: 'bold',
-        color: '#FFA500',
+        color: '#FF6200',
         marginLeft: 8,
     },
     // Estilos para el formulario de edición

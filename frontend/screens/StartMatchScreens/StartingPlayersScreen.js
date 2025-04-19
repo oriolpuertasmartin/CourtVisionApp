@@ -179,7 +179,7 @@ const styles = StyleSheet.create({
     flex: 1,
     justifyContent: "center",
     alignItems: "center",
-    backgroundColor: "#FFF8E1",
+    backgroundColor: "white",
     paddingHorizontal: 20,
   },
   loadingContainer: {

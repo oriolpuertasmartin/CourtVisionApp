@@ -70,9 +70,9 @@ const styles = StyleSheet.create({
         marginBottom: 10,          // Espacio entre filas
     },
     button: {
-        width: 80,                 // Ancho y alto iguales para que sea círculo
-        height: 80,                // Mismo valor que width
-        borderRadius: 40,          // La mitad del ancho para hacer círculo perfecto
+        width: 90,                 // Ancho y alto iguales para que sea círculo
+        height: 90,                // Mismo valor que width
+        borderRadius: 45,          // La mitad del ancho para hacer círculo perfecto
         justifyContent: 'center',
         alignItems: 'center',
         marginHorizontal: 2,       // Reducido de 5 a 2 para menos separación

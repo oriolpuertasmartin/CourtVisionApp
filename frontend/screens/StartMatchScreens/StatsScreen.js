@@ -462,13 +462,14 @@ export default function StatsScreen({ route, navigation }) {
         <Text style={styles.title}>Stats Screen</Text>
         <View style={styles.startingplayersContainer}>
           {startingPlayers.map((player) => (
-            <PlayerButton
-              key={player.playerId}
-              player={player}
-              playerstats={player}
-              onPress={() => handleSelectPlayer(player.playerId)}
-              isSelected={selectedPlayerId === player.playerId}
-            />
+            <View key={player.playerId} style={styles.startingPlayerItem}>
+              <PlayerButton
+                player={player}
+                playerstats={player}
+                onPress={() => handleSelectPlayer(player.playerId)}
+                isSelected={selectedPlayerId === player.playerId}
+              />
+            </View>
           ))}
         </View>
       </View>
@@ -574,39 +575,49 @@ const styles = StyleSheet.create({
     top: 20,
   },
   startingplayersContainer: {
+    flexDirection: "row",
     flexWrap: "wrap",
-    justifyContent: "flex-start",
+    justifyContent: "flex-start", 
     alignItems: "flex-start",
+    width: "35%",
     position: "absolute",
-    top: 70,
-    left: 50,
+    top: 100, 
+    left: 120,
+    gap: 10, 
   },
-  opponentButtonContainer: {
-    position: "absolute",
-    top: 70,
-    right: 50,
-    zIndex: 10,
+  startingPlayerItem: {
+    width: "47%", 
+    padding: 3,
+    marginBottom: 10,
   },
   benchPlayersContainer: {
     flexDirection: "row",
     flexWrap: "wrap",
-    justifyContent: "flex-start",
+    justifyContent: "flex-start", 
     alignItems: "flex-start",
     width: "35%",
     position: "absolute",
     left: 0,
-    paddingLeft: 48,
-    gap: 5,
+    paddingLeft: 120,
+    gap: 10, 
   },
   benchItem: {
-    width: "48%",
+    width: "47%", 
     padding: 3,
-    marginBottom: 1,
+    marginBottom: 10,
+  },
+  opponentButtonContainer: {
+    position: "absolute",
+    top: 130, 
+    right: 120,
+    zIndex: 10,
+    width: 400,
+    transform: [{scale: 1.5}],
   },
   scoreboardContainer: {
     position: "absolute",
-    top: 400,
-    right: 50,
+    top: 500,
+    right: 120,
     zIndex: 10,
   },
   finishButtonContainer: {

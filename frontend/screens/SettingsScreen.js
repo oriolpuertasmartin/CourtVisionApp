@@ -92,7 +92,7 @@ export default function SettingsScreen({ handleLogout }) {
 const styles = StyleSheet.create({
     container: {
         flex: 1,
-        backgroundColor: "#FFF8E1",
+        backgroundColor: "white",
         paddingTop: 80,
         alignItems: "center",
     },
