@@ -7,9 +7,7 @@ import { createDrawerNavigator, DrawerContentScrollView, DrawerItemList } from '
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { ReactQueryDevtools } from '@tanstack/react-query-devtools';
-import { Ionicons } from "@expo/vector-icons"; // Añade esta importación
-
-// Resto de las importaciones...
+import { Ionicons } from "@expo/vector-icons"; 
 
 // Importación de pantallas y componentes personalizados
 import WelcomeScreen from './screens/WelcomeScreen';
@@ -22,7 +20,7 @@ import TeamDetailsScreen from './screens/TeamsScreens/TeamDetailsScreen';
 import TeamPlayersScreen from './screens/TeamsScreens/TeamPlayersScreen';
 import CreateTeamsScreen from './screens/TeamsScreens/CreateTeamsScreen';
 import CreatePlayersScreen from './screens/TeamsScreens/CreatePlayersScreen';
-import SettingsScreen from './screens/SettingsScreen';
+import SettingsScreen from './screens/SettingsScreens/SettingsScreen'; 
 import InfoScreen from './screens/InfoScreen';
 import FloatingUserButton from './components/FloatingUserButton';
 import StartMatchScreen from './screens/StartMatchScreens/StartMatchScreen';
@@ -30,6 +28,7 @@ import OpponentTeamScreen from './screens/StartMatchScreens/OpponentTeamScreen';
 import StartingPlayersScreen from './screens/StartMatchScreens/StartingPlayersScreen';
 import StatsScreen from './screens/StartMatchScreens/StatsScreen';
 import StatsView from './screens/StartMatchScreens/StatsViewScreen';
+import ProfileScreen from './screens/SettingsScreens/ProfileScreen';
 
 // Creación del cliente de Query
 const queryClient = new QueryClient({
@@ -154,8 +153,29 @@ function StartMatchStack({ user }) {
   );
 }
 
+// Stack Navigator para la sección "Settings" y sus subpantallas
+function SettingsStack({ handleLogout, setUser }) {
+  return (
+    <Stack.Navigator screenOptions={{ headerShown: false }}>
+      <Stack.Screen 
+        name="SettingsList" 
+        options={{ headerShown: false }}
+      >
+        {(props) => <SettingsScreen {...props} handleLogout={handleLogout} />}
+      </Stack.Screen>
+      <Stack.Screen 
+        name="Profile" 
+        options={{ headerShown: false }}
+      >
+        {(props) => <ProfileScreen {...props} setUser={setUser} />}
+      </Stack.Screen>
+      {/* Aquí puedes agregar otras pantallas de configuración como ChangePassword */}
+    </Stack.Navigator>
+  );
+}
+
 // Configuración del Drawer Navigator
-function DrawerNavigator({ user, handleLogout }) {
+function DrawerNavigator({ user, handleLogout, setUser }) {
   return (
     <Drawer.Navigator
       drawerContent={(props) => <CustomDrawerContent {...props} />}
@@ -254,7 +274,7 @@ function DrawerNavigator({ user, handleLogout }) {
           )
         }}
       >
-        {(props) => <SettingsScreen {...props} handleLogout={handleLogout} />}
+        {(props) => <SettingsStack {...props} handleLogout={handleLogout} setUser={setUser} />}
       </Drawer.Screen>
     </Drawer.Navigator>
   );
@@ -395,7 +415,7 @@ export default function App() {
               name="Main" 
               options={{ headerShown: false }}
             >
-              {(props) => <DrawerNavigator {...props} user={user} handleLogout={handleLogout} />}
+              {(props) => <DrawerNavigator {...props} user={user} handleLogout={handleLogout} setUser={setUser} />}
             </Stack.Screen>
           </Stack.Navigator>
         </NavigationContainer>
@@ -403,7 +423,7 @@ export default function App() {
         {user && (
           <FloatingUserButton 
             user={user}
-            onPress={() => console.log('Floating button pressed')}
+            onPress={() => navigationRef.current?.navigate('Settings', { screen: 'Profile' })}
             onLogout={handleLogout}
           />
         )}

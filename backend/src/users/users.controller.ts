@@ -1,7 +1,9 @@
-import { Controller, Post, Get, Param, Body, UnauthorizedException } from '@nestjs/common';
+import { Controller, Post, Get, Patch, Param, Body, UnauthorizedException, NotFoundException, BadRequestException } from '@nestjs/common';
 import { UsersService } from './users.service';
 import { CreateUserDto } from './dto/create-user.dto';
 import { LoginUserDto } from './dto/login-user.dto';
+import { UpdateUserDto } from './dto/update-user.dto';
+import { isValidObjectId } from 'mongoose';
 
 // http://localhost:3001/users
 @Controller('users')
@@ -31,10 +33,35 @@ export class UsersController {
   // Ruta completa: GET http://localhost:3001/users/:id
   @Get(':id')
   async getUserById(@Param('id') id: string) {
-    const user = await this.usersService.findById(id);
-    if (!user) {
-      throw new UnauthorizedException('User not found');
+    try {
+      if (!isValidObjectId(id)) {
+        throw new BadRequestException('Invalid user ID format');
+      }
+      const user = await this.usersService.findById(id);
+      if (!user) {
+        throw new NotFoundException('User not found');
+      }
+      return user;
+    } catch (error) {
+      if (error instanceof NotFoundException) {
+        throw new UnauthorizedException('User not found');
+      }
+      throw error;
     }
-    return user;
+  }
+
+  // Ruta: PATCH http://localhost:3001/users/:id
+  @Patch(':id')
+  async updateUser(@Param('id') id: string, @Body() updateUserDto: UpdateUserDto) {
+    console.log('Updating user:', id, updateUserDto);
+    if (!isValidObjectId(id)) {
+      throw new BadRequestException('Invalid user ID format');
+    }
+    try {
+      return await this.usersService.update(id, updateUserDto);
+    } catch (error) {
+      console.error('Error updating user:', error);
+      throw error;
+    }
   }
 }
