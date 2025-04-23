@@ -3,6 +3,7 @@ import { UsersService } from './users.service';
 import { CreateUserDto } from './dto/create-user.dto';
 import { LoginUserDto } from './dto/login-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
+import { ChangePasswordDto } from './dto/change-psw.dto';
 import { isValidObjectId } from 'mongoose';
 
 // http://localhost:3001/users
@@ -62,6 +63,22 @@ export class UsersController {
     } catch (error) {
       console.error('Error updating user:', error);
       throw error;
+    }
+  }
+
+  // Ruta: PATCH http://localhost:3001/users/:id/change-password
+  @Post(':id/change-password')
+  async changePassword(
+    @Param('id') id: string, 
+    @Body() changePasswordDto: ChangePasswordDto
+  ) {
+    try {
+      return await this.usersService.changePassword(id, changePasswordDto.currentPassword, changePasswordDto.newPassword);
+    } catch (error) {
+      if (error instanceof UnauthorizedException) {
+        throw error;
+      }
+      throw new BadRequestException(error.message);
     }
   }
 }

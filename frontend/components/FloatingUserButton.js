@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, Modal, Image } from 'react-native';
+import { View, Text, StyleSheet, TouchableOpacity, Modal, Image, Alert, Platform } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 
 export default function FloatingUserButton({ user, onPress, onLogout }) {
@@ -8,6 +8,41 @@ export default function FloatingUserButton({ user, onPress, onLogout }) {
   // Obtener las iniciales del usuario para mostrar si no hay foto de perfil
   const getUserInitials = () => {
     return user?.name ? user.name.substring(0, 2).toUpperCase() : user?.username?.substring(0, 2).toUpperCase() || 'U';
+  };
+
+  // Función para confirmar cierre de sesión (similar a SettingsScreen)
+  const confirmLogout = () => {
+    setModalVisible(false); // Primero cerrar el modal actual
+    
+    console.log("FloatingUserButton: Botón de cerrar sesión presionado");
+    
+    // Comportamiento específico para plataforma web
+    if (Platform.OS === 'web') {
+      // En web, usamos confirm nativo del navegador
+      if (window.confirm("¿Estás seguro de que quieres cerrar sesión?")) {
+        console.log("FloatingUserButton: Confirmación web recibida");
+        onLogout && onLogout();
+      }
+    } else {
+      // Para móviles, seguimos usando Alert.alert
+      Alert.alert(
+        "Cerrar sesión",
+        "¿Estás seguro de que quieres cerrar sesión?",
+        [
+          {
+            text: "Cancelar",
+            style: "cancel"
+          },
+          {
+            text: "Sí, cerrar sesión",
+            onPress: () => {
+              console.log("FloatingUserButton: Confirmación de cierre de sesión recibida");
+              onLogout && onLogout();
+            }
+          }
+        ]
+      );
+    }
   };
 
   return (
@@ -58,10 +93,7 @@ export default function FloatingUserButton({ user, onPress, onLogout }) {
 
             <TouchableOpacity 
               style={[styles.modalOption, styles.logoutOption]}
-              onPress={() => {
-                setModalVisible(false);
-                onLogout && onLogout();
-              }}
+              onPress={confirmLogout}  // Cambiado para usar la nueva función confirmLogout
             >
               <Ionicons name="log-out-outline" size={24} color="#D32F2F" />
               <Text style={[styles.modalOptionText, { color: '#D32F2F' }]}>Cerrar Sesión</Text>

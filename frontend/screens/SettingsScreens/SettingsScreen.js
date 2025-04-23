@@ -11,30 +11,48 @@ export default function SettingsScreen({ handleLogout }) {
 
     // Esta función maneja el cierre de sesión localmente
     const confirmLogout = () => {
-        Alert.alert(
-            "Cerrar sesión",
-            "¿Estás seguro de que quieres cerrar sesión?",
-            [
-                {
-                    text: "Cancelar",
-                    style: "cancel"
-                },
-                {
-                    text: "Sí, cerrar sesión",
-                    onPress: () => {
-                        // Si recibimos la función handleLogout como prop, la usamos
-                        if (handleLogout) {
-                            console.log("Usando handleLogout de App.js");
-                            handleLogout();
-                        } else {
-                            // En caso contrario, hacemos el logout manualmente
-                            console.log("Fallback: limpiando AsyncStorage y navegando a Welcome");
-                            logoutManually();
+        console.log("Botón de cerrar sesión presionado");
+        console.log("handleLogout disponible:", !!handleLogout);
+        
+        // Comportamiento específico para plataforma web
+        if (Platform.OS === 'web') {
+            // En web, usamos confirm nativo del navegador
+            if (window.confirm("¿Estás seguro de que quieres cerrar sesión?")) {
+                console.log("Confirmación web recibida");
+                if (handleLogout) {
+                    console.log("Usando handleLogout de App.js");
+                    handleLogout();
+                } else {
+                    console.log("No se encontró handleLogout, usando logoutManually");
+                    logoutManually();
+                }
+            }
+        } else {
+            // Para móviles, seguimos usando Alert.alert
+            Alert.alert(
+                "Cerrar sesión",
+                "¿Estás seguro de que quieres cerrar sesión?",
+                [
+                    {
+                        text: "Cancelar",
+                        style: "cancel"
+                    },
+                    {
+                        text: "Sí, cerrar sesión",
+                        onPress: () => {
+                            console.log("Confirmación de cierre de sesión recibida");
+                            if (handleLogout) {
+                                console.log("Usando handleLogout de App.js");
+                                handleLogout();
+                            } else {
+                                console.log("No se encontró handleLogout, usando logoutManually");
+                                logoutManually();
+                            }
                         }
                     }
-                }
-            ]
-        );
+                ]
+            );
+        }
     };
 
     // Método de respaldo para cerrar sesión manualmente
@@ -73,9 +91,7 @@ export default function SettingsScreen({ handleLogout }) {
 
     // Función para navegar a la pantalla de cambio de contraseña
     const goToChangePassword = () => {
-        // Aquí deberás implementar la navegación a la pantalla de cambio de contraseña
-        Alert.alert("Cambiar contraseña", "Esta funcionalidad será implementada próximamente");
-        // Ejemplo de navegación: navigation.navigate('ChangePasswordScreen');
+        navigation.navigate('ChangePassword');
     };
 
     const SettingItem = ({ icon, title, subtitle, onPress, color = "#333" }) => (
@@ -114,6 +130,15 @@ export default function SettingsScreen({ handleLogout }) {
                         onPress={goToChangePassword}
                         color="#4A90E2"
                     />
+                    
+                    {/* Botón de cerrar sesión movido a la sección de cuenta */}
+                    <SettingItem 
+                        icon="log-out-outline"
+                        title="Cerrar sesión"
+                        subtitle="Terminar la sesión actual en este dispositivo"
+                        onPress={confirmLogout}
+                        color="#D9534F"  // Mantener el color rojo para indicar acción peligrosa
+                    />
 
                     <View style={styles.separator} />
                     
@@ -126,17 +151,6 @@ export default function SettingsScreen({ handleLogout }) {
                         onPress={() => navigation.navigate('Info')}
                         color="#5AC8FA"
                     />
-
-                    <View style={styles.separator} />
-                    
-                    {/* Botón de cerrar sesión */}
-                    <TouchableOpacity 
-                        style={styles.logoutButton}
-                        onPress={confirmLogout}
-                    >
-                        <Ionicons name="log-out-outline" size={24} color="white" />
-                        <Text style={styles.logoutButtonText}>Cerrar sesión</Text>
-                    </TouchableOpacity>
                     
                     {/* Para depuración - Solo visible en desarrollo */}
                     {__DEV__ && (

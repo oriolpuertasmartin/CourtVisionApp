@@ -29,6 +29,7 @@ import StartingPlayersScreen from './screens/StartMatchScreens/StartingPlayersSc
 import StatsScreen from './screens/StartMatchScreens/StatsScreen';
 import StatsView from './screens/StartMatchScreens/StatsViewScreen';
 import ProfileScreen from './screens/SettingsScreens/ProfileScreen';
+import ChangePasswordScreen from './screens/SettingsScreens/ChangePasswordScreen';
 
 // Creación del cliente de Query
 const queryClient = new QueryClient({
@@ -169,7 +170,11 @@ function SettingsStack({ handleLogout, setUser }) {
       >
         {(props) => <ProfileScreen {...props} setUser={setUser} />}
       </Stack.Screen>
-      {/* Aquí puedes agregar otras pantallas de configuración como ChangePassword */}
+      <Stack.Screen 
+        name="ChangePassword" 
+        options={{ headerShown: false }}
+        component={ChangePasswordScreen}
+      />
     </Stack.Navigator>
   );
 }

@@ -1,4 +1,4 @@
-import { Injectable, NotFoundException, BadRequestException, ConflictException } from '@nestjs/common';
+import { Injectable, NotFoundException, BadRequestException, ConflictException, UnauthorizedException } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model, isValidObjectId } from 'mongoose';
 import { Users, UserDocument } from './schema/user.schema';
@@ -88,6 +88,43 @@ export class UsersService {
       if (error.name === 'CastError') {
         throw new BadRequestException('Invalid user ID format');
       }
+      throw error;
+    }
+  }
+
+  async changePassword(userId: string, currentPassword: string, newPassword: string) {
+    try {
+      // Verificar que el formato del ID es válido
+      if (!isValidObjectId(userId)) {
+        throw new BadRequestException('Invalid user ID format');
+      }
+      
+      // Buscar al usuario
+      const user = await this.userModel.findById(userId);
+      if (!user) {
+        throw new NotFoundException(`User with ID ${userId} not found`);
+      }
+      
+      // Verificar la contraseña actual
+      const isPasswordValid = await bcryptjs.compare(currentPassword, user.password);
+      if (!isPasswordValid) {
+        throw new UnauthorizedException('Current password is incorrect');
+      }
+      
+      // Verificar que la nueva contraseña sea diferente
+      if (currentPassword === newPassword) {
+        throw new BadRequestException('New password must be different from the current one');
+      }
+      
+      // Hash de la nueva contraseña
+      const hashedPassword = await bcryptjs.hash(newPassword, 10);
+      
+      // Actualizar la contraseña
+      user.password = hashedPassword;
+      await user.save();
+      
+      return { message: 'Password changed successfully' };
+    } catch (error) {
       throw error;
     }
   }
