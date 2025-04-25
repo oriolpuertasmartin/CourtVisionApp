@@ -8,6 +8,9 @@ export class Match {
   @Prop({ type: Types.ObjectId, ref: 'Team', required: true })
   teamId: Types.ObjectId; // Referencia a la colección `teams`
 
+  @Prop({ type: String, required: true })
+  userId: string; // ID del usuario que creó el partido
+
   @Prop({
     type: {
       name: { type: String, required: true },
@@ -77,6 +80,9 @@ export class Match {
     teamAFouls: number;
     teamBFouls: number;
   }[];
+
+  @Prop({ type: String, default: 'in_progress' }) // in_progress, completed
+  status: string;
 }
 
 export const MatchSchema = SchemaFactory.createForClass(Match);
