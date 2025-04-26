@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useState, useEffect } from "react";
 import {
   View,
   Text,
@@ -7,59 +7,44 @@ import {
   Alert,
   Platform,
   ScrollView,
+  Dimensions,
 } from "react-native";
 import { useNavigation } from "@react-navigation/native";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { Ionicons } from "@expo/vector-icons";
-import { useOrientation } from "../../components/OrientationHandler";
+import { useDeviceType, useScreenDimensions } from "../../components/ResponsiveUtils";
 
 export default function SettingsScreen({ handleLogout }) {
   const navigation = useNavigation();
-  const orientation = useOrientation();
+  const deviceType = useDeviceType();
+  const { width } = useScreenDimensions();
+  const [screenWidth, setScreenWidth] = useState(Dimensions.get('window').width);
+
+  // Update screen dimensions on window resize (important for web)
+  useEffect(() => {
+    const updateDimensions = () => {
+      setScreenWidth(Dimensions.get('window').width);
+    };
+
+    const subscription = Dimensions.addEventListener('change', updateDimensions);
+    return () => {
+      subscription.remove();
+    };
+  }, []);
 
   // Esta función maneja el cierre de sesión localmente
   const confirmLogout = () => {
-    console.log("Botón de cerrar sesión presionado");
-    console.log("handleLogout disponible:", !!handleLogout);
-
-    // Comportamiento específico para plataforma web
-    if (Platform.OS === "web") {
-      // En web, usamos confirm nativo del navegador
-      if (window.confirm("¿Estás seguro de que quieres cerrar sesión?")) {
-        console.log("Confirmación web recibida");
-        if (handleLogout) {
-          console.log("Usando handleLogout de App.js");
-          handleLogout();
-        } else {
-          console.log("No se encontró handleLogout, usando logoutManually");
-          logoutManually();
-        }
+    if (Platform.OS === 'web') {
+      if (window.confirm('¿Estás seguro que deseas cerrar sesión?')) {
+        handleLogout();
       }
     } else {
-      // Para móviles, seguimos usando Alert.alert
       Alert.alert(
         "Cerrar sesión",
-        "¿Estás seguro de que quieres cerrar sesión?",
+        "¿Estás seguro que deseas cerrar sesión?",
         [
-          {
-            text: "Cancelar",
-            style: "cancel",
-          },
-          {
-            text: "Sí, cerrar sesión",
-            onPress: () => {
-              console.log("Confirmación de cierre de sesión recibida");
-              if (handleLogout) {
-                console.log("Usando handleLogout de App.js");
-                handleLogout();
-              } else {
-                console.log(
-                  "No se encontró handleLogout, usando logoutManually"
-                );
-                logoutManually();
-              }
-            },
-          },
+          { text: "Cancelar", style: "cancel" },
+          { text: "Cerrar sesión", style: "destructive", onPress: handleLogout }
         ]
       );
     }
@@ -68,32 +53,20 @@ export default function SettingsScreen({ handleLogout }) {
   // Método de respaldo para cerrar sesión manualmente
   const logoutManually = async () => {
     try {
-      console.log("Ejecutando cierre de sesión manual");
-
-      // Limpiar AsyncStorage
       await AsyncStorage.removeItem("user");
-      console.log("Usuario eliminado de AsyncStorage");
-
-      // En web, es posible que necesitemos un enfoque diferente
-      if (Platform.OS === "web") {
-        console.log("Plataforma web detectada, usando window.location");
-        // Para web, podemos forzar una recarga completa
+      console.log("Usuario eliminado del almacenamiento local");
+      
+      if (Platform.OS === 'web' && window) {
         window.location.href = "/";
-        return;
+      } else {
+        navigation.reset({
+          index: 0,
+          routes: [{ name: "Welcome" }],
+        });
       }
-
-      // Para aplicaciones móviles, usamos la navegación estándar
-      console.log("Navegando a Welcome usando navigation.reset");
-      navigation.reset({
-        index: 0,
-        routes: [{ name: "Welcome" }],
-      });
     } catch (error) {
-      console.error("Error en logoutManually:", error);
-      Alert.alert(
-        "Error",
-        "No se pudo cerrar sesión. Por favor, inténtalo de nuevo."
-      );
+      console.error("Error al cerrar sesión manualmente:", error);
+      Alert.alert("Error", "No se pudo cerrar sesión. Intente de nuevo.");
     }
   };
 
@@ -107,29 +80,86 @@ export default function SettingsScreen({ handleLogout }) {
     navigation.navigate("ChangePassword");
   };
 
-  const SettingItem = ({ icon, title, subtitle, onPress, color = "#333" }) => (
-    <TouchableOpacity style={styles.settingItem} onPress={onPress}>
-      <View style={[styles.iconContainer, { backgroundColor: color + "20" }]}>
-        <Ionicons name={icon} size={24} color={color} />
-      </View>
-      <View style={styles.settingTextContainer}>
-        <Text style={styles.settingTitle}>{title}</Text>
-        {subtitle && <Text style={styles.settingSubtitle}>{subtitle}</Text>}
-      </View>
-      <Ionicons name="chevron-forward" size={24} color="#999" />
-    </TouchableOpacity>
-  );
+  const SettingItem = ({ icon, title, subtitle, onPress, color = "#333" }) => {
+    const isDesktop = deviceType === 'desktop';
+    
+    return (
+      <TouchableOpacity 
+        style={[
+          styles.settingItem,
+          isDesktop && styles.settingItemDesktop
+        ]} 
+        onPress={onPress}
+      >
+        <View style={[
+          styles.iconContainer, 
+          { backgroundColor: color + "20" },
+          isDesktop && styles.iconContainerDesktop
+        ]}>
+          <Ionicons 
+            name={icon} 
+            size={isDesktop ? 28 : 24} 
+            color={color} 
+          />
+        </View>
+        <View style={styles.settingTextContainer}>
+          <Text style={[
+            styles.settingTitle,
+            isDesktop && styles.settingTitleDesktop
+          ]}>
+            {title}
+          </Text>
+          {subtitle && (
+            <Text style={[
+              styles.settingSubtitle,
+              isDesktop && styles.settingSubtitleDesktop
+            ]}>
+              {subtitle}
+            </Text>
+          )}
+        </View>
+        <Ionicons 
+          name="chevron-forward" 
+          size={isDesktop ? 28 : 24} 
+          color="#999" 
+        />
+      </TouchableOpacity>
+    );
+  };
+
+  // Determinar ancho dinámico basado en el tamaño de pantalla
+  const contentMaxWidth = Platform.OS === 'web' ? 
+    (width < 768 ? '100%' : 
+     width < 1200 ? 900 : 
+     width < 1600 ? 1100 : 1400) : 
+    '100%';
 
   return (
-    <ScrollView
-      contentContainerStyle={styles.scrollContainer}
-      showsVerticalScrollIndicator={false}
-    >
-      <View style={styles.container}>
-        <Text style={styles.title}>Configuración</Text>
-
-        <View style={styles.settingsContainer}>
-          <Text style={styles.sectionTitle}>Cuenta</Text>
+    <View style={[
+      styles.container,
+      Platform.OS === 'web' && { width: '100%', maxWidth: '100%' }
+    ]}>
+      {/* Título con el mismo estilo que en otras pantallas */}
+      <Text style={styles.headerTitle}>Configuración</Text>
+      
+      <ScrollView
+        style={{ width: '100%' }}
+        contentContainerStyle={[
+          styles.scrollContainer,
+          Platform.OS === 'web' && { width: '100%', maxWidth: contentMaxWidth, alignSelf: 'center' }
+        ]}
+        showsVerticalScrollIndicator={false}
+      >
+        <View style={[
+          styles.settingsContainer,
+          deviceType === 'desktop' && styles.desktopSettingsContainer
+        ]}>
+          <Text style={[
+            styles.sectionTitle,
+            deviceType === 'desktop' && styles.sectionTitleDesktop
+          ]}>
+            Cuenta
+          </Text>
 
           <SettingItem
             icon="person-outline"
@@ -158,7 +188,12 @@ export default function SettingsScreen({ handleLogout }) {
 
           <View style={styles.separator} />
 
-          <Text style={styles.sectionTitle}>Aplicación</Text>
+          <Text style={[
+            styles.sectionTitle,
+            deviceType === 'desktop' && styles.sectionTitleDesktop
+          ]}>
+            Aplicación
+          </Text>
 
           <SettingItem
             icon="information-circle-outline"
@@ -170,33 +205,49 @@ export default function SettingsScreen({ handleLogout }) {
 
           {/* Para depuración - Solo visible en desarrollo */}
           {__DEV__ && (
-            <Text style={styles.debugText}>Plataforma: {Platform.OS}</Text>
+            <Text style={styles.debugText}>
+              Plataforma: {Platform.OS} | 
+              Tipo: {deviceType} | 
+              Ancho: {screenWidth}px |
+              Content Width: {contentMaxWidth}
+            </Text>
           )}
         </View>
-      </View>
-    </ScrollView>
+      </ScrollView>
+    </View>
   );
 }
 
 const styles = StyleSheet.create({
-  scrollContainer: {
-    flexGrow: 1,
-  },
   container: {
     flex: 1,
     backgroundColor: "white",
     paddingTop: 80,
     alignItems: "center",
-    padding: 20,
+    width: '100%',
   },
-  title: {
-    fontSize: 32,
+  webContainer: {
+    alignItems: "center",
+    width: '100%',
+    maxWidth: '100%',
+  },
+  headerTitle: {
+    fontSize: 40,
     fontWeight: "bold",
     marginBottom: 30,
-    alignSelf: "flex-start",
+    alignSelf: "center",
+  },
+  scrollContainer: {
+    paddingHorizontal: 20,
+  },
+  desktopScrollContainer: {
+    width: "100%",
   },
   settingsContainer: {
     width: "100%",
+  },
+  desktopSettingsContainer: {
+    paddingVertical: 20,
   },
   sectionTitle: {
     fontSize: 18,
@@ -204,6 +255,11 @@ const styles = StyleSheet.create({
     marginBottom: 15,
     marginTop: 10,
     color: "#666",
+  },
+  sectionTitleDesktop: {
+    fontSize: 22,
+    marginTop: 20,
+    marginBottom: 20,
   },
   settingItem: {
     flexDirection: "row",
@@ -221,6 +277,16 @@ const styles = StyleSheet.create({
     shadowRadius: 2,
     elevation: 2,
   },
+  settingItemDesktop: {
+    padding: 20,
+    marginBottom: 20,
+    borderRadius: 16,
+    shadowOffset: {
+      width: 0,
+      height: 2,
+    },
+    shadowOpacity: 0.15,
+  },
   iconContainer: {
     width: 45,
     height: 45,
@@ -228,6 +294,12 @@ const styles = StyleSheet.create({
     justifyContent: "center",
     alignItems: "center",
     marginRight: 15,
+  },
+  iconContainerDesktop: {
+    width: 55,
+    height: 55,
+    borderRadius: 12,
+    marginRight: 20,
   },
   settingTextContainer: {
     flex: 1,
@@ -237,33 +309,24 @@ const styles = StyleSheet.create({
     fontWeight: "600",
     color: "#333",
   },
+  settingTitleDesktop: {
+    fontSize: 18,
+    fontWeight: "600",
+  },
   settingSubtitle: {
     fontSize: 14,
     color: "#777",
     marginTop: 2,
+  },
+  settingSubtitleDesktop: {
+    fontSize: 16,
+    marginTop: 4,
   },
   separator: {
     height: 1,
     backgroundColor: "#E1E1E1",
     width: "100%",
     marginVertical: 15,
-  },
-  logoutButton: {
-    backgroundColor: "#D9534F",
-    flexDirection: "row",
-    justifyContent: "center",
-    alignItems: "center",
-    paddingVertical: 15,
-    paddingHorizontal: 25,
-    borderRadius: 12,
-    width: "100%",
-    marginTop: 20,
-  },
-  logoutButtonText: {
-    color: "white",
-    fontWeight: "bold",
-    fontSize: 18,
-    marginLeft: 8,
   },
   debugText: {
     marginTop: 20,

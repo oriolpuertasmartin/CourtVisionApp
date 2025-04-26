@@ -220,7 +220,7 @@ export default function TeamsScreen({ navigation, route }) {
 
   return (
     <View style={styles.container}>
-      <Text style={styles.headerTitle}>My Teams</Text>
+      <Text style={styles.headerTitle}>My teams</Text>
 
       {isLoading ? (
         <View style={styles.loadingContainer}>
@@ -327,7 +327,7 @@ const styles = StyleSheet.create({
     alignSelf: "center",
   },
   createButton: {
-    backgroundColor: "#E38D2C",
+    backgroundColor: "#EB840B",
     paddingVertical: 20,
     borderRadius: 20,
     width: 500,
@@ -399,7 +399,8 @@ const styles = StyleSheet.create({
     width: 80,
     height: 80,
     borderRadius: 45,
-    marginRight: 15,
+    marginRight: 30,
+    marginLeft: 10,
     borderWidth: 1,
     borderColor: "#E6E0CE",
   },

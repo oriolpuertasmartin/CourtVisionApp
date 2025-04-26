@@ -123,8 +123,11 @@ export default function StartMatchScreen({ user, navigation }) {
 
   return (
     <View style={styles.container}>
+      {/* Título fuera del BoxSelector con el mismo estilo que en TeamsScreen */}
+      <Text style={styles.headerTitle}>Select your team</Text>
+
       <BoxSelector
-        title="Select your team"
+        // Quitar el title de aquí ya que está arriba
         items={teams}
         onSelect={handleSelectTeam}
         emptyMessage="No teams found. Create a team first!"
@@ -144,10 +147,14 @@ export default function StartMatchScreen({ user, navigation }) {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    justifyContent: "center",
-    alignItems: "center",
     backgroundColor: "white",
-    paddingHorizontal: 20,
+    paddingTop: 80, // Añadir paddingTop para el título
+    alignItems: "center",
+  },
+  headerTitle: {
+    fontSize: 40,
+    fontWeight: "bold",
+    marginBottom: 30,
   },
   loadingContainer: {
     justifyContent: "center",
@@ -238,12 +245,12 @@ const styles = StyleSheet.create({
     justifyContent: "center",
   },
   teamName: {
-    fontSize: 18,
+    fontSize: 22,
     fontWeight: "bold",
-    marginBottom: 4,
+    marginBottom: 3,
   },
   teamCategory: {
-    fontSize: 14,
+    fontSize: 17,
     color: "#777",
   },
 });
