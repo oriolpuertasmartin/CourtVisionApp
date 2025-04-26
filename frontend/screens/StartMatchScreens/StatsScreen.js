@@ -1,5 +1,12 @@
 import React, { useEffect, useState } from "react";
-import { View, Text, StyleSheet, ActivityIndicator, Alert, TouchableOpacity } from "react-native";
+import {
+  View,
+  Text,
+  StyleSheet,
+  ActivityIndicator,
+  Alert,
+  TouchableOpacity,
+} from "react-native";
 import PlayerButton from "../../components/PlayerButton";
 import StatsButtons from "../../components/StatsButtons";
 import Scoreboard from "../../components/ScoreBoard";
@@ -29,22 +36,28 @@ export default function StatsScreen({ route, navigation }) {
           const matchRes = await fetch(`${API_BASE_URL}/matches/${matchId}`);
           if (matchRes.ok) {
             const matchData = await matchRes.json();
-            
+
             // Inicializar puntuaciones y faltas si existen
-            if (matchData.teamAScore !== undefined) setTeamAScore(matchData.teamAScore);
-            if (matchData.teamBScore !== undefined) setTeamBScore(matchData.teamBScore);
-            if (matchData.teamAFouls !== undefined) setTeamAFouls(matchData.teamAFouls);
-            if (matchData.teamBFouls !== undefined) setTeamBFouls(matchData.teamBFouls);
-            
+            if (matchData.teamAScore !== undefined)
+              setTeamAScore(matchData.teamAScore);
+            if (matchData.teamBScore !== undefined)
+              setTeamBScore(matchData.teamBScore);
+            if (matchData.teamAFouls !== undefined)
+              setTeamAFouls(matchData.teamAFouls);
+            if (matchData.teamBFouls !== undefined)
+              setTeamBFouls(matchData.teamBFouls);
+
             // Si hay equipo rival con nombre, establecerlo
             if (matchData.opponentTeam && matchData.opponentTeam.name) {
               setTeamBName(matchData.opponentTeam.name);
             }
-            
-            // Obtener el nombre del equipo A 
+
+            // Obtener el nombre del equipo A
             if (matchData.teamId) {
               try {
-                const teamRes = await fetch(`${API_BASE_URL}/teams/${matchData.teamId}`);
+                const teamRes = await fetch(
+                  `${API_BASE_URL}/teams/${matchData.teamId}`
+                );
                 if (teamRes.ok) {
                   const teamData = await teamRes.json();
                   if (teamData && teamData.name) {
@@ -63,28 +76,28 @@ export default function StatsScreen({ route, navigation }) {
         console.error("Error al cargar datos del partido:", error);
       }
     }
-    
+
     // Llamar a la función fetchMatchData
     fetchMatchData();
   }, [matchId]); // Agregar matchId como dependencia
-  
+
   // Actualizar el partido cuando cambia la puntuación o las faltas
   useEffect(() => {
     const updateMatchScore = async () => {
       try {
         if (!matchId || loading) return;
-        
+
         const response = await fetch(`${API_BASE_URL}/matches/${matchId}`, {
           method: "PATCH",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ 
-            teamAScore, 
+          body: JSON.stringify({
+            teamAScore,
             teamBScore,
             teamAFouls,
-            teamBFouls
+            teamBFouls,
           }),
         });
-        
+
         if (!response.ok) {
           console.error("Error al actualizar el marcador en el partido");
         }
@@ -96,7 +109,7 @@ export default function StatsScreen({ route, navigation }) {
     const saveTimeout = setTimeout(() => {
       if (!loading && matchId) updateMatchScore();
     }, 1000);
-    
+
     return () => clearTimeout(saveTimeout);
   }, [teamAScore, teamBScore, teamAFouls, teamBFouls, loading, matchId]);
 
@@ -109,15 +122,22 @@ export default function StatsScreen({ route, navigation }) {
         }
 
         const response = await fetch(`${API_BASE_URL}/players/team/${teamId}`);
-        if (!response.ok) throw new Error("Error al obtener los jugadores del equipo.");
+        if (!response.ok)
+          throw new Error("Error al obtener los jugadores del equipo.");
         const data = await response.json();
 
-        if (Array.isArray(data) && selectedPlayers && Array.isArray(selectedPlayers)) {
-          setBenchPlayers(data.filter((player) => !selectedPlayers.includes(player._id)));
+        if (
+          Array.isArray(data) &&
+          selectedPlayers &&
+          Array.isArray(selectedPlayers)
+        ) {
+          setBenchPlayers(
+            data.filter((player) => !selectedPlayers.includes(player._id))
+          );
         } else {
-          console.error("Datos de jugadores o selectedPlayers no válidos", { 
-            dataIsArray: Array.isArray(data), 
-            selectedPlayersIsArray: Array.isArray(selectedPlayers) 
+          console.error("Datos de jugadores o selectedPlayers no válidos", {
+            dataIsArray: Array.isArray(data),
+            selectedPlayersIsArray: Array.isArray(selectedPlayers),
           });
         }
       } catch (error) {
@@ -140,10 +160,14 @@ export default function StatsScreen({ route, navigation }) {
 
         // Fetch y combinar estadísticas de los jugadores titulares
         const responseStarting = await fetch(
-          `${API_BASE_URL}/playerstats?matchId=${matchId}&playerIds=${selectedPlayers.join(",")}`
+          `${API_BASE_URL}/playerstats?matchId=${matchId}&playerIds=${selectedPlayers.join(
+            ","
+          )}`
         );
         if (!responseStarting.ok) {
-          throw new Error("Error al obtener las estadísticas de los jugadores titulares");
+          throw new Error(
+            "Error al obtener las estadísticas de los jugadores titulares"
+          );
         }
         const startingStats = await responseStarting.json();
 
@@ -151,7 +175,9 @@ export default function StatsScreen({ route, navigation }) {
           `${API_BASE_URL}/players?ids=${selectedPlayers.join(",")}`
         );
         if (!responsePlayers.ok) {
-          throw new Error("Error al obtener los detalles de los jugadores titulares");
+          throw new Error(
+            "Error al obtener los detalles de los jugadores titulares"
+          );
         }
         const startingDetails = await responsePlayers.json();
 
@@ -164,19 +190,25 @@ export default function StatsScreen({ route, navigation }) {
 
         // Obtener jugadores del banquillo
         if (teamId) {
-          const allPlayersRes = await fetch(`${API_BASE_URL}/players/team/${teamId}`);
+          const allPlayersRes = await fetch(
+            `${API_BASE_URL}/players/team/${teamId}`
+          );
           if (!allPlayersRes.ok) {
             throw new Error("Error al obtener todos los jugadores del equipo");
           }
           const allPlayersData = await allPlayersRes.json();
-          const bench = allPlayersData.filter((player) => !selectedPlayers.includes(player._id));
+          const bench = allPlayersData.filter(
+            (player) => !selectedPlayers.includes(player._id)
+          );
           setBenchPlayers(bench);
 
           // Obtener estadísticas para jugadores del banquillo
           const benchIds = bench.map((p) => p._id);
           if (benchIds.length > 0) {
             const benchStatsRes = await fetch(
-              `${API_BASE_URL}/playerstats?matchId=${matchId}&playerIds=${benchIds.join(",")}`
+              `${API_BASE_URL}/playerstats?matchId=${matchId}&playerIds=${benchIds.join(
+                ","
+              )}`
             );
             if (benchStatsRes.ok) {
               const stats = await benchStatsRes.json();
@@ -205,7 +237,7 @@ export default function StatsScreen({ route, navigation }) {
             });
           }
         }
-        
+
         console.log("Estadísticas inicializadas correctamente");
       } catch (error) {
         console.error("Error:", error);
@@ -225,10 +257,13 @@ export default function StatsScreen({ route, navigation }) {
   // Handler actualizado para procesar correctamente los tiros acertados y fallados
   const handleStatUpdate = async (stat) => {
     if (!selectedPlayerId) {
-      Alert.alert("Jugador no seleccionado", "Por favor selecciona un jugador primero.");
+      Alert.alert(
+        "Jugador no seleccionado",
+        "Por favor selecciona un jugador primero."
+      );
       return;
     }
-  
+
     try {
       // Buscar las estadísticas del jugador seleccionado
       let playerStats;
@@ -239,110 +274,112 @@ export default function StatsScreen({ route, navigation }) {
           startingPlayers.find((p) => p.playerId === selectedPlayerId) ||
           benchStats.find((p) => p.playerId === selectedPlayerId);
       }
-  
+
       if (!playerStats || !playerStats.statsId) {
-        throw new Error("No se encontró el documento de estadísticas para el jugador seleccionado.");
+        throw new Error(
+          "No se encontró el documento de estadísticas para el jugador seleccionado."
+        );
       }
-  
+
       // Preparar el payload según el tipo de estadística
       let payload = {};
-      
+
       // Estadísticas de tiros
-      switch(stat) {
+      switch (stat) {
         // TIROS LIBRES (1 PUNTO)
         case "1ptmade": // Tiro libre acertado (verde)
-          payload = { 
-            points: 1, 
-            freeThrowsMade: 1, 
-            freeThrowsAttempted: 1 
+          payload = {
+            points: 1,
+            freeThrowsMade: 1,
+            freeThrowsAttempted: 1,
           };
           // Actualizar marcador
           if (selectedPlayerId === "opponent") {
-            setTeamBScore(prev => prev + 1);
+            setTeamBScore((prev) => prev + 1);
           } else {
-            setTeamAScore(prev => prev + 1);
+            setTeamAScore((prev) => prev + 1);
           }
           break;
-          
+
         case "1ptmiss": // Tiro libre fallado (rojo)
-          payload = { 
-            freeThrowsAttempted: 1 
+          payload = {
+            freeThrowsAttempted: 1,
           }; // Solo aumenta intentos, no puntos
           break;
-          
+
         // TIROS DE 2 PUNTOS
         case "2ptmade": // Tiro de 2 acertado (verde)
-          payload = { 
-            points: 2, 
-            fieldGoalsMade: 1, 
+          payload = {
+            points: 2,
+            fieldGoalsMade: 1,
             fieldGoalsAttempted: 1,
             twoPointsMade: 1,
-            twoPointsAttempted: 1
+            twoPointsAttempted: 1,
           };
           // Actualizar marcador
           if (selectedPlayerId === "opponent") {
-            setTeamBScore(prev => prev + 2);
+            setTeamBScore((prev) => prev + 2);
           } else {
-            setTeamAScore(prev => prev + 2);
+            setTeamAScore((prev) => prev + 2);
           }
           break;
-          
+
         case "2ptmiss": // Tiro de 2 fallado (rojo)
-          payload = { 
+          payload = {
             fieldGoalsAttempted: 1,
-            twoPointsAttempted: 1
+            twoPointsAttempted: 1,
           }; // Solo aumenta intentos
           break;
-          
+
         // TIROS DE 3 PUNTOS
         case "3ptmade": // Triple acertado (verde)
-          payload = { 
-            points: 3, 
-            fieldGoalsMade: 1, 
+          payload = {
+            points: 3,
+            fieldGoalsMade: 1,
             fieldGoalsAttempted: 1,
             threePointsMade: 1,
-            threePointsAttempted: 1
+            threePointsAttempted: 1,
           };
           // Actualizar marcador
           if (selectedPlayerId === "opponent") {
-            setTeamBScore(prev => prev + 3);
+            setTeamBScore((prev) => prev + 3);
           } else {
-            setTeamAScore(prev => prev + 3);
+            setTeamAScore((prev) => prev + 3);
           }
           break;
-          
+
         case "3ptmiss": // Triple fallado (rojo)
-          payload = { 
+          payload = {
             fieldGoalsAttempted: 1,
-            threePointsAttempted: 1
+            threePointsAttempted: 1,
           }; // Solo aumenta intentos
           break;
-          
+
         // REBOTES
         case "offRebounds":
           payload = { offRebounds: 1, rebounds: 1 };
           break;
-          
+
         case "defRebounds":
           payload = { defRebounds: 1, rebounds: 1 };
           break;
-          
+
         // FALTAS
         case "fouls":
           payload = { fouls: 1 };
           // Actualizar faltas según el equipo
           if (selectedPlayerId === "opponent") {
-            setTeamBFouls(prev => prev + 1);
+            setTeamBFouls((prev) => prev + 1);
           } else {
-            setTeamAFouls(prev => prev + 1);
+            setTeamAFouls((prev) => prev + 1);
           }
           break;
-          
+
         // Otras estadísticas
         default:
           payload[stat] = 1;
       }
-  
+
       // Enviar actualización al servidor
       const response = await fetch(
         `${API_BASE_URL}/playerstats/${playerStats.statsId}`,
@@ -352,27 +389,31 @@ export default function StatsScreen({ route, navigation }) {
           body: JSON.stringify(payload),
         }
       );
-  
+
       if (!response.ok) {
         throw new Error("Error al actualizar las estadísticas del jugador.");
       }
-  
+
       // Procesar respuesta y actualizar la interfaz
       const updated = await response.json();
-      
+
       // Actualizar el estado local
       if (selectedPlayerId === "opponent") {
-        setOpponentsStats(prev => ({...prev, ...updated}));
-      } else if (startingPlayers.some(p => p.playerId === selectedPlayerId)) {
-        setStartingPlayers(prev =>
-          prev.map(p => p.playerId === selectedPlayerId ? {...p, ...updated} : p)
+        setOpponentsStats((prev) => ({ ...prev, ...updated }));
+      } else if (startingPlayers.some((p) => p.playerId === selectedPlayerId)) {
+        setStartingPlayers((prev) =>
+          prev.map((p) =>
+            p.playerId === selectedPlayerId ? { ...p, ...updated } : p
+          )
         );
       } else {
-        setBenchStats(prev =>
-          prev.map(p => p.playerId === selectedPlayerId ? {...p, ...updated} : p)
+        setBenchStats((prev) =>
+          prev.map((p) =>
+            p.playerId === selectedPlayerId ? { ...p, ...updated } : p
+          )
         );
       }
-  
+
       console.log("Estadísticas actualizadas correctamente");
     } catch (error) {
       console.error("Error al actualizar las estadísticas:", error);
@@ -383,63 +424,68 @@ export default function StatsScreen({ route, navigation }) {
   // Función para finalizar partido y ver estadísticas
   const finalizarPartido = async () => {
     try {
-      const updateData = { 
+      const updateData = {
         status: "completed",
-        teamAScore, 
+        teamAScore,
         teamBScore,
         teamAFouls,
-        teamBFouls
+        teamBFouls,
       };
-      
+
       const response = await fetch(`${API_BASE_URL}/matches/${matchId}`, {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(updateData),
       });
-      
+
       if (!response.ok) {
         throw new Error("Error al finalizar el partido");
       }
-      
+
       // Update team stats based on game result
       if (teamId) {
-        const statsUpdate = teamAScore > teamBScore 
-          ? { incrementWins: 1 } 
-          : { incrementLosses: 1 };
+        const statsUpdate =
+          teamAScore > teamBScore
+            ? { incrementWins: 1 }
+            : { incrementLosses: 1 };
 
         console.log("Enviando actualización de estadísticas:", statsUpdate);
-          
-        const teamStatsResponse = await fetch(`${API_BASE_URL}/teams/${teamId}/stats`, {
-          method: "PATCH",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify(statsUpdate),
-        });
-        
+
+        const teamStatsResponse = await fetch(
+          `${API_BASE_URL}/teams/${teamId}/stats`,
+          {
+            method: "PATCH",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify(statsUpdate),
+          }
+        );
+
         if (!teamStatsResponse.ok) {
           console.error("Error al actualizar estadísticas del equipo");
         } else {
           const updatedTeam = await teamStatsResponse.json();
           console.log("Respuesta actualización equipo:", updatedTeam);
-          Alert.alert("Equipo actualizado", 
+          Alert.alert(
+            "Equipo actualizado",
             `Victorias: ${updatedTeam.wins}, Derrotas: ${updatedTeam.losses}`
           );
         }
       }
-      
+
       // Navigate to stats view
       navigation.reset({
         index: 0,
         routes: [
-          { 
-            name: 'Main',
-            params: { 
-              screen: 'Start a Match',
+          {
+            name: "Main",
+            params: {
+              screen: "Start a Match",
               params: {
-                screen: 'StatsView',
-                params: { matchId }
-              }
-            }
-          }
+                screen: "StatsView",
+                params: { matchId },
+              },
+            },
+          },
         ],
       });
     } catch (error) {
@@ -478,7 +524,7 @@ export default function StatsScreen({ route, navigation }) {
         <View style={styles.opponentButtonContainer}>
           <PlayerButton
             key="opponent"
-            player={{ 
+            player={{
               name: teamBName || "Opponent Team",
               number: "",
             }}
@@ -512,15 +558,17 @@ export default function StatsScreen({ route, navigation }) {
               marginTop: 15,
               paddingVertical: 12,
               borderRadius: 5,
-              alignItems: 'center',
+              alignItems: "center",
             }}
           >
-            <Text style={{
-              fontSize: 18,
-              fontWeight: "bold",
-              color: 'white'
-            }}>
-              Finish the match 
+            <Text
+              style={{
+                fontSize: 18,
+                fontWeight: "bold",
+                color: "white",
+              }}
+            >
+              Finish the match
             </Text>
           </TouchableOpacity>
         </View>
@@ -577,42 +625,42 @@ const styles = StyleSheet.create({
   startingplayersContainer: {
     flexDirection: "row",
     flexWrap: "wrap",
-    justifyContent: "flex-start", 
+    justifyContent: "flex-start",
     alignItems: "flex-start",
     width: "35%",
     position: "absolute",
-    top: 100, 
+    top: 100,
     left: 120,
-    gap: 10, 
+    gap: 10,
   },
   startingPlayerItem: {
-    width: "47%", 
+    width: "47%",
     padding: 3,
     marginBottom: 10,
   },
   benchPlayersContainer: {
     flexDirection: "row",
     flexWrap: "wrap",
-    justifyContent: "flex-start", 
+    justifyContent: "flex-start",
     alignItems: "flex-start",
     width: "35%",
     position: "absolute",
     left: 0,
     paddingLeft: 120,
-    gap: 10, 
+    gap: 10,
   },
   benchItem: {
-    width: "47%", 
+    width: "47%",
     padding: 3,
     marginBottom: 10,
   },
   opponentButtonContainer: {
     position: "absolute",
-    top: 130, 
+    top: 130,
     right: 120,
     zIndex: 10,
     width: 400,
-    transform: [{scale: 1.5}],
+    transform: [{ scale: 1.5 }],
   },
   scoreboardContainer: {
     position: "absolute",

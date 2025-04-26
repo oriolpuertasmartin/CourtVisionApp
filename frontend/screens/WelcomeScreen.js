@@ -1,14 +1,22 @@
 import React from "react";
-import { View, Text, StyleSheet, TouchableOpacity, Image, Platform } from "react-native";
-import { useNavigation } from '@react-navigation/native';
+import {
+  View,
+  Text,
+  StyleSheet,
+  TouchableOpacity,
+  Image,
+  Platform,
+} from "react-native";
+import { useNavigation } from "@react-navigation/native";
 import { useOrientation } from "../components/OrientationHandler";
 
 export default function WelcomeScreen() {
   const navigation = useNavigation();
   const orientation = useOrientation(); // Usar el hook de orientación
-  
+
   // Determinar si estamos en una pantalla pequeña (móvil)
-  const isSmallScreen = Platform.OS !== 'web' || (Platform.OS === 'web' && window.innerWidth < 768);
+  const isSmallScreen =
+    Platform.OS !== "web" || (Platform.OS === "web" && window.innerWidth < 768);
 
   return (
     <View style={styles.screen}>
@@ -18,19 +26,23 @@ export default function WelcomeScreen() {
           <Text style={styles.logoText}>CV</Text>
         </View>
       </View>
-      
+
       <Text style={styles.principalText}>Bienvenido a CourtVision</Text>
-      <Text style={styles.subtitleText}>Estadísticas de baloncesto simplificadas</Text>
-      
-      <View style={[
-        styles.box, 
-        orientation === 'LANDSCAPE' && styles.boxLandscape,
-        isSmallScreen && styles.boxSmallScreen
-      ]}>
+      <Text style={styles.subtitleText}>
+        Estadísticas de baloncesto simplificadas
+      </Text>
+
+      <View
+        style={[
+          styles.box,
+          orientation === "LANDSCAPE" && styles.boxLandscape,
+          isSmallScreen && styles.boxSmallScreen,
+        ]}
+      >
         <View style={styles.mainbuttonbox}>
           <TouchableOpacity
             style={styles.buttonbox}
-            onPress={() => navigation.navigate('Login')}
+            onPress={() => navigation.navigate("Login")}
           >
             <Text style={styles.buttontext}>Iniciar Sesión</Text>
           </TouchableOpacity>
@@ -38,13 +50,13 @@ export default function WelcomeScreen() {
         <View style={styles.mainbuttonbox}>
           <TouchableOpacity
             style={[styles.buttonbox, styles.registerButton]}
-            onPress={() => navigation.navigate('Register')}
+            onPress={() => navigation.navigate("Register")}
           >
             <Text style={styles.buttontext}>Registrarse</Text>
           </TouchableOpacity>
         </View>
       </View>
-      
+
       <View style={styles.footer}>
         <Text style={styles.footerText}>© 2023 CourtVision App</Text>
         <Text style={styles.versionText}>Versión 1.0.0</Text>
@@ -56,9 +68,9 @@ export default function WelcomeScreen() {
 const styles = StyleSheet.create({
   screen: {
     flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-    backgroundColor: '#FFA500',
+    justifyContent: "center",
+    alignItems: "center",
+    backgroundColor: "#FFA500",
     padding: 20,
   },
   logoContainer: {
@@ -68,10 +80,10 @@ const styles = StyleSheet.create({
     width: 100,
     height: 100,
     borderRadius: 50,
-    backgroundColor: 'white',
-    justifyContent: 'center',
-    alignItems: 'center',
-    shadowColor: 'black',
+    backgroundColor: "white",
+    justifyContent: "center",
+    alignItems: "center",
+    shadowColor: "black",
     shadowOffset: {
       width: 0,
       height: 3,
@@ -82,31 +94,31 @@ const styles = StyleSheet.create({
   },
   logoText: {
     fontSize: 40,
-    fontWeight: 'bold',
-    color: '#FFA500',
+    fontWeight: "bold",
+    color: "#FFA500",
   },
   principalText: {
     fontSize: 40,
-    color: 'white',
+    color: "white",
     marginBottom: 10,
-    fontWeight: 'bold',
-    textAlign: 'center',
+    fontWeight: "bold",
+    textAlign: "center",
   },
   subtitleText: {
     fontSize: 18,
-    color: 'white',
+    color: "white",
     marginBottom: 40,
-    textAlign: 'center',
+    textAlign: "center",
     opacity: 0.8,
   },
   box: {
     margin: 20,
-    backgroundColor: 'white',
+    backgroundColor: "white",
     borderRadius: 20,
     width: "30%",
     minWidth: 300,
     padding: 25,
-    shadowColor: 'black',
+    shadowColor: "black",
     shadowOffset: {
       width: 0,
       height: 2,
@@ -123,16 +135,16 @@ const styles = StyleSheet.create({
     width: "90%",
   },
   mainbuttonbox: {
-    alignItems: 'center',
-    width: '100%',
+    alignItems: "center",
+    width: "100%",
   },
   buttonbox: {
-    backgroundColor: '#FFA500',
+    backgroundColor: "#FFA500",
     borderRadius: 30,
     paddingVertical: 18,
-    width: '100%',
+    width: "100%",
     marginVertical: 10,
-    shadowColor: 'black',
+    shadowColor: "black",
     shadowOffset: {
       width: 0,
       height: 2,
@@ -142,28 +154,28 @@ const styles = StyleSheet.create({
     elevation: 3,
   },
   registerButton: {
-    backgroundColor: '#FF8C00', // Un tono diferente para el botón de registro
+    backgroundColor: "#FF8C00", // Un tono diferente para el botón de registro
   },
   buttontext: {
-    textAlign: 'center',
-    color: 'white',
-    fontWeight: 'bold',
+    textAlign: "center",
+    color: "white",
+    fontWeight: "bold",
     fontSize: 18,
   },
   footer: {
-    position: 'absolute',
+    position: "absolute",
     bottom: 20,
-    alignItems: 'center',
+    alignItems: "center",
   },
   footerText: {
     fontSize: 14,
-    color: 'white',
+    color: "white",
     opacity: 0.7,
   },
   versionText: {
     fontSize: 12,
-    color: 'white',
+    color: "white",
     opacity: 0.6,
     marginTop: 5,
-  }
+  },
 });

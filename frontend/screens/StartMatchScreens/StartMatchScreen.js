@@ -1,19 +1,27 @@
 import React, { useState, useEffect } from "react";
-import { View, Alert, StyleSheet, TouchableOpacity, Text, ActivityIndicator, Image } from "react-native";
+import {
+  View,
+  Alert,
+  StyleSheet,
+  TouchableOpacity,
+  Text,
+  ActivityIndicator,
+  Image,
+} from "react-native";
 import BoxSelector from "../../components/BoxSelector";
 import API_BASE_URL from "../../config/apiConfig";
-import { useQuery, useMutation } from '@tanstack/react-query';
+import { useQuery, useMutation } from "@tanstack/react-query";
 
-export default function StartMatchScreen({ user, navigation }) { 
+export default function StartMatchScreen({ user, navigation }) {
   // Consulta para obtener equipos del usuario
   const {
     data: teams = [],
     isLoading,
     isError,
     error,
-    refetch
+    refetch,
   } = useQuery({
-    queryKey: ['teams', user?._id],
+    queryKey: ["teams", user?._id],
     queryFn: async () => {
       if (!user || !user._id) {
         throw new Error("No se encontró el userId");
@@ -24,7 +32,7 @@ export default function StartMatchScreen({ user, navigation }) {
       }
       return await response.json();
     },
-    enabled: !!user?._id
+    enabled: !!user?._id,
   });
 
   // Mutación para crear un nuevo partido
@@ -35,22 +43,22 @@ export default function StartMatchScreen({ user, navigation }) {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ teamId, userId: user._id }),
       });
-      
+
       if (!response.ok) {
         throw new Error("Error al crear el match");
       }
-      
+
       return await response.json();
     },
     onSuccess: (newMatch) => {
-      navigation.navigate('Start a Match', {
-        screen: 'OpponentTeam',
+      navigation.navigate("Start a Match", {
+        screen: "OpponentTeam",
         params: { matchId: newMatch._id, teamId: newMatch.teamId },
       });
     },
     onError: (error) => {
       Alert.alert("Error", "No se pudo crear el partido.");
-    }
+    },
   });
 
   const handleSelectTeam = (team) => {
@@ -61,11 +69,16 @@ export default function StartMatchScreen({ user, navigation }) {
   const renderTeamItem = (team, isSelected) => {
     return (
       // Envuelve todo en TouchableOpacity para que siga siendo un botón
-      <TouchableOpacity 
-        style={[styles.itemButton]} 
+      <TouchableOpacity
+        style={[styles.itemButton]}
         onPress={() => handleSelectTeam(team)}
       >
-        <View style={[styles.teamItemContainer, isSelected ? styles.selectedTeamItem : null]}>
+        <View
+          style={[
+            styles.teamItemContainer,
+            isSelected ? styles.selectedTeamItem : null,
+          ]}
+        >
           {team.team_photo ? (
             <Image source={{ uri: team.team_photo }} style={styles.teamLogo} />
           ) : (
@@ -77,7 +90,9 @@ export default function StartMatchScreen({ user, navigation }) {
           )}
           <View style={styles.teamInfoContainer}>
             <Text style={styles.teamName}>{team.name}</Text>
-            <Text style={styles.teamCategory}>{team.category || 'Sin categoría'}</Text>
+            <Text style={styles.teamCategory}>
+              {team.category || "Sin categoría"}
+            </Text>
           </View>
         </View>
       </TouchableOpacity>
@@ -96,11 +111,10 @@ export default function StartMatchScreen({ user, navigation }) {
   if (isError) {
     return (
       <View style={[styles.container, styles.errorContainer]}>
-        <Text style={styles.errorText}>{error?.message || "Error al cargar equipos"}</Text>
-        <TouchableOpacity 
-          style={styles.retryButton} 
-          onPress={() => refetch()}
-        >
+        <Text style={styles.errorText}>
+          {error?.message || "Error al cargar equipos"}
+        </Text>
+        <TouchableOpacity style={styles.retryButton} onPress={() => refetch()}>
           <Text style={styles.retryButtonText}>Reintentar</Text>
         </TouchableOpacity>
       </View>
@@ -116,9 +130,9 @@ export default function StartMatchScreen({ user, navigation }) {
         emptyMessage="No teams found. Create a team first!"
         customRenderItem={renderTeamItem}
       >
-        <TouchableOpacity 
-          style={styles.createButton} 
-          onPress={() => navigation.navigate('Teams')}
+        <TouchableOpacity
+          style={styles.createButton}
+          onPress={() => navigation.navigate("Teams")}
         >
           <Text style={styles.createButtonText}>Create a new team</Text>
         </TouchableOpacity>
@@ -130,14 +144,14 @@ export default function StartMatchScreen({ user, navigation }) {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-    backgroundColor: 'white',
+    justifyContent: "center",
+    alignItems: "center",
+    backgroundColor: "white",
     paddingHorizontal: 20,
   },
   loadingContainer: {
-    justifyContent: 'center',
-    alignItems: 'center',
+    justifyContent: "center",
+    alignItems: "center",
   },
   loadingText: {
     fontSize: 16,
@@ -145,56 +159,56 @@ const styles = StyleSheet.create({
     color: "#666",
   },
   errorContainer: {
-    justifyContent: 'center',
-    alignItems: 'center',
+    justifyContent: "center",
+    alignItems: "center",
     paddingHorizontal: 20,
   },
   errorText: {
     fontSize: 16,
     color: "#D32F2F",
-    textAlign: 'center',
+    textAlign: "center",
     marginBottom: 20,
   },
   retryButton: {
-    backgroundColor: '#FFA500',
+    backgroundColor: "#FFA500",
     paddingVertical: 12,
     paddingHorizontal: 25,
     borderRadius: 8,
   },
   retryButtonText: {
-    color: 'white',
-    fontWeight: 'bold',
+    color: "white",
+    fontWeight: "bold",
     fontSize: 16,
   },
   createButton: {
-    backgroundColor: '#FFF9E7',
+    backgroundColor: "#FFF9E7",
     paddingVertical: 20,
     borderRadius: 8,
-    width: '90%',
-    alignItems: 'center',
+    width: "90%",
+    alignItems: "center",
     marginTop: 10,
   },
   createButtonText: {
-    textAlign: 'center',
+    textAlign: "center",
     fontSize: 23,
-    fontWeight: '600',
+    fontWeight: "600",
   },
   // Nuevos estilos para mostrar equipos con foto y categoría
   itemButton: {
-    backgroundColor: 'white',
+    backgroundColor: "white",
     paddingVertical: 10,
     borderRadius: 8,
-    width: '100%',
+    width: "100%",
   },
   teamItemContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
+    flexDirection: "row",
+    alignItems: "center",
     paddingVertical: 12,
     paddingHorizontal: 15,
-    width: '100%',
+    width: "100%",
   },
   selectedTeamItem: {
-    backgroundColor: '#FFF8E1',
+    backgroundColor: "#FFF8E1",
   },
   teamLogo: {
     width: 80,
@@ -203,33 +217,33 @@ const styles = StyleSheet.create({
     marginRight: 30,
     marginLeft: 30,
     borderWidth: 1,
-    borderColor: '#E6E0CE',
+    borderColor: "#E6E0CE",
   },
   teamLogoPlaceholder: {
     width: 60,
     height: 60,
     borderRadius: 30,
-    backgroundColor: '#FFA500',
-    justifyContent: 'center',
-    alignItems: 'center',
+    backgroundColor: "#FFA500",
+    justifyContent: "center",
+    alignItems: "center",
     marginRight: 15,
   },
   teamLogoPlaceholderText: {
-    color: 'white',
-    fontWeight: 'bold',
+    color: "white",
+    fontWeight: "bold",
     fontSize: 20,
   },
   teamInfoContainer: {
     flex: 1,
-    justifyContent: 'center',
+    justifyContent: "center",
   },
   teamName: {
     fontSize: 18,
-    fontWeight: 'bold',
+    fontWeight: "bold",
     marginBottom: 4,
   },
   teamCategory: {
     fontSize: 14,
-    color: '#777',
-  }
+    color: "#777",
+  },
 });
