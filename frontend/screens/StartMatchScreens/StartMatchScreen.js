@@ -101,45 +101,57 @@ export default function StartMatchScreen({ user, navigation }) {
 
   if (isLoading || isPending) {
     return (
-      <View style={[styles.container, styles.loadingContainer]}>
-        <ActivityIndicator size="large" color="#FFA500" />
-        <Text style={styles.loadingText}>Cargando equipos...</Text>
+      <View style={styles.container}>
+        <View style={styles.headerContainer}>
+          <Text style={styles.headerTitle}>Select your team</Text>
+        </View>
+        <View style={styles.loadingContainer}>
+          <ActivityIndicator size="large" color="#FFA500" />
+          <Text style={styles.loadingText}>Cargando equipos...</Text>
+        </View>
       </View>
     );
   }
 
   if (isError) {
     return (
-      <View style={[styles.container, styles.errorContainer]}>
-        <Text style={styles.errorText}>
-          {error?.message || "Error al cargar equipos"}
-        </Text>
-        <TouchableOpacity style={styles.retryButton} onPress={() => refetch()}>
-          <Text style={styles.retryButtonText}>Reintentar</Text>
-        </TouchableOpacity>
+      <View style={styles.container}>
+        <View style={styles.headerContainer}>
+          <Text style={styles.headerTitle}>Select your team</Text>
+        </View>
+        <View style={styles.errorContainer}>
+          <Text style={styles.errorText}>
+            {error?.message || "Error al cargar equipos"}
+          </Text>
+          <TouchableOpacity style={styles.retryButton} onPress={() => refetch()}>
+            <Text style={styles.retryButtonText}>Reintentar</Text>
+          </TouchableOpacity>
+        </View>
       </View>
     );
   }
 
   return (
     <View style={styles.container}>
-      {/* Título fuera del BoxSelector con el mismo estilo que en TeamsScreen */}
-      <Text style={styles.headerTitle}>Select your team</Text>
-
-      <BoxSelector
-        // Quitar el title de aquí ya que está arriba
-        items={teams}
-        onSelect={handleSelectTeam}
-        emptyMessage="No teams found. Create a team first!"
-        customRenderItem={renderTeamItem}
-      >
-        <TouchableOpacity
-          style={styles.createButton}
-          onPress={() => navigation.navigate("Teams")}
+      <View style={styles.headerContainer}>
+        <Text style={styles.headerTitle}>Select your team</Text>
+      </View>
+      
+      <View style={styles.boxSelectorContainer}>
+        <BoxSelector
+          items={teams}
+          onSelect={handleSelectTeam}
+          emptyMessage="No teams found. Create a team first!"
+          customRenderItem={renderTeamItem}
         >
-          <Text style={styles.createButtonText}>Create a new team</Text>
-        </TouchableOpacity>
-      </BoxSelector>
+          <TouchableOpacity
+            style={styles.createButton}
+            onPress={() => navigation.navigate("Teams")}
+          >
+            <Text style={styles.createButtonText}>Create a new team</Text>
+          </TouchableOpacity>
+        </BoxSelector>
+      </View>
     </View>
   );
 }
@@ -148,15 +160,22 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: "white",
-    paddingTop: 80, // Añadir paddingTop para el título
+    paddingTop: 60,
+    alignItems: "center",
+  },
+  headerContainer: {
+    width: "100%",
+    paddingHorizontal: 20,
+    marginBottom: 0,
     alignItems: "center",
   },
   headerTitle: {
-    fontSize: 40,
+    fontSize: 45,
     fontWeight: "bold",
-    marginBottom: 30,
+    marginBottom: 15,
   },
   loadingContainer: {
+    flex: 1,
     justifyContent: "center",
     alignItems: "center",
   },
@@ -166,6 +185,7 @@ const styles = StyleSheet.create({
     color: "#666",
   },
   errorContainer: {
+    flex: 1,
     justifyContent: "center",
     alignItems: "center",
     paddingHorizontal: 20,
@@ -187,6 +207,14 @@ const styles = StyleSheet.create({
     fontWeight: "bold",
     fontSize: 16,
   },
+  boxSelectorContainer: {
+    width: "95%",
+    height: "90%",
+    marginBottom: 10,
+    alignItems: "center",
+    justifyContent: "center",
+    alignSelf: "center",
+  },
   createButton: {
     backgroundColor: "#FFF9E7",
     paddingVertical: 20,
@@ -200,7 +228,6 @@ const styles = StyleSheet.create({
     fontSize: 23,
     fontWeight: "600",
   },
-  // Nuevos estilos para mostrar equipos con foto y categoría
   itemButton: {
     backgroundColor: "white",
     paddingVertical: 10,

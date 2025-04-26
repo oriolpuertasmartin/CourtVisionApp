@@ -46,116 +46,111 @@ export default function InfoScreen() {
 
   return (
     <View style={styles.container}>
-      {/* Encabezado */}
-      <View style={styles.header}>
-        <Text style={styles.headerTitle}>CourtVision App</Text>
-        <Text style={styles.version}>Versión 1.0.0</Text>
-      </View>
+      {/* Título con el mismo estilo que StartMatchScreen */}
+      <Text style={styles.headerTitle}>Information</Text>
 
-      <View style={styles.contentWrapper}>
-        <ScrollView contentContainerStyle={styles.scrollContent}>
-          {/* Cada sección */}
-          {renderSection(
-            "about",
-            "Acerca de CourtVision",
-            "information-circle-outline",
-            expandedSections.about,
-            toggleSection,
-            [
-              "CourtVision 1.0.0 es una app para gestión de equipos de baloncesto, con estadísticas en tiempo real.",
-              "Diseñada para entrenadores y analistas, permite registrar y analizar el rendimiento.",
-            ],
-            [
-              "Gestión de equipos y jugadores",
-              "Registro de partidos en vivo",
-              "Análisis de estadísticas detallado",
-              "Exportación de reportes PDF",
-              "Optimizado para móvil y tablet",
-            ]
-          )}
+      <ScrollView contentContainerStyle={styles.scrollContent}>
+        {/* Cada sección */}
+        {renderSection(
+          "about",
+          "Acerca de CourtVision",
+          "information-circle-outline",
+          expandedSections.about,
+          toggleSection,
+          [
+            "CourtVision 1.0.0 es una app para gestión de equipos de baloncesto, con estadísticas en tiempo real.",
+            "Diseñada para entrenadores y analistas, permite registrar y analizar el rendimiento.",
+          ],
+          [
+            "Gestión de equipos y jugadores",
+            "Registro de partidos en vivo",
+            "Análisis de estadísticas detallado",
+            "Exportación de reportes PDF",
+            "Optimizado para móvil y tablet",
+          ]
+        )}
 
-          {renderSection(
-            "teams",
-            "Creación de Equipos",
-            "people-outline",
-            expandedSections.teams,
-            toggleSection,
-            [
-              "Crea y administra múltiples equipos, cada uno con su plantilla y estadísticas.",
-              "Pasos para crear un nuevo equipo:"
-            ],
-            [
-              "Accede a 'Teams' en el menú principal",
-              "Pulsa 'Create a new team'",
-              "Completa nombre y categoría",
-              "Sube un logo opcional",
-              "Guarda el equipo y añade jugadores"
-            ]
-          )}
+        {renderSection(
+          "teams",
+          "Creación de Equipos",
+          "people-outline",
+          expandedSections.teams,
+          toggleSection,
+          [
+            "Crea y administra múltiples equipos, cada uno con su plantilla y estadísticas.",
+            "Pasos para crear un nuevo equipo:"
+          ],
+          [
+            "Accede a 'Teams' en el menú principal",
+            "Pulsa 'Create a new team'",
+            "Completa nombre y categoría",
+            "Sube un logo opcional",
+            "Guarda el equipo y añade jugadores"
+          ]
+        )}
 
-          {renderSection(
-            "players",
-            "Gestión de Jugadores",
-            "person-outline",
-            expandedSections.players,
-            toggleSection,
-            [
-              "Cada equipo tiene su plantilla de jugadores con perfiles detallados.",
-              "Pasos para añadir jugadores:"
-            ],
-            [
-              "Selecciona un equipo y entra en 'Players'",
-              "Pulsa 'Add New Player'",
-              "Completa nombre, número y posición",
-              "Añade altura, peso y edad opcionalmente",
-              "Sube foto del jugador si deseas"
-            ]
-          )}
+        {renderSection(
+          "players",
+          "Gestión de Jugadores",
+          "person-outline",
+          expandedSections.players,
+          toggleSection,
+          [
+            "Cada equipo tiene su plantilla de jugadores con perfiles detallados.",
+            "Pasos para añadir jugadores:"
+          ],
+          [
+            "Selecciona un equipo y entra en 'Players'",
+            "Pulsa 'Add New Player'",
+            "Completa nombre, número y posición",
+            "Añade altura, peso y edad opcionalmente",
+            "Sube foto del jugador si deseas"
+          ]
+        )}
 
-          {renderSection(
-            "matches",
-            "Registro de Partidos",
-            "basketball-outline",
-            expandedSections.matches,
-            toggleSection,
-            [
-              "Registra partidos completos con estadísticas en tiempo real.",
-              "Pasos para iniciar un partido:"
-            ],
-            [
-              "Accede a 'Start a Match'",
-              "Selecciona el equipo",
-              "Configura rival opcionalmente",
-              "Elige titulares",
-              "Registra acciones en vivo"
-            ]
-          )}
+        {renderSection(
+          "matches",
+          "Registro de Partidos",
+          "basketball-outline",
+          expandedSections.matches,
+          toggleSection,
+          [
+            "Registra partidos completos con estadísticas en tiempo real.",
+            "Pasos para iniciar un partido:"
+          ],
+          [
+            "Accede a 'Start a Match'",
+            "Selecciona el equipo",
+            "Configura rival opcionalmente",
+            "Elige titulares",
+            "Registra acciones en vivo"
+          ]
+        )}
 
-          {renderSection(
-            "stats",
-            "Análisis de Estadísticas",
-            "stats-chart-outline",
-            expandedSections.stats,
-            toggleSection,
-            [
-              "Al terminar un partido, obtienes un análisis completo de rendimiento.",
-              "Estadísticas principales:"
-            ],
-            [
-              "Puntuaciones por cuarto y final",
-              "Rendimiento individual",
-              "Porcentajes de tiro",
-              "Rebotes, asistencias, robos",
-              "Valoración y métricas avanzadas"
-            ]
-          )}
-        </ScrollView>
+        {renderSection(
+          "stats",
+          "Análisis de Estadísticas",
+          "stats-chart-outline",
+          expandedSections.stats,
+          toggleSection,
+          [
+            "Al terminar un partido, obtienes un análisis completo de rendimiento.",
+            "Estadísticas principales:"
+          ],
+          [
+            "Puntuaciones por cuarto y final",
+            "Rendimiento individual",
+            "Porcentajes de tiro",
+            "Rebotes, asistencias, robos",
+            "Valoración y métricas avanzadas"
+          ]
+        )}
+      </ScrollView>
 
-        {/* Footer fijo abajo */}
-        <View style={styles.footer}>
-          <Text style={styles.footerText}>© 2025 CourtVision App - Oriol Puertas</Text>
-          <Text style={styles.footerText}>Versión 1.0.0 - Todos los derechos reservados</Text>
-        </View>
+      {/* Footer fijo abajo */}
+      <View style={styles.footer}>
+        <Text style={styles.footerText}>© 2025 CourtVision App - Oriol Puertas</Text>
+        <Text style={styles.footerText}>Versión 1.0.0 - Todos los derechos reservados</Text>
       </View>
     </View>
   );
@@ -196,27 +191,13 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: '#FFFFFF',
-  },
-  header: {
-    backgroundColor: '#EB850A',
-    padding: 20,
-    paddingTop: Platform.OS === 'ios' ? 60 : 40,
-    alignItems: 'center',
-    justifyContent: 'center',
+    paddingTop: 80, // Añadido para dar espacio al título
   },
   headerTitle: {
-    fontSize: 24,
-    fontWeight: 'bold',
-    color: '#FFFFFF',
-  },
-  version: {
-    fontSize: 14,
-    color: '#FFFFFF',
-    marginTop: 5,
-  },
-  contentWrapper: {
-    flex: 1,
-    flexDirection: 'column',
+    fontSize: 45,
+    fontWeight: "bold",
+    marginBottom: 30,
+    alignSelf: "center",
   },
   scrollContent: {
     padding: 20,

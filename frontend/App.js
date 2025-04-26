@@ -182,13 +182,14 @@ function DrawerNavigator({ user, handleLogout, setUser }) {
         drawerActiveBackgroundColor: "#D9C6AE", // Color de fondo de los elementos activos
         drawerInactiveTintColor: "black", // Color del texto de los elementos inactivos
         drawerItemStyle: {
-          marginVertical: 20, // Aumentado de 10 a 20 para mayor separación
+          marginVertical: 30, // Separación entre los tabs
           borderRadius: 8, // Añadido para dar bordes redondeados a los elementos
           paddingVertical: 5, // Añadido para dar más altura a cada elemento
         },
         drawerLabelStyle: {
-          fontSize: 15, // Tamaño de fuente de los elementos
-          fontWeight: "500", // Añadido para hacer el texto un poco más visible
+          fontSize: Platform.OS === 'web' ? 18 : 14, // Tamaño de fuente de los elementos
+          fontWeight: Platform.OS === 'web' ? "500" : "300", // Añadido para hacer el texto un poco más visible
+          marginLeft: 10, 
         },
         drawerContentContainerStyle: {
           paddingTop: 10, // Espacio adicional en la parte superior de la lista
@@ -204,7 +205,7 @@ function DrawerNavigator({ user, handleLogout, setUser }) {
           drawerIcon: ({ focused, color, size }) => (
             <Ionicons
               name={focused ? "home" : "home-outline"}
-              size={24}
+              size={27}
               color={color}
             />
           ),
@@ -217,7 +218,7 @@ function DrawerNavigator({ user, handleLogout, setUser }) {
           drawerIcon: ({ focused, color, size }) => (
             <Ionicons
               name={focused ? "people" : "people-outline"}
-              size={24}
+              size={27}
               color={color}
             />
           ),
@@ -232,7 +233,7 @@ function DrawerNavigator({ user, handleLogout, setUser }) {
           drawerIcon: ({ focused, color, size }) => (
             <Ionicons
               name={focused ? "basketball" : "basketball-outline"}
-              size={24}
+              size={27}
               color={color}
             />
           ),
@@ -250,7 +251,7 @@ function DrawerNavigator({ user, handleLogout, setUser }) {
               name={
                 focused ? "information-circle" : "information-circle-outline"
               }
-              size={24}
+              size={27}
               color={color}
             />
           ),
@@ -263,7 +264,7 @@ function DrawerNavigator({ user, handleLogout, setUser }) {
           drawerIcon: ({ focused, color, size }) => (
             <Ionicons
               name={focused ? "settings" : "settings-outline"}
-              size={24}
+              size={27}
               color={color}
             />
           ),

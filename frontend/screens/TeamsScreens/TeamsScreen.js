@@ -220,7 +220,9 @@ export default function TeamsScreen({ navigation, route }) {
 
   return (
     <View style={styles.container}>
-      <Text style={styles.headerTitle}>My teams</Text>
+      <View style={styles.headerContainer}>
+        <Text style={styles.headerTitle}>My teams</Text>
+      </View>
 
       {isLoading ? (
         <View style={styles.loadingContainer}>
@@ -277,13 +279,19 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: "white",
-    paddingTop: 80,
+    paddingTop: 60,
+    alignItems: "center",
+  },
+  headerContainer: {
+    width: "100%",
+    paddingHorizontal: 20,
+    marginBottom: 0,
     alignItems: "center",
   },
   headerTitle: {
-    fontSize: 40,
+    fontSize: 45,
     fontWeight: "bold",
-    marginBottom: 30,
+    marginBottom: 15,
   },
   loadingContainer: {
     flex: 1,
@@ -319,9 +327,9 @@ const styles = StyleSheet.create({
     fontSize: 16,
   },
   boxSelectorContainer: {
-    width: "90%",
-    height: "85%",
-    marginBottom: 20,
+    width: "95%",
+    height: "90%",
+    marginBottom: 10,
     alignItems: "center",
     justifyContent: "center",
     alignSelf: "center",
@@ -347,14 +355,14 @@ const styles = StyleSheet.create({
     borderRadius: 8,
     padding: 15,
     marginBottom: 15,
-    position: "relative", // Para posicionar el botón de eliminar
+    position: "relative",
   },
   deleteButton: {
     position: "absolute",
     top: 10,
     right: 10,
     zIndex: 10,
-    padding: 10, // Incrementado para área de toque más grande
+    padding: 10,
   },
   teamInfoContainer: {
     marginBottom: 12,

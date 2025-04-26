@@ -18,7 +18,7 @@ export default function BoxSelector({ title, items, onSelect, children, renderIt
                 key={item._id || index} 
                 style={[
                   styles.itemContainer, 
-                  index === 0 ? { marginTop: 20 } : null // Aplica margen superior solo al primer item
+                  index === 0 ? { marginTop: 10 } : null // Reducido de 20 a 10
                 ]}
               >
                 {customRenderItem ? (
@@ -58,8 +58,8 @@ export default function BoxSelector({ title, items, onSelect, children, renderIt
 
 const styles = StyleSheet.create({
   container: {
-    width: '80%',
-    marginTop: 20,
+    width: '95%', // Cambiado de 80% a 95% para usar más espacio horizontal
+    marginTop: 0, // Cambiado de 20 a 0 para eliminar el espacio superior
     alignItems: 'center',
   },
   title: {
@@ -69,19 +69,21 @@ const styles = StyleSheet.create({
   },
   box: {
     width: '100%',
-    maxHeight: 900, // Aumentado para dar más espacio
+    maxHeight: 'auto', // Eliminado el límite máximo de altura
     backgroundColor: '#E6E0CE',
     borderRadius: 12,
     paddingVertical: 10,
     paddingHorizontal: 10,
     elevation: 3,
+    flex: 1, // Añadido para que ocupe todo el espacio disponible
   },
   scrollContainer: {
     flexGrow: 1,
     alignItems: 'center',
+    paddingBottom: 10, // Añadido para dar espacio al contenido inferior
   },
   itemContainer: {
-    width: '95%',
+    width: '98%', // Cambiado de 95% a 98% para usar más espacio
     marginBottom: 15,
   },
   itemButton: {
