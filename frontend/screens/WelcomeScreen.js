@@ -22,14 +22,16 @@ export default function WelcomeScreen() {
     <View style={styles.screen}>
       {/* Logo o ícono de la app (puedes añadir uno real) */}
       <View style={styles.logoContainer}>
-        <View style={styles.logoCircle}>
-          <Text style={styles.logoText}>CV</Text>
-        </View>
+        <Image
+          source={require("../assets/logo.png")}
+          style={styles.logo}
+          resizeMode="contain"
+        />
       </View>
 
       <Text style={styles.principalText}>Bienvenido a CourtVision</Text>
       <Text style={styles.subtitleText}>
-        Estadísticas de baloncesto simplificadas
+        Análisis estadístico de baloncesto
       </Text>
 
       <View
@@ -58,8 +60,9 @@ export default function WelcomeScreen() {
       </View>
 
       <View style={styles.footer}>
-        <Text style={styles.footerText}>© 2023 CourtVision App</Text>
-        <Text style={styles.versionText}>Versión 1.0.0</Text>
+        <Text style={styles.footerText}>© 2025 CourtVision App</Text>
+        <Text style={styles.footerText}>Developed by Oriol Puertas</Text>
+        <Text style={styles.versionText}>Versión 1.0.0 - Todos los derechos reservados</Text>
       </View>
     </View>
   );
@@ -70,19 +73,22 @@ const styles = StyleSheet.create({
     flex: 1,
     justifyContent: "center",
     alignItems: "center",
-    backgroundColor: "#FFA500",
+    backgroundColor: "#EB850B",
     padding: 20,
   },
   logoContainer: {
     marginBottom: 30,
+    width: 200,
+    height: 200,
+    justifyContent: 'center',
+    alignItems: 'center',
   },
-  logoCircle: {
-    width: 100,
-    height: 100,
-    borderRadius: 50,
-    backgroundColor: "white",
-    justifyContent: "center",
-    alignItems: "center",
+  logo: {
+    width: 130,
+    height: 130,
+    borderRadius: 65,  
+    backgroundColor: 'white',  
+    overflow: 'hidden', 
     shadowColor: "black",
     shadowOffset: {
       width: 0,
@@ -91,11 +97,6 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.3,
     shadowRadius: 4,
     elevation: 6,
-  },
-  logoText: {
-    fontSize: 40,
-    fontWeight: "bold",
-    color: "#FFA500",
   },
   principalText: {
     fontSize: 40,
@@ -115,8 +116,8 @@ const styles = StyleSheet.create({
     margin: 20,
     backgroundColor: "white",
     borderRadius: 20,
-    width: "30%",
-    minWidth: 300,
+    width: "35%",
+    minWidth: 350,
     padding: 25,
     shadowColor: "black",
     shadowOffset: {
@@ -139,7 +140,7 @@ const styles = StyleSheet.create({
     width: "100%",
   },
   buttonbox: {
-    backgroundColor: "#FFA500",
+    backgroundColor: "#ff8c2d",
     borderRadius: 30,
     paddingVertical: 18,
     width: "100%",
@@ -154,7 +155,7 @@ const styles = StyleSheet.create({
     elevation: 3,
   },
   registerButton: {
-    backgroundColor: "#FF8C00", // Un tono diferente para el botón de registro
+    backgroundColor: "#ff8c2d", 
   },
   buttontext: {
     textAlign: "center",

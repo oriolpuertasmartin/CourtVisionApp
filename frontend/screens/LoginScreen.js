@@ -115,10 +115,10 @@ const styles = StyleSheet.create({
     flex: 1,
     justifyContent: "center",
     alignItems: "center",
-    backgroundColor: "#FFA500",
+    backgroundColor: "#EB850B",
   },
   principalText: {
-    fontSize: 40,
+    fontSize: 50,
     color: "white",
     marginBottom: 20,
     fontWeight: "bold",
@@ -127,7 +127,7 @@ const styles = StyleSheet.create({
     margin: 20,
     backgroundColor: "white",
     borderRadius: 20,
-    width: "90%",
+    width: "70%",
     padding: 20,
     shadowColor: "black",
     shadowOffset: {
@@ -150,7 +150,7 @@ const styles = StyleSheet.create({
     alignItems: "center",
   },
   buttonbox: {
-    backgroundColor: "#FFA500",
+    backgroundColor: "#EB850B",
     borderRadius: 30,
     paddingVertical: 20,
     width: 150,
@@ -166,7 +166,7 @@ const styles = StyleSheet.create({
     textAlign: "center",
     color: "white",
     fontWeight: "bold",
-    fontSize: 18,
+    fontSize: 20,
   },
   bottomtext: {
     flexDirection: "row",
