@@ -189,6 +189,16 @@ export default function CreatePlayersScreen({ route, navigation }) {
   });
 
   const handleAddPlayer = () => {
+    // Comprobamos que no se sobrepasa el limite de jugadores maximo
+    if (players && players.length >= 15) {
+      Alert.alert(
+        "Límite de jugadores alcanzado",
+        "No puedes añadir más de 15 jugadores a un equipo.",
+        [{ text: "Entendido", style: "default" }]
+      );
+      return;
+    }
+
     // Validar campos obligatorios
     if (!formData.name || !formData.number || !formData.position) {
       Alert.alert(
@@ -201,6 +211,19 @@ export default function CreatePlayersScreen({ route, navigation }) {
     // Validar que el número sea un entero positivo
     if (isNaN(parseInt(formData.number)) || parseInt(formData.number) <= 0) {
       Alert.alert("Error", "Player number must be a positive integer");
+      return;
+    }
+
+    // Verificar si ya existe un jugador con el mismo número
+    const existingPlayerWithNumber = players.find(
+      player => player.number === parseInt(formData.number)
+    );
+    
+    if (existingPlayerWithNumber) {
+      Alert.alert(
+        "Número duplicado", 
+        `Ya existe un jugador con el número ${formData.number}. Por favor, usa otro número.`
+      );
       return;
     }
 
@@ -275,7 +298,7 @@ export default function CreatePlayersScreen({ route, navigation }) {
         {players.length > 0 && (
           <View style={styles.playersListContainer}>
             <Text style={styles.listTitle}>
-              Team Players ({players.length})
+              Team Players ({players.length}/15)
             </Text>
             <View style={styles.playersGrid}>
               {players.map((player) => (
@@ -347,11 +370,20 @@ export default function CreatePlayersScreen({ route, navigation }) {
           formData={formData}
           onChangeForm={setFormData}
         >
+          <Text style={styles.infoText}>
+            {players.length < 15 
+              ? `Puedes añadir ${15 - players.length} jugadores más` 
+              : "Límite de jugadores alcanzado (15/15)"}
+          </Text>
+          
           <PrimaryButton
             title={isAdding ? "Adding..." : "Add Player"}
             onPress={handleAddPlayer}
-            style={styles.addButton}
-            disabled={isAdding}
+            style={[
+              styles.addButton,
+              players.length >= 15 && styles.disabledButton
+            ]}
+            disabled={isAdding || players.length >= 15}
           />
           <PrimaryButton
             title="Finish"
@@ -524,5 +556,14 @@ const styles = StyleSheet.create({
   finishButton: {
     backgroundColor: "#28a745",
     marginTop: 10,
+  },
+  infoText: {
+    fontSize: 14,
+    color: "#666",
+    marginTop: 5,
+    textAlign: "center",
+  },
+  disabledButton: {
+    backgroundColor: "#cccccc",
   },
 });
