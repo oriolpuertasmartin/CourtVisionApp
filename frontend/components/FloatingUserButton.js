@@ -88,7 +88,7 @@ export default function FloatingUserButton({ user, onPress, onLogout }) {
               }}
             >
               <Ionicons name="person-outline" size={24} color="#333" />
-              <Text style={styles.modalOptionText}>Ver Perfil</Text>
+              <Text style={styles.modalOptionText}>Ajustes del perfil</Text>
             </TouchableOpacity>
 
             <TouchableOpacity 

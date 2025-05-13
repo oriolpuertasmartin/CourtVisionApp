@@ -6,6 +6,7 @@ import {
   ActivityIndicator,
   Platform,
   Image,
+  TouchableOpacity,
 } from "react-native";
 import { StatusBar } from "expo-status-bar";
 import { NavigationContainer } from "@react-navigation/native";
@@ -20,7 +21,6 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { ReactQueryDevtools } from "@tanstack/react-query-devtools";
 import { Ionicons } from "@expo/vector-icons";
 
-// Importación de pantallas y componentes personalizados
 import WelcomeScreen from "./screens/WelcomeScreen";
 import LoginScreen from "./screens/LoginScreen";
 import RegisterScreen from "./screens/RegisterScreen";
@@ -42,8 +42,6 @@ import StatsView from "./screens/StartMatchScreens/StatsViewScreen";
 import ProfileScreen from "./screens/SettingsScreens/ProfileScreen";
 import ChangePasswordScreen from "./screens/SettingsScreens/ChangePasswordScreen";
 
-
-// Creación del cliente de Query
 const queryClient = new QueryClient({
   defaultOptions: {
     queries: {
@@ -54,23 +52,25 @@ const queryClient = new QueryClient({
   },
 });
 
-// Creación de los navegadores
 const Stack = createNativeStackNavigator();
 const Drawer = createDrawerNavigator();
 
-// Componente personalizado para el contenido del Drawer
 function CustomDrawerContent(props) {
   return (
     <View style={{ flex: 1 }}>
-      {/* Encabezado del Drawer */}
       <View style={styles.header}>
         <Image
           source={require('./assets/logo.png')}
           style={styles.logo}
         />
         <Text style={styles.headerText}>CourtVision</Text>
+        <TouchableOpacity
+          style={styles.closeDrawerButton}
+          onPress={() => props.onClose ? props.onClose() : props.navigation.closeDrawer()}
+        >
+          <Ionicons name="close-outline" size={30} color="black" />
+        </TouchableOpacity>
       </View>
-      {/* Lista de elementos del Drawer */}
       <DrawerContentScrollView
         {...props}
         contentContainerStyle={{ paddingTop: 60 }}
@@ -81,7 +81,6 @@ function CustomDrawerContent(props) {
   );
 }
 
-// Stack Navigator para la sección "Teams" y sus subpantallas
 function TeamsStack({ user }) {
   return (
     <Stack.Navigator screenOptions={{ headerShown: false }}>
@@ -104,11 +103,9 @@ function TeamsStack({ user }) {
       <Stack.Screen name="TeamMatches" options={{ headerShown: false }}>
         {(props) => <TeamMatchesScreen {...props} />}
       </Stack.Screen>
-
       <Stack.Screen name="TeamDetails" options={{ headerShown: false }}>
         {(props) => <TeamDetailsScreen {...props} />}
       </Stack.Screen>
-
       <Stack.Screen name="StatsView" options={{ headerShown: false }}>
         {(props) => <StatsView {...props} />}
       </Stack.Screen>
@@ -116,7 +113,6 @@ function TeamsStack({ user }) {
   );
 }
 
-// Stack Navigator para la pantalla "StartMatch" y sus subpantallas
 function StartMatchStack({ user }) {
   return (
     <Stack.Navigator screenOptions={{ headerShown: false }}>
@@ -125,19 +121,19 @@ function StartMatchStack({ user }) {
       </Stack.Screen>
       <Stack.Screen
         name="OpponentTeam"
-        options={{ headerShown: false }} // Oculta el encabezado predeterminado
+        options={{ headerShown: false }}
       >
         {(props) => <OpponentTeamScreen {...props} />}
       </Stack.Screen>
       <Stack.Screen
         name="StartingPlayers"
-        options={{ headerShown: false }} // Oculta el encabezado predeterminado
+        options={{ headerShown: false }}
       >
         {(props) => <StartingPlayersScreen {...props} />}
       </Stack.Screen>
       <Stack.Screen
         name="StatsScreen"
-        options={{ headerShown: false }} // Oculta el encabezado predeterminado
+        options={{ headerShown: false }}
       >
         {(props) => <StatsScreen {...props} />}
       </Stack.Screen>
@@ -148,7 +144,6 @@ function StartMatchStack({ user }) {
   );
 }
 
-// Stack Navigator para la sección "Settings" y sus subpantallas
 function SettingsStack({ handleLogout, setUser }) {
   return (
     <Stack.Navigator screenOptions={{ headerShown: false }}>
@@ -167,170 +162,204 @@ function SettingsStack({ handleLogout, setUser }) {
   );
 }
 
-// Configuración del Drawer Navigator
+function EmptyComponent() {
+  return <View />;
+}
+
 function DrawerNavigator({ user, handleLogout, setUser }) {
+  const [isDrawerVisible, setIsDrawerVisible] = useState(true);
+  const [activeScreen, setActiveScreen] = useState("Home");
+  
+  const handleScreenChange = (screenName) => {
+    setActiveScreen(screenName);
+  };
+  
   return (
-    <Drawer.Navigator
-      drawerContent={(props) => <CustomDrawerContent {...props} />}
-      screenOptions={{
-        drawerType: "permanent", // El Drawer siempre está visible
-        headerShown: false, // Oculta el encabezado predeterminado
-        drawerStyle: {
-          backgroundColor: "#D9D9D9", // Color de fondo del Drawer
-        },
-        drawerActiveTintColor: "black", // Color del texto de los elementos activos
-        drawerActiveBackgroundColor: "#D9C6AE", // Color de fondo de los elementos activos
-        drawerInactiveTintColor: "black", // Color del texto de los elementos inactivos
-        drawerItemStyle: {
-          marginVertical: 30, // Separación entre los tabs
-          borderRadius: 8, // Añadido para dar bordes redondeados a los elementos
-          paddingVertical: 5, // Añadido para dar más altura a cada elemento
-        },
-        drawerLabelStyle: {
-          fontSize: Platform.OS === 'web' ? 18 : 14, // Tamaño de fuente de los elementos
-          fontWeight: Platform.OS === 'web' ? "500" : "300", // Añadido para hacer el texto un poco más visible
-          marginLeft: 10, 
-        },
-        drawerContentContainerStyle: {
-          paddingTop: 10, // Espacio adicional en la parte superior de la lista
-          paddingBottom: 30, // Espacio adicional en la parte inferior de la lista
-        },
-      }}
-    >
-      {/* Definición de las pantallas principales del Drawer */}
-      <Drawer.Screen
-        name="Home"
-        component={HomeScreen}
-        options={{
-          drawerIcon: ({ focused, color, size }) => (
-            <Ionicons
-              name={focused ? "home" : "home-outline"}
-              size={27}
-              color={color}
-            />
-          ),
-        }}
-      />
-
-      <Drawer.Screen
-        name="Teams"
-        options={{
-          drawerIcon: ({ focused, color, size }) => (
-            <Ionicons
-              name={focused ? "people" : "people-outline"}
-              size={27}
-              color={color}
-            />
-          ),
-        }}
-      >
-        {(props) => <TeamsStack {...props} user={user} />}
-      </Drawer.Screen>
-
-      <Drawer.Screen
-        name="Start a Match"
-        options={{
-          drawerIcon: ({ focused, color, size }) => (
-            <Ionicons
-              name={focused ? "basketball" : "basketball-outline"}
-              size={27}
-              color={color}
-            />
-          ),
-        }}
-      >
-        {(props) => <StartMatchStack {...props} user={user} />}
-      </Drawer.Screen>
-
-      <Drawer.Screen
-        name="Info"
-        component={InfoScreen}
-        options={{
-          drawerIcon: ({ focused, color, size }) => (
-            <Ionicons
-              name={
-                focused ? "information-circle" : "information-circle-outline"
+    <View style={{ flex: 1 }}>
+      {!isDrawerVisible && (
+        <TouchableOpacity 
+          style={styles.showMenuButton}
+          onPress={() => setIsDrawerVisible(true)}
+        >
+          <Ionicons name="menu" size={28} color="black" />
+        </TouchableOpacity>
+      )}
+      
+      {isDrawerVisible ? (
+        <View style={{ flex: 1 }}>
+          <Drawer.Navigator
+            drawerContent={(props) => (
+              <CustomDrawerContent 
+                {...props}
+                onClose={() => setIsDrawerVisible(false)}
+              />
+            )}
+            screenOptions={{
+              drawerType: "permanent",
+              headerShown: false,
+              drawerStyle: {
+                backgroundColor: "#D9D9D9",
+                width: 360,
+              },
+              drawerActiveTintColor: "black",
+              drawerActiveBackgroundColor: "#D9C6AE",
+              drawerInactiveTintColor: "black",
+              drawerItemStyle: {
+                marginVertical: 30,
+                borderRadius: 8,
+                paddingVertical: 5,
+              },
+              drawerLabelStyle: {
+                fontSize: Platform.OS === 'web' ? 18 : 14,
+                fontWeight: Platform.OS === 'web' ? "500" : "300",
+                marginLeft: 10, 
+              },
+              drawerContentContainerStyle: {
+                paddingTop: 10,
+                paddingBottom: 30,
+              },
+            }}
+            screenListeners={{
+              state: (e) => {
+                if (e.data && e.data.state && e.data.state.index >= 0) {
+                  const currentRouteName = e.data.state.routes[e.data.state.index].name;
+                  handleScreenChange(currentRouteName);
+                }
               }
-              size={27}
-              color={color}
+            }}
+          >
+            <Drawer.Screen
+              name="Home"
+              component={HomeScreen}
+              options={{
+                drawerIcon: ({ focused, color, size }) => (
+                  <Ionicons
+                    name={focused ? "home" : "home-outline"}
+                    size={27}
+                    color={color}
+                  />
+                ),
+              }}
             />
-          ),
-        }}
-      />
-
-      <Drawer.Screen
-        name="Settings"
-        options={{
-          drawerIcon: ({ focused, color, size }) => (
-            <Ionicons
-              name={focused ? "settings" : "settings-outline"}
-              size={27}
-              color={color}
+            
+            <Drawer.Screen
+              name="Teams"
+              options={{
+                drawerIcon: ({ focused, color, size }) => (
+                  <Ionicons
+                    name={focused ? "people" : "people-outline"}
+                    size={27}
+                    color={color}
+                  />
+                ),
+              }}
+            >
+              {(props) => <TeamsStack {...props} user={user} />}
+            </Drawer.Screen>
+            
+            <Drawer.Screen
+              name="Start a Match"
+              options={{
+                drawerIcon: ({ focused, color, size }) => (
+                  <Ionicons
+                    name={focused ? "basketball" : "basketball-outline"}
+                    size={27}
+                    color={color}
+                  />
+                ),
+              }}
+            >
+              {(props) => <StartMatchStack {...props} user={user} />}
+            </Drawer.Screen>
+            
+            <Drawer.Screen
+              name="Info"
+              component={InfoScreen}
+              options={{
+                drawerIcon: ({ focused, color, size }) => (
+                  <Ionicons
+                    name={
+                      focused ? "information-circle" : "information-circle-outline"
+                    }
+                    size={27}
+                    color={color}
+                  />
+                ),
+              }}
             />
-          ),
-        }}
-      >
-        {(props) => (
-          <SettingsStack
-            {...props}
-            handleLogout={handleLogout}
-            setUser={setUser}
-          />
-        )}
-      </Drawer.Screen>
-    </Drawer.Navigator>
+            
+            <Drawer.Screen
+              name="Settings"
+              options={{
+                drawerIcon: ({ focused, color, size }) => (
+                  <Ionicons
+                    name={focused ? "settings" : "settings-outline"}
+                    size={27}
+                    color={color}
+                  />
+                ),
+              }}
+            >
+              {(props) => (
+                <SettingsStack
+                  {...props}
+                  handleLogout={handleLogout}
+                  setUser={setUser}
+                />
+              )}
+            </Drawer.Screen>
+          </Drawer.Navigator>
+        </View>
+      ) : (
+        <View style={{ flex: 1 }}>
+          {activeScreen === "Home" && <HomeScreen />}
+          {activeScreen === "Teams" && <TeamsStack user={user} />}
+          {activeScreen === "Start a Match" && <StartMatchStack user={user} />}
+          {activeScreen === "Info" && <InfoScreen />}
+          {activeScreen === "Settings" && (
+            <SettingsStack handleLogout={handleLogout} setUser={setUser} />
+          )}
+        </View>
+      )}
+    </View>
   );
 }
 
-// Componente principal de la aplicación
 export default function App() {
-  const [user, setUser] = useState(null); // Estado para almacenar el usuario autenticado
-  const [loading, setLoading] = useState(true); // Estado para manejar la carga inicial
+  const [user, setUser] = useState(null);
+  const [loading, setLoading] = useState(true);
   const [navigationReady, setNavigationReady] = useState(false);
   const navigationRef = useRef(null);
 
-  // Función centralizada para manejar el cierre de sesión
   const handleLogout = async () => {
     try {
       console.log("Cerrando sesión...");
-
-      // Primero limpiar el almacenamiento y la caché
       await AsyncStorage.removeItem("user");
       queryClient.clear();
-
-      // Luego actualizar el estado
       setUser(null);
 
-      // Finalmente, navegar a la pantalla de bienvenida
       if (navigationRef.current) {
-        console.log("Navegando a Welcome...");
         if (Platform.OS === "web") {
-          // En web, a veces reset no funciona bien, usar navigate
           navigationRef.current.navigate("Welcome");
         } else {
-          // En móvil, usar reset que es más seguro
           navigationRef.current.reset({
             index: 0,
             routes: [{ name: "Welcome" }],
           });
         }
       } else {
-        console.error("navigationRef no está disponible");
-        // Fallback para web
         if (Platform.OS === "web" && window) {
           window.location.reload();
         }
       }
     } catch (error) {
       console.error("Error al cerrar sesión:", error);
-      // Intento alternativo para web
       if (Platform.OS === "web" && window) {
         window.location.href = "/";
       }
     }
   };
 
-  // Restaurar el usuario desde AsyncStorage al iniciar la app
   useEffect(() => {
     const loadUser = async () => {
       try {
@@ -339,15 +368,14 @@ export default function App() {
           setUser(JSON.parse(storedUser));
         }
       } catch (error) {
-        console.error("Error al cargar el usuario desde AsyncStorage:", error);
+        console.error("Error al cargar el usuario:", error);
       } finally {
-        setLoading(false); // Finaliza la carga inicial
+        setLoading(false);
       }
     };
     loadUser();
   }, []);
 
-  // Guardar el usuario en AsyncStorage cuando cambie
   useEffect(() => {
     const saveUser = async () => {
       try {
@@ -355,7 +383,7 @@ export default function App() {
           await AsyncStorage.setItem("user", JSON.stringify(user));
         }
       } catch (error) {
-        console.error("Error al guardar el usuario en AsyncStorage:", error);
+        console.error("Error al guardar el usuario:", error);
       }
     };
 
@@ -365,7 +393,6 @@ export default function App() {
   }, [user]);
 
   if (loading) {
-    // Mostrar un indicador de carga mientras se restaura el usuario
     return (
       <View style={styles.loadingContainer}>
         <ActivityIndicator size="large" color="#FFA500" />
@@ -376,20 +403,17 @@ export default function App() {
   return (
     <QueryClientProvider client={queryClient}>
       <View style={{ flex: 1 }}>
-        {/* Contenedor de navegación */}
         <NavigationContainer
           ref={navigationRef}
           onReady={() => setNavigationReady(true)}
         >
           <StatusBar style="auto" />
           <Stack.Navigator initialRouteName={user ? "Main" : "Welcome"}>
-            {/* Pantalla de bienvenida */}
             <Stack.Screen
               name="Welcome"
               component={WelcomeScreen}
               options={{ headerShown: false }}
             />
-            {/* Pantalla de inicio de sesión */}
             <Stack.Screen
               name="Login"
               options={{
@@ -401,7 +425,6 @@ export default function App() {
             >
               {(props) => <LoginScreen {...props} setUser={setUser} />}
             </Stack.Screen>
-            {/* Pantalla de registro */}
             <Stack.Screen
               name="Register"
               component={RegisterScreen}
@@ -412,7 +435,6 @@ export default function App() {
                 headerTintColor: "white",
               }}
             />
-            {/* Pantalla principal con el Drawer */}
             <Stack.Screen name="Main" options={{ headerShown: false }}>
               {(props) => (
                 <DrawerNavigator
@@ -425,7 +447,6 @@ export default function App() {
             </Stack.Screen>
           </Stack.Navigator>
         </NavigationContainer>
-        {/* Botón flotante para mostrar información del usuario */}
         {user && (
           <FloatingUserButton
             user={user}
@@ -447,6 +468,7 @@ const styles = StyleSheet.create({
     alignItems: "center",
     padding: 20,
     backgroundColor: "#D9D9D9",
+    position: 'relative', 
   },
   logo: {
     width: 60,
@@ -459,6 +481,28 @@ const styles = StyleSheet.create({
     fontWeight: "bold",
     color: "black",
     marginLeft: 10,
+    flex: 1, 
+  },
+  closeDrawerButton: {
+    position: 'absolute',
+    right: 15,
+    top: '50%',
+    transform: [{ translateY: -14 }],
+    padding: 8,
+  },
+  showMenuButton: {
+    position: 'absolute',
+    left: 20,
+    top: 40,
+    zIndex: 10,
+    backgroundColor: 'rgba(255,255,255,0.8)',
+    padding: 10,
+    borderRadius: 30,
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.25,
+    shadowRadius: 3.84,
+    elevation: 5,
   },
   loadingContainer: {
     flex: 1,

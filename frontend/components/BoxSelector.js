@@ -8,7 +8,7 @@ export default function BoxSelector({ title, items, onSelect, children, renderIt
       <View style={styles.box}>
         <ScrollView 
           contentContainerStyle={styles.scrollContainer} 
-          showsVerticalScrollIndicator={false}
+          showsVerticalScrollIndicator={true} // Mostrar indicador de scroll
         >
           {items.length === 0 ? (
             <Text style={styles.emptyMessage}>{emptyMessage || "No items found"}</Text>
@@ -18,11 +18,10 @@ export default function BoxSelector({ title, items, onSelect, children, renderIt
                 key={item._id || index} 
                 style={[
                   styles.itemContainer, 
-                  index === 0 ? { marginTop: 10 } : null // Reducido de 20 a 10
+                  index === 0 ? { marginTop: 10 } : null
                 ]}
               >
                 {customRenderItem ? (
-                  // Usar renderizado personalizado si está disponible
                   customRenderItem(item)
                 ) : (
                   <>
@@ -36,7 +35,6 @@ export default function BoxSelector({ title, items, onSelect, children, renderIt
                       )}
                     </TouchableOpacity>
                     
-                    {/* Renderizar botones personalizados si se proporcionan */}
                     {renderItemButtons && renderItemButtons(item)}
                   </>
                 )}
@@ -45,7 +43,6 @@ export default function BoxSelector({ title, items, onSelect, children, renderIt
           )}
         </ScrollView>
         
-        {/* Children va fuera de ScrollView */}
         {children && (
           <View style={styles.childrenContainer}>
             {children}
@@ -58,8 +55,8 @@ export default function BoxSelector({ title, items, onSelect, children, renderIt
 
 const styles = StyleSheet.create({
   container: {
-    width: '95%', // Cambiado de 80% a 95% para usar más espacio horizontal
-    marginTop: 0, // Cambiado de 20 a 0 para eliminar el espacio superior
+    width: '95%',
+    marginTop: 50, 
     alignItems: 'center',
   },
   title: {
@@ -69,28 +66,27 @@ const styles = StyleSheet.create({
   },
   box: {
     width: '100%',
-    maxHeight: 'auto', // Eliminado el límite máximo de altura
+    maxHeight: 750, 
     backgroundColor: '#E6E0CE',
     borderRadius: 12,
     paddingVertical: 10,
     paddingHorizontal: 10,
     elevation: 3,
-    flex: 1, // Añadido para que ocupe todo el espacio disponible
   },
   scrollContainer: {
     flexGrow: 1,
     alignItems: 'center',
-    paddingBottom: 10, // Añadido para dar espacio al contenido inferior
+    paddingBottom: 10,
   },
   itemContainer: {
-    width: '98%', // Cambiado de 95% a 98% para usar más espacio
+    width: '98%',
     marginBottom: 15,
   },
   itemButton: {
     backgroundColor: 'white',
     paddingVertical: 20,
     borderRadius: 8,
-    paddingHorizontal: 15,
+    paddingHorizontal: 25,
   },
   itemButtonText: {
     fontSize: 18,
@@ -106,7 +102,9 @@ const styles = StyleSheet.create({
   childrenContainer: {
     width: '100%',
     alignItems: 'center',
-    marginTop: 10,
+    marginTop: 30, 
+    marginBottom: 10, 
+    paddingHorizontal: 5, 
   },
   emptyMessage: {
     textAlign: 'center',

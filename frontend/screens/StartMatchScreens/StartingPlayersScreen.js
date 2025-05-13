@@ -6,6 +6,7 @@ import {
   Alert,
   ActivityIndicator,
   Text,
+  Image,
 } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import BoxSelector from "../../components/BoxSelector";
@@ -139,6 +140,39 @@ export default function StartingPlayers({ route, navigation }) {
     }
   };
 
+  // Función para renderizar cada jugador con su foto/número y posición
+  const renderPlayerItem = (player) => {
+    const isSelected = selectedPlayers.includes(player._id);
+    
+    return (
+      <TouchableOpacity
+        style={[styles.itemButton]}
+        onPress={() => handleSelectPlayer(player)}
+      >
+        <View
+          style={[
+            styles.playerItemContainer,
+            isSelected ? styles.selectedPlayerItem : null,
+          ]}
+        >
+          {player.player_photo ? (
+            <Image source={{ uri: player.player_photo }} style={styles.playerPhoto} />
+          ) : (
+            <View style={styles.playerNumberCircle}>
+              <Text style={styles.playerNumberText}>
+                {player.number || "0"}
+              </Text>
+            </View>
+          )}
+          <View style={styles.playerInfoContainer}>
+            <Text style={styles.playerName}>{player.name}</Text>
+            <Text style={styles.playerPosition}>{player.position || "Sin posición"}</Text>
+          </View>
+        </View>
+      </TouchableOpacity>
+    );
+  };
+
   if (isLoading) {
     return (
       <View style={[styles.container, styles.loadingContainer]}>
@@ -171,30 +205,30 @@ export default function StartingPlayers({ route, navigation }) {
         <Ionicons name="arrow-back" size={24} color="black" />
       </TouchableOpacity>
 
-      {/* Selector de jugadores */}
-      <BoxSelector
-        title="Selecciona los 5 jugadores titulares"
-        items={players.map((player) => ({
-          ...player,
-          style: selectedPlayers.includes(player._id)
-            ? styles.selectedPlayer
-            : null,
-        }))}
-        onSelect={handleSelectPlayer}
-        emptyMessage="No hay jugadores disponibles. Crea jugadores primero."
-      />
-
-      {/* Botón para iniciar el partido */}
-      <PrimaryButton
-        title={isPending ? "Guardando..." : "Comenzar"}
-        onPress={handleStart}
-        style={[
-          styles.startButton,
-          selectedPlayers.length !== 5 && styles.disabledButton,
-        ]}
-        textStyle={styles.startButtonText}
-        disabled={selectedPlayers.length !== 5 || isPending}
-      />
+      <View style={styles.headerContainer}>
+        <Text style={styles.headerTitle}>Select starting players</Text>
+        <Text style={styles.selectionCounter}>{selectedPlayers.length}/5 players selected</Text>
+      </View>
+      
+      <View style={styles.boxSelectorContainer}>
+        <BoxSelector
+          items={players}
+          onSelect={handleSelectPlayer}
+          emptyMessage="No hay jugadores disponibles. Crea jugadores primero."
+          customRenderItem={renderPlayerItem}
+        >
+          <PrimaryButton
+            title={isPending ? "Guardando..." : "Comenzar partido"}
+            onPress={handleStart}
+            style={[
+              styles.startButton,
+              selectedPlayers.length !== 5 && styles.disabledButton,
+            ]}
+            textStyle={styles.startButtonText}
+            disabled={selectedPlayers.length !== 5 || isPending}
+          />
+        </BoxSelector>
+      </View>
 
       {isPending && (
         <View style={styles.loadingOverlay}>
@@ -208,10 +242,26 @@ export default function StartingPlayers({ route, navigation }) {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    justifyContent: "center",
-    alignItems: "center",
     backgroundColor: "white",
+    paddingTop: 60,
+    alignItems: "center",
+  },
+  headerContainer: {
+    width: "100%",
     paddingHorizontal: 20,
+    marginBottom: 10,
+    alignItems: "center",
+  },
+  headerTitle: {
+    fontSize: 45,
+    fontWeight: "bold",
+    marginBottom: 5,
+  },
+  selectionCounter: {
+    fontSize: 20,
+    color: "#666",
+    marginBottom: 15,
+    fontWeight: "500",
   },
   loadingContainer: {
     justifyContent: "center",
@@ -250,16 +300,83 @@ const styles = StyleSheet.create({
     left: 20,
     zIndex: 10,
   },
+  boxSelectorContainer: {
+    width: "70%",
+    height: "60%",
+    marginBottom: 10,
+    alignItems: "center",
+    justifyContent: "center",
+    alignSelf: "center",
+  },
+  itemButton: {
+    backgroundColor: "white",
+    paddingVertical: 10,
+    borderRadius: 8,
+    width: "100%",
+  },
+  playerItemContainer: {
+    flexDirection: "row",
+    alignItems: "center",
+    paddingVertical: 12,
+    paddingHorizontal: 15,
+    width: "100%",
+  },
+  selectedPlayerItem: {
+    backgroundColor: "#FFF8E1",
+    borderWidth: 2,
+    borderColor: "#FFA500",
+  },
+  playerPhoto: {
+    width: 80,
+    height: 80,
+    borderRadius: 40,
+    marginRight: 30,
+    marginLeft: 10,
+    borderWidth: 1,
+    borderColor: "#E6E0CE",
+  },
+  playerNumberCircle: {
+    width: 60,
+    height: 60,
+    borderRadius: 30,
+    backgroundColor: "#FFA500",
+    justifyContent: "center",
+    alignItems: "center",
+    marginRight: 30,
+    marginLeft: 20,
+  },
+  playerNumberText: {
+    fontSize: 22,
+    fontWeight: "bold",
+    color: "white",
+  },
+  playerInfoContainer: {
+    flex: 1,
+    justifyContent: "center",
+  },
+  playerName: {
+    fontSize: 22,
+    fontWeight: "bold",
+    marginBottom: 3,
+  },
+  playerPosition: {
+    fontSize: 17,
+    color: "#777",
+  },
   selectedPlayer: {
     backgroundColor: "orange",
   },
   startButton: {
     marginTop: 20,
     backgroundColor: "#FFA500",
+    paddingHorizontal: 60,
+    paddingVertical: 15,
+    width: '30%',
   },
   startButtonText: {
     color: "white",
     fontWeight: "bold",
+    fontSize: 18,
   },
   disabledButton: {
     backgroundColor: "#ccc",
