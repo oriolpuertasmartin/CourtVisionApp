@@ -5,16 +5,17 @@ import {
   StyleSheet,
   TouchableOpacity,
   TextInput,
-  ScrollView,
   ActivityIndicator,
   Alert,
   Platform,
+  Dimensions
 } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { useMutation } from "@tanstack/react-query";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import API_BASE_URL from "../../config/apiConfig";
-import SubpageTitle from "../../components/SubpageTitle";
+import ScreenContainer from "../../components/ScreenContainer";
+import ScreenHeader from "../../components/ScreenHeader";
 
 export default function ChangePasswordScreen({ navigation }) {
   const [userId, setUserId] = useState(null);
@@ -26,6 +27,10 @@ export default function ChangePasswordScreen({ navigation }) {
   const [showCurrentPassword, setShowCurrentPassword] = useState(false);
   const [showNewPassword, setShowNewPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+  
+  // Obtener dimensiones de pantalla para ajustes responsivos
+  const screenWidth = Dimensions.get('window').width;
+  const isLargeScreen = screenWidth > 768;
 
   // Cargar el ID del usuario desde AsyncStorage
   useEffect(() => {
@@ -135,153 +140,151 @@ export default function ChangePasswordScreen({ navigation }) {
     changePassword(passwordData);
   };
 
+  // Calcular el ancho del formulario basado en el tamaño de pantalla
+  const getFormWidth = () => {
+    if (Platform.OS !== 'web') return "90%";
+    
+    if (screenWidth > 1600) return "50%";
+    if (screenWidth > 1200) return "60%";
+    if (screenWidth > 768) return "70%";
+    return "90%";
+  };
+
   return (
-    <ScrollView style={styles.scrollContainer}>
-      <View style={styles.container}>
-        {/* Botón de retroceso */}
-        <TouchableOpacity style={styles.backButton} onPress={handleGoBack}>
-          <Ionicons name="arrow-back" size={24} color="black" />
-        </TouchableOpacity>
+    <ScreenContainer 
+      fullWidth={isLargeScreen} 
+      contentContainerStyle={styles.contentContainer}
+    >
+      <ScreenHeader 
+        title="Cambiar Contraseña" 
+        onBack={handleGoBack} 
+      />
 
-        {/* Usar el componente SubpageTitle */}
-        <SubpageTitle>Cambiar Contraseña</SubpageTitle>
-
-        <View style={styles.formContainer}>
-          {/* Campo para la contraseña actual */}
-          <View style={styles.inputSection}>
-            <Text style={styles.inputLabel}>Contraseña Actual</Text>
-            <View style={styles.passwordContainer}>
-              <TextInput
-                style={styles.input}
-                value={passwordData.currentPassword}
-                onChangeText={(text) =>
-                  setPasswordData((prev) => ({
-                    ...prev,
-                    currentPassword: text,
-                  }))
-                }
-                placeholder="Ingresa tu contraseña actual"
-                secureTextEntry={!showCurrentPassword}
-                editable={!isPending}
+      <View style={[
+        styles.formContainer,
+        { width: getFormWidth() }
+      ]}>
+        {/* Campo para la contraseña actual */}
+        <View style={styles.inputSection}>
+          <Text style={styles.inputLabel}>Contraseña Actual</Text>
+          <View style={styles.passwordContainer}>
+            <TextInput
+              style={styles.input}
+              value={passwordData.currentPassword}
+              onChangeText={(text) =>
+                setPasswordData((prev) => ({
+                  ...prev,
+                  currentPassword: text,
+                }))
+              }
+              placeholder="Ingresa tu contraseña actual"
+              secureTextEntry={!showCurrentPassword}
+              editable={!isPending}
+            />
+            <TouchableOpacity
+              style={styles.visibilityToggle}
+              onPress={() => setShowCurrentPassword(!showCurrentPassword)}
+            >
+              <Ionicons
+                name={showCurrentPassword ? "eye-off-outline" : "eye-outline"}
+                size={24}
+                color="#666"
               />
-              <TouchableOpacity
-                style={styles.visibilityToggle}
-                onPress={() => setShowCurrentPassword(!showCurrentPassword)}
-              >
-                <Ionicons
-                  name={showCurrentPassword ? "eye-off-outline" : "eye-outline"}
-                  size={24}
-                  color="#666"
-                />
-              </TouchableOpacity>
-            </View>
+            </TouchableOpacity>
           </View>
-
-          {/* Campo para la nueva contraseña */}
-          <View style={styles.inputSection}>
-            <Text style={styles.inputLabel}>Nueva Contraseña</Text>
-            <View style={styles.passwordContainer}>
-              <TextInput
-                style={styles.input}
-                value={passwordData.newPassword}
-                onChangeText={(text) =>
-                  setPasswordData((prev) => ({ ...prev, newPassword: text }))
-                }
-                placeholder="Ingresa tu nueva contraseña"
-                secureTextEntry={!showNewPassword}
-                editable={!isPending}
-              />
-              <TouchableOpacity
-                style={styles.visibilityToggle}
-                onPress={() => setShowNewPassword(!showNewPassword)}
-              >
-                <Ionicons
-                  name={showNewPassword ? "eye-off-outline" : "eye-outline"}
-                  size={24}
-                  color="#666"
-                />
-              </TouchableOpacity>
-            </View>
-            <Text style={styles.passwordHint}>Mínimo 6 caracteres</Text>
-          </View>
-
-          {/* Campo para confirmar la nueva contraseña */}
-          <View style={styles.inputSection}>
-            <Text style={styles.inputLabel}>Confirmar Nueva Contraseña</Text>
-            <View style={styles.passwordContainer}>
-              <TextInput
-                style={styles.input}
-                value={passwordData.confirmPassword}
-                onChangeText={(text) =>
-                  setPasswordData((prev) => ({
-                    ...prev,
-                    confirmPassword: text,
-                  }))
-                }
-                placeholder="Confirma tu nueva contraseña"
-                secureTextEntry={!showConfirmPassword}
-                editable={!isPending}
-              />
-              <TouchableOpacity
-                style={styles.visibilityToggle}
-                onPress={() => setShowConfirmPassword(!showConfirmPassword)}
-              >
-                <Ionicons
-                  name={showConfirmPassword ? "eye-off-outline" : "eye-outline"}
-                  size={24}
-                  color="#666"
-                />
-              </TouchableOpacity>
-            </View>
-          </View>
-
-          {/* Botón de cambiar contraseña */}
-          <TouchableOpacity
-            style={styles.changePasswordButton}
-            onPress={handleSubmit}
-            disabled={isPending}
-          >
-            {isPending ? (
-              <ActivityIndicator size="small" color="white" />
-            ) : (
-              <>
-                <Ionicons name="lock-closed-outline" size={20} color="white" />
-                <Text style={styles.buttonText}>Cambiar Contraseña</Text>
-              </>
-            )}
-          </TouchableOpacity>
         </View>
+
+        {/* Campo para la nueva contraseña */}
+        <View style={styles.inputSection}>
+          <Text style={styles.inputLabel}>Nueva Contraseña</Text>
+          <View style={styles.passwordContainer}>
+            <TextInput
+              style={styles.input}
+              value={passwordData.newPassword}
+              onChangeText={(text) =>
+                setPasswordData((prev) => ({ ...prev, newPassword: text }))
+              }
+              placeholder="Ingresa tu nueva contraseña"
+              secureTextEntry={!showNewPassword}
+              editable={!isPending}
+            />
+            <TouchableOpacity
+              style={styles.visibilityToggle}
+              onPress={() => setShowNewPassword(!showNewPassword)}
+            >
+              <Ionicons
+                name={showNewPassword ? "eye-off-outline" : "eye-outline"}
+                size={24}
+                color="#666"
+              />
+            </TouchableOpacity>
+          </View>
+          <Text style={styles.passwordHint}>Mínimo 6 caracteres</Text>
+        </View>
+
+        {/* Campo para confirmar la nueva contraseña */}
+        <View style={styles.inputSection}>
+          <Text style={styles.inputLabel}>Confirmar Nueva Contraseña</Text>
+          <View style={styles.passwordContainer}>
+            <TextInput
+              style={styles.input}
+              value={passwordData.confirmPassword}
+              onChangeText={(text) =>
+                setPasswordData((prev) => ({
+                  ...prev,
+                  confirmPassword: text,
+                }))
+              }
+              placeholder="Confirma tu nueva contraseña"
+              secureTextEntry={!showConfirmPassword}
+              editable={!isPending}
+            />
+            <TouchableOpacity
+              style={styles.visibilityToggle}
+              onPress={() => setShowConfirmPassword(!showConfirmPassword)}
+            >
+              <Ionicons
+                name={showConfirmPassword ? "eye-off-outline" : "eye-outline"}
+                size={24}
+                color="#666"
+              />
+            </TouchableOpacity>
+          </View>
+        </View>
+
+        {/* Botón de cambiar contraseña */}
+        <TouchableOpacity
+          style={[
+            styles.changePasswordButton,
+            isPending && styles.disabledButton
+          ]}
+          onPress={handleSubmit}
+          disabled={isPending}
+        >
+          {isPending ? (
+            <ActivityIndicator size="small" color="white" />
+          ) : (
+            <>
+              <Ionicons name="lock-closed-outline" size={20} color="white" />
+              <Text style={styles.buttonText}>Cambiar Contraseña</Text>
+            </>
+          )}
+        </TouchableOpacity>
       </View>
-    </ScrollView>
+    </ScreenContainer>
   );
 }
 
 const styles = StyleSheet.create({
-  scrollContainer: {
-    flex: 1,
-    backgroundColor: "white",
-  },
-  container: {
-    flex: 1,
+  contentContainer: {
     alignItems: "center",
-    padding: 20,
-    paddingTop: 80, 
-    paddingHorizontal: Platform.OS === "web" ? "10%" : 30,
-    maxWidth: 1000,
-    alignSelf: "center",
+    justifyContent: "flex-start",
     width: "100%",
-  },
-  backButton: {
-    position: "absolute",
-    top: 40,
-    left: 20,
-    zIndex: 10,
-    padding: 10,
   },
   formContainer: {
-    width: "100%",
     alignItems: "center",
     marginTop: 20,
+    paddingHorizontal: 16,
   },
   inputSection: {
     width: "100%",
@@ -291,6 +294,7 @@ const styles = StyleSheet.create({
     fontSize: 14,
     color: "#666",
     marginBottom: 8,
+    fontWeight: "500",
   },
   passwordContainer: {
     flexDirection: "row",
@@ -306,9 +310,11 @@ const styles = StyleSheet.create({
     fontSize: 16,
     paddingVertical: 12,
     paddingHorizontal: 12,
+    color: "#333",
   },
   visibilityToggle: {
     paddingHorizontal: 12,
+    paddingVertical: 8, // Aumentado para mejor área táctil
   },
   passwordHint: {
     fontSize: 12,
@@ -320,12 +326,21 @@ const styles = StyleSheet.create({
     alignItems: "center",
     justifyContent: "center",
     backgroundColor: "#FFA500",
-    paddingVertical: 12,
+    paddingVertical: 14, // Ligeramente más alto para mejor usabilidad
     paddingHorizontal: 24,
     borderRadius: 25,
     marginTop: 30,
     width: "100%",
-    maxWidth: 400,
+    maxWidth: 300, // Consistente con botones de ProfileScreen
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 3,
+    elevation: 2,
+  },
+  disabledButton: {
+    backgroundColor: "#FFCC80",
+    opacity: 0.7,
   },
   buttonText: {
     color: "white",

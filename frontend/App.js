@@ -9,7 +9,7 @@ import {
   TouchableOpacity,
 } from "react-native";
 import { StatusBar } from "expo-status-bar";
-import { NavigationContainer } from "@react-navigation/native";
+import { NavigationContainer, CommonActions } from "@react-navigation/native";
 import { createNativeStackNavigator } from "@react-navigation/native-stack";
 import {
   createDrawerNavigator,
@@ -162,36 +162,76 @@ function SettingsStack({ handleLogout, setUser }) {
   );
 }
 
-function EmptyComponent() {
-  return <View />;
-}
-
-function DrawerNavigator({ user, handleLogout, setUser }) {
+function DrawerNavigator({ user, handleLogout, setUser, navigation, route }) {
   const [isDrawerVisible, setIsDrawerVisible] = useState(true);
   const [activeScreen, setActiveScreen] = useState("Home");
+  const drawerNavigationRef = useRef(null);
+  const initialScreenRef = useRef("Home");
   
+  // Esta función se actualiza para manejar el cambio de pantalla activa
   const handleScreenChange = (screenName) => {
-    setActiveScreen(screenName);
+    if (screenName) {
+      setActiveScreen(screenName);
+      // Almacenar la pantalla activa para recordarla cuando se vuelva a abrir el drawer
+      initialScreenRef.current = screenName;
+    }
   };
   
+  // Inicializar el drawer visible al principio
+  useEffect(() => {
+    setIsDrawerVisible(true);
+  }, []);
+
+  const renderScreenContent = () => {
+    // Determina qué pantalla mostrar basándose en la pantalla activa actual
+    const currentScreen = initialScreenRef.current || activeScreen;
+    
+    switch(currentScreen) {
+      case "Home":
+        return <HomeScreen />;
+      case "Teams":
+        return <TeamsStack user={user} />;
+      case "Start a Match":
+        return <StartMatchStack user={user} />;
+      case "Info":
+        return <InfoScreen />;
+      case "Settings":
+        return <SettingsStack handleLogout={handleLogout} setUser={setUser} />;
+      default:
+        return <HomeScreen />;
+    }
+  };
+  
+  const toggleDrawer = () => {
+    if (!isDrawerVisible) {
+      // Cuando volvemos a mostrar el drawer
+      setIsDrawerVisible(true);
+      
+      // Importante: Al volver a mostrar el drawer, necesitamos navegar explícitamente a la pantalla almacenada
+      if (drawerNavigationRef.current) {
+        // Usamos setTimeout para asegurarnos de que el drawer esté completamente montado
+        setTimeout(() => {
+          if (drawerNavigationRef.current) {
+            drawerNavigationRef.current.navigate(initialScreenRef.current);
+          }
+        }, 100);
+      }
+    } else {
+      // Cuando cerramos el drawer
+      setIsDrawerVisible(false);
+    }
+  };
+
   return (
     <View style={{ flex: 1 }}>
-      {!isDrawerVisible && (
-        <TouchableOpacity 
-          style={styles.showMenuButton}
-          onPress={() => setIsDrawerVisible(true)}
-        >
-          <Ionicons name="menu" size={28} color="black" />
-        </TouchableOpacity>
-      )}
-      
       {isDrawerVisible ? (
         <View style={{ flex: 1 }}>
           <Drawer.Navigator
+            ref={drawerNavigationRef}
             drawerContent={(props) => (
               <CustomDrawerContent 
                 {...props}
-                onClose={() => setIsDrawerVisible(false)}
+                onClose={() => toggleDrawer()}
               />
             )}
             screenOptions={{
@@ -219,6 +259,8 @@ function DrawerNavigator({ user, handleLogout, setUser }) {
                 paddingBottom: 30,
               },
             }}
+            defaultStatus="open"
+            initialRouteName={initialScreenRef.current}
             screenListeners={{
               state: (e) => {
                 if (e.data && e.data.state && e.data.state.index >= 0) {
@@ -312,13 +354,15 @@ function DrawerNavigator({ user, handleLogout, setUser }) {
         </View>
       ) : (
         <View style={{ flex: 1 }}>
-          {activeScreen === "Home" && <HomeScreen />}
-          {activeScreen === "Teams" && <TeamsStack user={user} />}
-          {activeScreen === "Start a Match" && <StartMatchStack user={user} />}
-          {activeScreen === "Info" && <InfoScreen />}
-          {activeScreen === "Settings" && (
-            <SettingsStack handleLogout={handleLogout} setUser={setUser} />
-          )}
+          {renderScreenContent()}
+          
+          {/* Botón para mostrar el drawer - ahora mantiene la pantalla actual */}
+          <TouchableOpacity 
+            style={styles.showMenuButton}
+            onPress={toggleDrawer}
+          >
+            <Ionicons name="menu" size={28} color="black" />
+          </TouchableOpacity>
         </View>
       )}
     </View>

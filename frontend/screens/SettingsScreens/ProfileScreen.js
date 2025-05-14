@@ -6,18 +6,18 @@ import {
   TouchableOpacity,
   Image,
   TextInput,
-  ScrollView,
   ActivityIndicator,
   Alert,
   Platform,
+  Dimensions,
 } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import * as ImagePicker from "expo-image-picker";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import API_BASE_URL from "../../config/apiConfig";
-import { useNavigation } from "@react-navigation/native";
-import SubpageTitle from "../../components/SubpageTitle";
+import ScreenContainer from "../../components/ScreenContainer";
+import ScreenHeader from "../../components/ScreenHeader";
 
 export default function ProfileScreen({ setUser, route, navigation }) {
   const queryClient = useQueryClient();
@@ -31,6 +31,10 @@ export default function ProfileScreen({ setUser, route, navigation }) {
     profile_photo: "",
   });
   const [imagePreview, setImagePreview] = useState(null);
+  
+  // Obtener dimensiones de pantalla para ajustes responsivos
+  const screenWidth = Dimensions.get('window').width;
+  const isLargeScreen = screenWidth > 768;
 
   // Obtener el usuario del almacenamiento local
   useEffect(() => {
@@ -271,21 +275,30 @@ export default function ProfileScreen({ setUser, route, navigation }) {
     );
   }
 
+  // Calcular el ancho del formulario basado en el tamaño de pantalla
+  const getFormWidth = () => {
+    if (Platform.OS !== 'web') return "90%";
+    
+    if (screenWidth > 1600) return "50%";
+    if (screenWidth > 1200) return "60%";
+    if (screenWidth > 768) return "70%";
+    return "90%";
+  };
+
   return (
-    <ScrollView
-      style={styles.scrollContainer}
+    <ScreenContainer
+      fullWidth={isLargeScreen}
       contentContainerStyle={styles.contentContainer}
-      showsVerticalScrollIndicator={false}
     >
-      <View style={styles.container}>
-        {/* Botón de retroceso */}
-        <TouchableOpacity style={styles.backButton} onPress={handleGoBack}>
-          <Ionicons name="arrow-back" size={24} color="black" />
-        </TouchableOpacity>
+      <ScreenHeader 
+        title="My Profile" 
+        onBack={handleGoBack} 
+      />
 
-        {/* Usar el componente SubpageTitle */}
-        <SubpageTitle>My Profile</SubpageTitle>
-
+      <View style={[
+        styles.formContainer,
+        { width: getFormWidth() }
+      ]}>
         {/* Sección de foto de perfil */}
         <TouchableOpacity
           style={styles.profilePhotoContainer}
@@ -427,50 +440,27 @@ export default function ProfileScreen({ setUser, route, navigation }) {
               </Text>
             )}
           </View>
-
-          <View style={styles.infoSection}>
-            <Text style={styles.infoLabel}>Account Created</Text>
-            <Text style={styles.infoValue}>
-              {userData?.createdAt
-                ? new Date(userData.createdAt).toLocaleDateString()
-                : "Unknown"}
-            </Text>
-          </View>
         </View>
       </View>
-    </ScrollView>
+    </ScreenContainer>
   );
 }
 
 const styles = StyleSheet.create({
-  scrollContainer: {
-    flex: 1,
-    backgroundColor: "white",
-  },
   contentContainer: {
-    flexGrow: 1,
-    paddingBottom: 30,
-  },
-  container: {
-    flex: 1,
     alignItems: "center",
-    padding: 20,
-    paddingTop: 80, // Mantener consistente con otras pantallas
-    paddingHorizontal: 10,
-    maxWidth: 1700, // Limita el ancho máximo del contenido
-    alignSelf: "center", // Centra el contenedor si es más estrecho que la pantalla
+    justifyContent: "flex-start",
     width: "100%",
   },
-  backButton: {
-    position: "absolute",
-    top: 40,
-    left: 20,
-    zIndex: 10,
-    padding: 10,
+  formContainer: {
+    alignItems: "center",
+    marginTop: 20,
+    paddingHorizontal: 16,
   },
   profilePhotoContainer: {
     position: "relative",
     marginBottom: 10,
+    alignItems: "center",
   },
   profilePhoto: {
     width: 120,
@@ -520,6 +510,9 @@ const styles = StyleSheet.create({
     paddingHorizontal: 20,
     borderRadius: 20,
     marginBottom: 10,
+    width: "100%",
+    justifyContent: "center",
+    maxWidth: 300,
   },
   saveButton: {
     backgroundColor: "#4CAF50",
@@ -532,6 +525,9 @@ const styles = StyleSheet.create({
     paddingHorizontal: 20,
     borderRadius: 20,
     marginBottom: 25,
+    width: "100%",
+    justifyContent: "center",
+    maxWidth: 300,
   },
   editButtonText: {
     color: "white",
@@ -550,6 +546,7 @@ const styles = StyleSheet.create({
     fontSize: 14,
     color: "#666",
     marginBottom: 5,
+    fontWeight: "500",
   },
   infoValue: {
     fontSize: 18,
@@ -570,7 +567,7 @@ const styles = StyleSheet.create({
     flex: 1,
     justifyContent: "center",
     alignItems: "center",
-    backgroundColor: "white",
+    backgroundColor: "#FFF8E1",
   },
   loadingText: {
     marginTop: 10,
@@ -581,7 +578,7 @@ const styles = StyleSheet.create({
     flex: 1,
     justifyContent: "center",
     alignItems: "center",
-    backgroundColor: "white",
+    backgroundColor: "#FFF8E1",
     padding: 20,
   },
   errorText: {

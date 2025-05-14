@@ -3,13 +3,12 @@ import {
   View,
   Text,
   StyleSheet,
-  ScrollView,
   TouchableOpacity,
   Platform,
   Dimensions,
-  Animated,
 } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
+import ScreenContainer from "../components/ScreenContainer";
 import HeaderTitle from "../components/HeaderTitle";
 
 export default function InfoScreen() {
@@ -17,13 +16,17 @@ export default function InfoScreen() {
     Dimensions.get('window').width > Dimensions.get('window').height ? 'LANDSCAPE' : 'PORTRAIT'
   );
 
+  const [screenWidth, setScreenWidth] = useState(Dimensions.get('window').width);
+  const isLargeScreen = screenWidth > 768;
+
   useEffect(() => {
-    const updateOrientation = () => {
+    const updateLayout = () => {
       const { width, height } = Dimensions.get('window');
       setOrientation(width > height ? 'LANDSCAPE' : 'PORTRAIT');
+      setScreenWidth(width);
     };
 
-    const subscription = Dimensions.addEventListener('change', updateOrientation);
+    const subscription = Dimensions.addEventListener('change', updateLayout);
 
     return () => {
       subscription.remove();
@@ -46,11 +49,14 @@ export default function InfoScreen() {
   };
 
   return (
-    <View style={styles.container}>
+    <ScreenContainer 
+      fullWidth={isLargeScreen}
+      contentContainerStyle={styles.contentContainer}
+    >
       {/* Título usando el componente HeaderTitle */}
       <HeaderTitle>Information</HeaderTitle>
 
-      <ScrollView contentContainerStyle={styles.scrollContent}>
+      <View style={styles.content}>
         {/* Cada sección */}
         {renderSection(
           "about",
@@ -146,14 +152,14 @@ export default function InfoScreen() {
             "Valoración y métricas avanzadas"
           ]
         )}
-      </ScrollView>
 
-      {/* Footer fijo abajo */}
-      <View style={styles.footer}>
-        <Text style={styles.footerText}>© 2025 CourtVision App - Oriol Puertas</Text>
-        <Text style={styles.footerText}>Versión 1.0.0 - Todos los derechos reservados</Text>
+        {/* Footer */}
+        <View style={styles.footer}>
+          <Text style={styles.footerText}>© 2025 CourtVision App - Oriol Puertas</Text>
+          <Text style={styles.footerText}>Versión 1.0.0 - Todos los derechos reservados</Text>
+        </View>
       </View>
-    </View>
+    </ScreenContainer>
   );
 }
 
@@ -189,17 +195,20 @@ function renderSection(key, title, iconName, expanded, toggleSection, paragraphs
 }
 
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: '#FFFFFF',
-    paddingTop: 80, // Añadido para dar espacio al título
+  contentContainer: {
+    alignItems: "center",
+    justifyContent: "flex-start",
+    width: "100%",
   },
-  scrollContent: {
+  content: {
+    width: "100%",
+    maxWidth: "100%",
     padding: 20,
     paddingBottom: 20,
   },
   sectionContainer: {
     marginBottom: 15,
+    width: "100%",
   },
   sectionHeader: {
     flexDirection: 'row',
@@ -240,11 +249,11 @@ const styles = StyleSheet.create({
   },
   footer: {
     padding: 10,
-    backgroundColor: '#FFF',
     alignItems: 'center',
     justifyContent: 'center',
     borderTopWidth: 1,
     borderColor: '#EEE',
+    marginTop: 20,
   },
   footerText: {
     fontSize: 12,
