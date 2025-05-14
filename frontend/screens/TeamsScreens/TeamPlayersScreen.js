@@ -16,6 +16,7 @@ import API_BASE_URL from "../../config/apiConfig";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import ConfirmModal from "../../components/ConfirmModal";
 import * as ImagePicker from "expo-image-picker";
+import SubpageTitle from "../../components/SubpageTitle";
 
 export default function TeamPlayersScreen({ route, navigation }) {
   const { teamId } = route.params;
@@ -460,9 +461,10 @@ export default function TeamPlayersScreen({ route, navigation }) {
         <Ionicons name="arrow-back" size={24} color="black" />
       </TouchableOpacity>
 
-      <Text style={styles.headerTitle}>
+      {/* Usar SubpageTitle en lugar de Text */}
+      <SubpageTitle>
         {team ? `${team.name} Players` : "Team Players"}
-      </Text>
+      </SubpageTitle>
 
       {players.length === 0 ? (
         <View style={styles.emptyContainer}>
@@ -505,7 +507,7 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: "white",
-    paddingTop: 50,
+    paddingTop: 80, 
   },
   loadingContainer: {
     flex: 1,
@@ -538,21 +540,14 @@ const styles = StyleSheet.create({
   },
   backButton: {
     position: "absolute",
-    top: 40,
+    top: 40, 
     left: 20,
     zIndex: 10,
     padding: 10,
   },
-  headerTitle: {
-    fontSize: 24,
-    fontWeight: "bold",
-    marginTop: 30,
-    marginBottom: 20,
-    textAlign: "center",
-  },
   listContainer: {
     paddingHorizontal: 200,
-    paddingBottom: 90, // Espacio para el botón de añadir
+    paddingBottom: 90, 
   },
   playerCard: {
     flexDirection: "row",
@@ -566,19 +561,19 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.1,
     shadowRadius: 2,
     elevation: 2,
-    position: "relative", // Para posicionar el botón de eliminar
+    position: "relative", 
   },
   deleteButton: {
     position: "absolute",
     top: 10,
     right: 10,
     zIndex: 10,
-    padding: 10, // Aumentado para área de toque más grande
+    padding: 10, 
   },
   editButton: {
     position: "absolute",
     top: 10,
-    right: 50, // Posicionado a la derecha del botón de borrar
+    right: 50, 
     zIndex: 10,
     padding: 10,
   },
@@ -673,7 +668,6 @@ const styles = StyleSheet.create({
     color: "#FF6200",
     marginLeft: 8,
   },
-  // Estilos para el formulario de edición
   playerEditForm: {
     flex: 1,
     padding: 10,

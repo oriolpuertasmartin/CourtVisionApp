@@ -17,6 +17,7 @@ import * as ImagePicker from "expo-image-picker";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import API_BASE_URL from "../../config/apiConfig";
 import { useNavigation } from "@react-navigation/native";
+import SubpageTitle from "../../components/SubpageTitle";
 
 export default function ProfileScreen({ setUser, route, navigation }) {
   const queryClient = useQueryClient();
@@ -282,7 +283,8 @@ export default function ProfileScreen({ setUser, route, navigation }) {
           <Ionicons name="arrow-back" size={24} color="black" />
         </TouchableOpacity>
 
-        <Text style={styles.headerTitle}>My Profile</Text>
+        {/* Usar el componente SubpageTitle */}
+        <SubpageTitle>My Profile</SubpageTitle>
 
         {/* Sección de foto de perfil */}
         <TouchableOpacity
@@ -453,7 +455,7 @@ const styles = StyleSheet.create({
     flex: 1,
     alignItems: "center",
     padding: 20,
-    paddingTop: 50,
+    paddingTop: 80, // Mantener consistente con otras pantallas
     paddingHorizontal: 10,
     maxWidth: 1700, // Limita el ancho máximo del contenido
     alignSelf: "center", // Centra el contenedor si es más estrecho que la pantalla
@@ -465,12 +467,6 @@ const styles = StyleSheet.create({
     left: 20,
     zIndex: 10,
     padding: 10,
-  },
-  headerTitle: {
-    fontSize: 24,
-    fontWeight: "bold",
-    marginTop: 30,
-    marginBottom: 30,
   },
   profilePhotoContainer: {
     position: "relative",

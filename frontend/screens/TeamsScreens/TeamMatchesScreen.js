@@ -12,6 +12,7 @@ import BoxSelector from "../../components/BoxSelector";
 import { useOrientation } from "../../components/OrientationHandler";
 import API_BASE_URL from "../../config/apiConfig";
 import { useQuery } from "@tanstack/react-query";
+import SubpageTitle from "../../components/SubpageTitle";
 
 export default function TeamMatchesScreen({ route, navigation }) {
   const { teamId, userId } = route.params;
@@ -105,9 +106,10 @@ export default function TeamMatchesScreen({ route, navigation }) {
         <Ionicons name="arrow-back" size={24} color="black" />
       </TouchableOpacity>
 
-      <Text style={styles.headerTitle}>
+      {/* Usar SubpageTitle en lugar de Text */}
+      <SubpageTitle>
         {team ? `${team.name} Matches` : "Team Matches"}
-      </Text>
+      </SubpageTitle>
 
       {isLoading ? (
         <View style={styles.loadingContainer}>
@@ -143,21 +145,15 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: "white",
-    paddingTop: 50,
+    paddingTop: 80, 
     alignItems: "center",
   },
   backButton: {
     position: "absolute",
-    top: 50,
+    top: 40, 
     left: 20,
     zIndex: 10,
     padding: 10,
-  },
-  headerTitle: {
-    fontSize: 24,
-    fontWeight: "bold",
-    marginTop: 30,
-    marginBottom: 20,
   },
   boxSelectorContainer: {
     width: "100%",

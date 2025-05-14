@@ -15,6 +15,7 @@ import PrimaryButton from "../../components/PrimaryButton";
 import API_BASE_URL from "../../config/apiConfig";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import * as ImagePicker from "expo-image-picker";
+import SubpageTitle from "../../components/SubpageTitle";
 
 export default function CreatePlayersScreen({ route, navigation }) {
   const { teamId } = route.params;
@@ -190,10 +191,10 @@ export default function CreatePlayersScreen({ route, navigation }) {
 
   const handleAddPlayer = () => {
     // Comprobamos que no se sobrepasa el limite de jugadores maximo
-    if (players && players.length >= 15) {
+    if (players && players.length >= 13) {
       Alert.alert(
         "Límite de jugadores alcanzado",
-        "No puedes añadir más de 15 jugadores a un equipo.",
+        "No puedes añadir más de 13 jugadores a un equipo.",
         [{ text: "Entendido", style: "default" }]
       );
       return;
@@ -284,9 +285,10 @@ export default function CreatePlayersScreen({ route, navigation }) {
         <Ionicons name="arrow-back" size={24} color="black" />
       </TouchableOpacity>
 
-      <Text style={styles.headerTitle}>
+      {/* Reemplazamos el Text por el componente SubpageTitle */}
+      <SubpageTitle>
         {team ? `Add Players to ${team.name}` : "Add Players"}
-      </Text>
+      </SubpageTitle>
 
       {/* ScrollView para hacer todo el contenido desplazable */}
       <ScrollView
@@ -298,7 +300,7 @@ export default function CreatePlayersScreen({ route, navigation }) {
         {players.length > 0 && (
           <View style={styles.playersListContainer}>
             <Text style={styles.listTitle}>
-              Team Players ({players.length}/15)
+              Team Players ({players.length}/13)
             </Text>
             <View style={styles.playersGrid}>
               {players.map((player) => (
@@ -371,9 +373,9 @@ export default function CreatePlayersScreen({ route, navigation }) {
           onChangeForm={setFormData}
         >
           <Text style={styles.infoText}>
-            {players.length < 15 
-              ? `Puedes añadir ${15 - players.length} jugadores más` 
-              : "Límite de jugadores alcanzado (15/15)"}
+            {players.length < 13 
+              ? `Puedes añadir ${13 - players.length} jugadores más` 
+              : "Límite de jugadores alcanzado (13/13)"}
           </Text>
           
           <PrimaryButton
@@ -381,9 +383,9 @@ export default function CreatePlayersScreen({ route, navigation }) {
             onPress={handleAddPlayer}
             style={[
               styles.addButton,
-              players.length >= 15 && styles.disabledButton
+              players.length >= 13 && styles.disabledButton
             ]}
-            disabled={isAdding || players.length >= 15}
+            disabled={isAdding || players.length >= 13}
           />
           <PrimaryButton
             title="Finish"
@@ -401,13 +403,13 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: "#FFF8E1",
-    paddingTop: 50,
+    paddingTop: 80, 
     alignItems: "center",
   },
   scrollContainer: {
     width: "100%",
     alignItems: "center",
-    paddingBottom: 30, // Extra padding at the bottom for safe scrolling
+    paddingBottom: 30, 
   },
   loadingContainer: {
     justifyContent: "center",
@@ -418,16 +420,10 @@ const styles = StyleSheet.create({
   },
   backButton: {
     position: "absolute",
-    top: 50,
+    top: 40, 
     left: 20,
     zIndex: 10,
-  },
-  headerTitle: {
-    fontSize: 24,
-    fontWeight: "bold",
-    marginTop: 30,
-    marginBottom: 10,
-    textAlign: "center",
+    padding: 10,
   },
   playersListContainer: {
     width: "90%",

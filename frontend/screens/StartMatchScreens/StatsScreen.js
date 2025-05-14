@@ -7,11 +7,13 @@ import {
   Alert,
   TouchableOpacity,
 } from "react-native";
+import { Ionicons } from "@expo/vector-icons";
 import PlayerButton from "../../components/PlayerButton";
 import StatsButtons from "../../components/StatsButtons";
 import Scoreboard from "../../components/ScoreBoard";
 import PrimaryButton from "../../components/PrimaryButton";
 import API_BASE_URL from "../../config/apiConfig";
+import SubpageTitle from "../../components/SubpageTitle";
 
 export default function StatsScreen({ route, navigation }) {
   const { selectedPlayers, matchId, teamId } = route.params;
@@ -494,6 +496,24 @@ export default function StatsScreen({ route, navigation }) {
     }
   };
 
+  const handleGoBack = () => {
+    Alert.alert(
+      "¿Estás seguro?",
+      "Si sales ahora, perderás los datos del partido.",
+      [
+        {
+          text: "Cancelar",
+          style: "cancel"
+        },
+        {
+          text: "Salir",
+          style: "destructive",
+          onPress: () => navigation.goBack()
+        }
+      ]
+    );
+  };
+
   if (loading) {
     return (
       <View style={styles.container}>
@@ -504,8 +524,18 @@ export default function StatsScreen({ route, navigation }) {
 
   return (
     <View style={styles.container}>
+      {/* Botón para volver */}
+      <TouchableOpacity
+        style={styles.backButton}
+        onPress={handleGoBack}
+      >
+        <Ionicons name="arrow-back" size={24} color="black" />
+      </TouchableOpacity>
+      
+      {/* Usar SubpageTitle en lugar del título regular */}
+      <SubpageTitle>Game Stats</SubpageTitle>
+
       <View style={styles.topContainer}>
-        <Text style={styles.title}>Stats Screen</Text>
         <View style={styles.startingplayersContainer}>
           {startingPlayers.map((player) => (
             <View key={player.playerId} style={styles.startingPlayerItem}>
@@ -552,22 +582,9 @@ export default function StatsScreen({ route, navigation }) {
         <View style={styles.finishButtonContainer}>
           <TouchableOpacity
             onPress={finalizarPartido}
-            style={{
-              backgroundColor: "#D9534F",
-              width: 300,
-              marginTop: 15,
-              paddingVertical: 12,
-              borderRadius: 5,
-              alignItems: "center",
-            }}
+            style={styles.finishButton}
           >
-            <Text
-              style={{
-                fontSize: 18,
-                fontWeight: "bold",
-                color: "white",
-              }}
-            >
+            <Text style={styles.finishButtonText}>
               Finish the match
             </Text>
           </TouchableOpacity>
@@ -597,14 +614,18 @@ export default function StatsScreen({ route, navigation }) {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: "#FFF8E1",
+    backgroundColor: "white",
+    paddingTop: 80, 
+  },
+  backButton: {
+    position: "absolute",
+    top: 40, 
+    left: 20,
+    zIndex: 10,
+    padding: 10,
   },
   topContainer: {
-    position: "absolute",
-    top: 0,
-    left: 0,
-    right: 0,
-    height: "50%",
+    marginTop: 30, 
   },
   bottomContainer: {
     position: "absolute",
@@ -615,13 +636,6 @@ const styles = StyleSheet.create({
     paddingTop: 100,
     paddingHorizontal: 20,
   },
-  title: {
-    fontSize: 40,
-    fontWeight: "bold",
-    marginBottom: 20,
-    textAlign: "center",
-    top: 20,
-  },
   startingplayersContainer: {
     flexDirection: "row",
     flexWrap: "wrap",
@@ -629,7 +643,7 @@ const styles = StyleSheet.create({
     alignItems: "flex-start",
     width: "35%",
     position: "absolute",
-    top: 100,
+    top: 30, 
     left: 120,
     gap: 10,
   },
@@ -656,7 +670,7 @@ const styles = StyleSheet.create({
   },
   opponentButtonContainer: {
     position: "absolute",
-    top: 130,
+    top: 160, 
     right: 120,
     zIndex: 10,
     width: 400,
@@ -678,9 +692,12 @@ const styles = StyleSheet.create({
     width: 300,
     marginTop: 15,
     paddingVertical: 12,
+    borderRadius: 5,
+    alignItems: "center",
   },
   finishButtonText: {
     fontSize: 18,
     fontWeight: "bold",
+    color: "white",
   },
 });

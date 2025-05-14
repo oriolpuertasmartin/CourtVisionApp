@@ -16,6 +16,7 @@ import { useOrientation } from "../../components/OrientationHandler";
 import API_BASE_URL from "../../config/apiConfig";
 import { useMutation } from "@tanstack/react-query";
 import * as ImagePicker from "expo-image-picker";
+import SubpageTitle from "../../components/SubpageTitle";
 
 export default function CreateTeamScreen({ route, navigation }) {
   const { userId } = route.params;
@@ -139,7 +140,8 @@ export default function CreateTeamScreen({ route, navigation }) {
         <Ionicons name="arrow-back" size={24} color="black" />
       </TouchableOpacity>
 
-      <Text style={styles.headerTitle}>Create New Team</Text>
+      {/* Reemplazamos el Text por el componente SubpageTitle */}
+      <SubpageTitle>Create New Team</SubpageTitle>
 
       {/* Sección para subir imagen */}
       <View style={styles.imageSection}>
@@ -187,20 +189,15 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: "#FFF8E1",
-    paddingTop: 50,
+    paddingTop: 80, 
     alignItems: "center",
   },
   backButton: {
     position: "absolute",
-    top: 50,
+    top: 40, 
     left: 20,
     zIndex: 10,
-  },
-  headerTitle: {
-    fontSize: 28,
-    fontWeight: "bold",
-    marginBottom: 20,
-    marginTop: 30,
+    padding: 10,
   },
   imageSection: {
     alignItems: "center",

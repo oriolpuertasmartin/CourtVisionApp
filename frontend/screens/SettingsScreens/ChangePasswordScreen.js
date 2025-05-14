@@ -14,6 +14,7 @@ import { Ionicons } from "@expo/vector-icons";
 import { useMutation } from "@tanstack/react-query";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import API_BASE_URL from "../../config/apiConfig";
+import SubpageTitle from "../../components/SubpageTitle";
 
 export default function ChangePasswordScreen({ navigation }) {
   const [userId, setUserId] = useState(null);
@@ -142,7 +143,8 @@ export default function ChangePasswordScreen({ navigation }) {
           <Ionicons name="arrow-back" size={24} color="black" />
         </TouchableOpacity>
 
-        <Text style={styles.headerTitle}>Cambiar Contraseña</Text>
+        {/* Usar el componente SubpageTitle */}
+        <SubpageTitle>Cambiar Contraseña</SubpageTitle>
 
         <View style={styles.formContainer}>
           {/* Campo para la contraseña actual */}
@@ -263,7 +265,7 @@ const styles = StyleSheet.create({
     flex: 1,
     alignItems: "center",
     padding: 20,
-    paddingTop: 50,
+    paddingTop: 80, 
     paddingHorizontal: Platform.OS === "web" ? "10%" : 30,
     maxWidth: 1000,
     alignSelf: "center",
@@ -276,15 +278,10 @@ const styles = StyleSheet.create({
     zIndex: 10,
     padding: 10,
   },
-  headerTitle: {
-    fontSize: 24,
-    fontWeight: "bold",
-    marginTop: 30,
-    marginBottom: 40,
-  },
   formContainer: {
     width: "100%",
     alignItems: "center",
+    marginTop: 20,
   },
   inputSection: {
     width: "100%",

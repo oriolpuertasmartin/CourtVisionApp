@@ -13,6 +13,7 @@ import BoxSelector from "../../components/BoxSelector";
 import PrimaryButton from "../../components/PrimaryButton";
 import API_BASE_URL from "../../config/apiConfig";
 import { useQuery, useMutation } from "@tanstack/react-query";
+import SubpageTitle from "../../components/SubpageTitle";
 
 export default function StartingPlayers({ route, navigation }) {
   const { teamId: routeTeamId, updatedMatch } = route.params;
@@ -197,7 +198,7 @@ export default function StartingPlayers({ route, navigation }) {
 
   return (
     <View style={styles.container}>
-      {/* Botón de retroceso */}
+      {/* Botón para volver */}
       <TouchableOpacity
         style={styles.backButton}
         onPress={() => navigation.goBack()}
@@ -205,10 +206,11 @@ export default function StartingPlayers({ route, navigation }) {
         <Ionicons name="arrow-back" size={24} color="black" />
       </TouchableOpacity>
 
-      <View style={styles.headerContainer}>
-        <Text style={styles.headerTitle}>Select starting players</Text>
-        <Text style={styles.selectionCounter}>{selectedPlayers.length}/5 players selected</Text>
-      </View>
+      {/* Usar el componente SubpageTitle */}
+      <SubpageTitle>Select Starting Players</SubpageTitle>
+
+      {/* Contador de jugadores seleccionados */}
+      <Text style={styles.selectionCounter}>{selectedPlayers.length}/5 players selected</Text>
       
       <View style={styles.boxSelectorContainer}>
         <BoxSelector
@@ -243,19 +245,8 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: "white",
-    paddingTop: 60,
+    paddingTop: 80, 
     alignItems: "center",
-  },
-  headerContainer: {
-    width: "100%",
-    paddingHorizontal: 20,
-    marginBottom: 10,
-    alignItems: "center",
-  },
-  headerTitle: {
-    fontSize: 45,
-    fontWeight: "bold",
-    marginBottom: 5,
   },
   selectionCounter: {
     fontSize: 20,
@@ -296,9 +287,10 @@ const styles = StyleSheet.create({
   },
   backButton: {
     position: "absolute",
-    top: 40,
+    top: 40, 
     left: 20,
     zIndex: 10,
+    padding: 10,
   },
   boxSelectorContainer: {
     width: "70%",

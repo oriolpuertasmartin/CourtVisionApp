@@ -14,6 +14,7 @@ import { Ionicons } from "@expo/vector-icons";
 import API_BASE_URL from "../../config/apiConfig";
 import { useMutation } from "@tanstack/react-query";
 import * as ImagePicker from "expo-image-picker";
+import SubpageTitle from "../../components/SubpageTitle";
 
 export default function OpponentTeamScreen({ route, navigation }) {
   const { matchId, teamId } = route.params;
@@ -127,13 +128,16 @@ export default function OpponentTeamScreen({ route, navigation }) {
 
   return (
     <View style={styles.container}>
-      {/* Flecha de retroceso personalizada */}
+      {/* Botón para volver */}
       <TouchableOpacity
         style={styles.backButton}
         onPress={() => navigation.goBack()}
       >
         <Ionicons name="arrow-back" size={24} color="black" />
       </TouchableOpacity>
+
+      {/* Usar el componente SubpageTitle */}
+      <SubpageTitle>Opponent Team</SubpageTitle>
 
       {/* Sección para subir imagen */}
       <View style={styles.imageSection}>
@@ -179,16 +183,17 @@ export default function OpponentTeamScreen({ route, navigation }) {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    justifyContent: "center",
     alignItems: "center",
     backgroundColor: "white",
     padding: 20,
+    paddingTop: 80, 
   },
   backButton: {
     position: "absolute",
-    top: 40,
+    top: 40, 
     left: 20,
     zIndex: 10,
+    padding: 10,
   },
   loadingOverlay: {
     position: "absolute",
