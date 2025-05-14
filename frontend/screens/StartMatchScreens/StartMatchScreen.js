@@ -11,6 +11,7 @@ import {
 import BoxSelector from "../../components/BoxSelector";
 import API_BASE_URL from "../../config/apiConfig";
 import { useQuery, useMutation } from "@tanstack/react-query";
+import HeaderTitle from "../../components/HeaderTitle";
 
 export default function StartMatchScreen({ user, navigation }) {
   // Consulta para obtener equipos del usuario
@@ -102,9 +103,7 @@ export default function StartMatchScreen({ user, navigation }) {
   if (isLoading || isPending) {
     return (
       <View style={styles.container}>
-        <View style={styles.headerContainer}>
-          <Text style={styles.headerTitle}>Select your team</Text>
-        </View>
+        <HeaderTitle>Select your team</HeaderTitle>
         <View style={styles.loadingContainer}>
           <ActivityIndicator size="large" color="#FFA500" />
           <Text style={styles.loadingText}>Cargando equipos...</Text>
@@ -116,9 +115,7 @@ export default function StartMatchScreen({ user, navigation }) {
   if (isError) {
     return (
       <View style={styles.container}>
-        <View style={styles.headerContainer}>
-          <Text style={styles.headerTitle}>Select your team</Text>
-        </View>
+        <HeaderTitle>Select your team</HeaderTitle>
         <View style={styles.errorContainer}>
           <Text style={styles.errorText}>
             {error?.message || "Error al cargar equipos"}
@@ -133,9 +130,7 @@ export default function StartMatchScreen({ user, navigation }) {
 
   return (
     <View style={styles.container}>
-      <View style={styles.headerContainer}>
-        <Text style={styles.headerTitle}>Select your team</Text>
-      </View>
+      <HeaderTitle>Select your team</HeaderTitle>
       
       <View style={styles.boxSelectorContainer}>
         <BoxSelector
@@ -160,19 +155,8 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: "white",
-    paddingTop: 60,
+    paddingTop: 80,
     alignItems: "center",
-  },
-  headerContainer: {
-    width: "100%",
-    paddingHorizontal: 20,
-    marginBottom: 0,
-    alignItems: "center",
-  },
-  headerTitle: {
-    fontSize: 45,
-    fontWeight: "bold",
-    marginBottom: 15,
   },
   loadingContainer: {
     flex: 1,

@@ -10,6 +10,7 @@ import {
   Animated,
 } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
+import HeaderTitle from "../components/HeaderTitle";
 
 export default function InfoScreen() {
   const [orientation, setOrientation] = useState(
@@ -46,8 +47,8 @@ export default function InfoScreen() {
 
   return (
     <View style={styles.container}>
-      {/* Título con el mismo estilo que StartMatchScreen */}
-      <Text style={styles.headerTitle}>Information</Text>
+      {/* Título usando el componente HeaderTitle */}
+      <HeaderTitle>Information</HeaderTitle>
 
       <ScrollView contentContainerStyle={styles.scrollContent}>
         {/* Cada sección */}
@@ -192,12 +193,6 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: '#FFFFFF',
     paddingTop: 80, // Añadido para dar espacio al título
-  },
-  headerTitle: {
-    fontSize: 45,
-    fontWeight: "bold",
-    marginBottom: 30,
-    alignSelf: "center",
   },
   scrollContent: {
     padding: 20,

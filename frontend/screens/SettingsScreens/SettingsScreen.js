@@ -13,6 +13,7 @@ import { useNavigation } from "@react-navigation/native";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { Ionicons } from "@expo/vector-icons";
 import { useDeviceType, useScreenDimensions } from "../../components/ResponsiveUtils";
+import HeaderTitle from "../../components/HeaderTitle";
 
 export default function SettingsScreen({ handleLogout }) {
   const navigation = useNavigation();
@@ -139,8 +140,8 @@ export default function SettingsScreen({ handleLogout }) {
       styles.container,
       Platform.OS === 'web' && { width: '100%', maxWidth: '100%' }
     ]}>
-      {/* Título con el mismo estilo que en otras pantallas */}
-      <Text style={styles.headerTitle}>Configuración</Text>
+      {/* Usar el componente HeaderTitle en lugar de Text */}
+      <HeaderTitle>Configuración</HeaderTitle>
       
       <ScrollView
         style={{ width: '100%' }}
@@ -230,12 +231,6 @@ const styles = StyleSheet.create({
     alignItems: "center",
     width: '100%',
     maxWidth: '100%',
-  },
-  headerTitle: {
-    fontSize: 40,
-    fontWeight: "bold",
-    marginBottom: 30,
-    alignSelf: "center",
   },
   scrollContainer: {
     paddingHorizontal: 20,

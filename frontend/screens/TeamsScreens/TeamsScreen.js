@@ -15,7 +15,7 @@ import API_BASE_URL from "../../config/apiConfig";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { Ionicons } from "@expo/vector-icons";
 import ConfirmModal from "../../components/ConfirmModal";
-import Icon from "react-native-vector-icons/MaterialIcons";
+import HeaderTitle from "../../components/HeaderTitle";
 
 export default function TeamsScreen({ navigation, route }) {
   const [user, setUser] = useState(route.params?.user || null);
@@ -220,9 +220,8 @@ export default function TeamsScreen({ navigation, route }) {
 
   return (
     <View style={styles.container}>
-      <View style={styles.headerContainer}>
-        <Text style={styles.headerTitle}>My teams</Text>
-      </View>
+      {/* Usar el componente HeaderTitle en lugar del Text */}
+      <HeaderTitle>My teams</HeaderTitle>
 
       {isLoading ? (
         <View style={styles.loadingContainer}>
@@ -279,19 +278,16 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: "white",
-    paddingTop: 60,
+    paddingTop: 80, // Mantener consistente con InfoScreen
     alignItems: "center",
   },
-  headerContainer: {
-    width: "100%",
-    paddingHorizontal: 20,
-    marginBottom: 0,
+  boxSelectorContainer: {
+    width: "95%",
+    height: "90%",
+    marginBottom: 10,
     alignItems: "center",
-  },
-  headerTitle: {
-    fontSize: 45,
-    fontWeight: "bold",
-    marginBottom: 15,
+    justifyContent: "center",
+    alignSelf: "center",
   },
   loadingContainer: {
     flex: 1,
@@ -325,14 +321,6 @@ const styles = StyleSheet.create({
     color: "white",
     fontWeight: "bold",
     fontSize: 16,
-  },
-  boxSelectorContainer: {
-    width: "95%",
-    height: "90%",
-    marginBottom: 10,
-    alignItems: "center",
-    justifyContent: "center",
-    alignSelf: "center",
   },
   createButton: {
     backgroundColor: "#EB840B",
