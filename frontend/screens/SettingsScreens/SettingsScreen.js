@@ -6,20 +6,21 @@ import {
   TouchableOpacity,
   Alert,
   Platform,
-  ScrollView,
   Dimensions,
 } from "react-native";
 import { useNavigation } from "@react-navigation/native";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { Ionicons } from "@expo/vector-icons";
 import { useDeviceType, useScreenDimensions } from "../../components/ResponsiveUtils";
-import HeaderTitle from "../../components/HeaderTitle";
+import ScreenContainer from "../../components/ScreenContainer";
+import HeaderTitle from "../../components/HeaderTitle"; 
 
 export default function SettingsScreen({ handleLogout }) {
   const navigation = useNavigation();
   const deviceType = useDeviceType();
   const { width } = useScreenDimensions();
   const [screenWidth, setScreenWidth] = useState(Dimensions.get('window').width);
+  const isLargeScreen = screenWidth > 768;
 
   // Update screen dimensions on window resize (important for web)
   useEffect(() => {
@@ -128,121 +129,87 @@ export default function SettingsScreen({ handleLogout }) {
     );
   };
 
-  // Determinar ancho dinámico basado en el tamaño de pantalla
-  const contentMaxWidth = Platform.OS === 'web' ? 
-    (width < 768 ? '100%' : 
-     width < 1200 ? 900 : 
-     width < 1600 ? 1100 : 1400) : 
-    '100%';
-
   return (
-    <View style={[
-      styles.container,
-      Platform.OS === 'web' && { width: '100%', maxWidth: '100%' }
-    ]}>
-      {/* Usar el componente HeaderTitle en lugar de Text */}
+    <ScreenContainer
+      fullWidth={isLargeScreen}
+      contentContainerStyle={styles.contentContainer}
+    >
       <HeaderTitle>Configuración</HeaderTitle>
-      
-      <ScrollView
-        style={{ width: '100%' }}
-        contentContainerStyle={[
-          styles.scrollContainer,
-          Platform.OS === 'web' && { width: '100%', maxWidth: contentMaxWidth, alignSelf: 'center' }
-        ]}
-        showsVerticalScrollIndicator={false}
-      >
-        <View style={[
-          styles.settingsContainer,
-          deviceType === 'desktop' && styles.desktopSettingsContainer
+
+      <View style={styles.content}>
+        <Text style={[
+          styles.sectionTitle,
+          deviceType === 'desktop' && styles.sectionTitleDesktop
         ]}>
-          <Text style={[
-            styles.sectionTitle,
-            deviceType === 'desktop' && styles.sectionTitleDesktop
-          ]}>
-            Cuenta
+          Cuenta
+        </Text>
+
+        <SettingItem
+          icon="person-outline"
+          title="Mi Perfil"
+          subtitle="Editar nombre, foto, y información personal"
+          onPress={goToProfile}
+          color="#FFA500"
+        />
+
+        <SettingItem
+          icon="lock-closed-outline"
+          title="Cambiar Contraseña"
+          subtitle="Actualizar tu contraseña de acceso"
+          onPress={goToChangePassword}
+          color="#4A90E2"
+        />
+
+        {/* Botón de cerrar sesión movido a la sección de cuenta */}
+        <SettingItem
+          icon="log-out-outline"
+          title="Cerrar sesión"
+          subtitle="Terminar la sesión actual en este dispositivo"
+          onPress={confirmLogout}
+          color="#D9534F" // Mantener el color rojo para indicar acción peligrosa
+        />
+
+        <View style={styles.separator} />
+
+        <Text style={[
+          styles.sectionTitle,
+          deviceType === 'desktop' && styles.sectionTitleDesktop
+        ]}>
+          Aplicación
+        </Text>
+
+        <SettingItem
+          icon="information-circle-outline"
+          title="Acerca de"
+          subtitle="Versión 1.0.0"
+          onPress={() => navigation.navigate("Info")}
+          color="#5AC8FA"
+        />
+
+        {/* Para depuración - Solo visible en desarrollo */}
+        {__DEV__ && (
+          <Text style={styles.debugText}>
+            Plataforma: {Platform.OS} | 
+            Tipo: {deviceType} | 
+            Ancho: {screenWidth}px
           </Text>
-
-          <SettingItem
-            icon="person-outline"
-            title="Mi Perfil"
-            subtitle="Editar nombre, foto, y información personal"
-            onPress={goToProfile}
-            color="#FFA500"
-          />
-
-          <SettingItem
-            icon="lock-closed-outline"
-            title="Cambiar Contraseña"
-            subtitle="Actualizar tu contraseña de acceso"
-            onPress={goToChangePassword}
-            color="#4A90E2"
-          />
-
-          {/* Botón de cerrar sesión movido a la sección de cuenta */}
-          <SettingItem
-            icon="log-out-outline"
-            title="Cerrar sesión"
-            subtitle="Terminar la sesión actual en este dispositivo"
-            onPress={confirmLogout}
-            color="#D9534F" // Mantener el color rojo para indicar acción peligrosa
-          />
-
-          <View style={styles.separator} />
-
-          <Text style={[
-            styles.sectionTitle,
-            deviceType === 'desktop' && styles.sectionTitleDesktop
-          ]}>
-            Aplicación
-          </Text>
-
-          <SettingItem
-            icon="information-circle-outline"
-            title="Acerca de"
-            subtitle="Versión 1.0.0"
-            onPress={() => navigation.navigate("Info")}
-            color="#5AC8FA"
-          />
-
-          {/* Para depuración - Solo visible en desarrollo */}
-          {__DEV__ && (
-            <Text style={styles.debugText}>
-              Plataforma: {Platform.OS} | 
-              Tipo: {deviceType} | 
-              Ancho: {screenWidth}px |
-              Content Width: {contentMaxWidth}
-            </Text>
-          )}
-        </View>
-      </ScrollView>
-    </View>
+        )}
+      </View>
+    </ScreenContainer>
   );
 }
 
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: "white",
-    paddingTop: 80,
+  contentContainer: {
     alignItems: "center",
-    width: '100%',
-  },
-  webContainer: {
-    alignItems: "center",
-    width: '100%',
-    maxWidth: '100%',
-  },
-  scrollContainer: {
-    paddingHorizontal: 20,
-  },
-  desktopScrollContainer: {
+    justifyContent: "flex-start",
     width: "100%",
   },
-  settingsContainer: {
+  content: {
     width: "100%",
-  },
-  desktopSettingsContainer: {
-    paddingVertical: 20,
+    maxWidth: "100%",
+    padding: 20,
+    paddingBottom: 20,
   },
   sectionTitle: {
     fontSize: 18,

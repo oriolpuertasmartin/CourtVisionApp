@@ -7,13 +7,31 @@ import {
   Text,
   ActivityIndicator,
   Image,
+  Dimensions,
+  Platform
 } from "react-native";
 import BoxSelector from "../../components/BoxSelector";
 import API_BASE_URL from "../../config/apiConfig";
 import { useQuery, useMutation } from "@tanstack/react-query";
 import HeaderTitle from "../../components/HeaderTitle";
+import ScreenContainer from "../../components/ScreenContainer";
+import { useDeviceType } from "../../components/ResponsiveUtils";
 
 export default function StartMatchScreen({ user, navigation }) {
+  const deviceType = useDeviceType();
+  const [screenWidth, setScreenWidth] = useState(Dimensions.get('window').width);
+  const isLargeScreen = screenWidth > 768;
+
+  // Actualizar dimensiones cuando cambie el tamaño de la pantalla
+  useEffect(() => {
+    const updateDimensions = () => {
+      setScreenWidth(Dimensions.get('window').width);
+    };
+
+    const subscription = Dimensions.addEventListener('change', updateDimensions);
+    return () => subscription.remove();
+  }, []);
+
   // Consulta para obtener equipos del usuario
   const {
     data: teams = [],
@@ -68,30 +86,56 @@ export default function StartMatchScreen({ user, navigation }) {
 
   // Función para renderizar cada equipo con su logo/foto y categoría
   const renderTeamItem = (team, isSelected) => {
+    const isDesktop = deviceType === 'desktop';
+    
     return (
       // Envuelve todo en TouchableOpacity para que siga siendo un botón
       <TouchableOpacity
-        style={[styles.itemButton]}
+        style={[
+          styles.itemButton,
+          isDesktop && styles.itemButtonDesktop
+        ]}
         onPress={() => handleSelectTeam(team)}
       >
         <View
           style={[
             styles.teamItemContainer,
             isSelected ? styles.selectedTeamItem : null,
+            isDesktop && styles.teamItemContainerDesktop
           ]}
         >
           {team.team_photo ? (
-            <Image source={{ uri: team.team_photo }} style={styles.teamLogo} />
+            <Image 
+              source={{ uri: team.team_photo }} 
+              style={[
+                styles.teamLogo,
+                isDesktop && styles.teamLogoDesktop
+              ]} 
+            />
           ) : (
-            <View style={styles.teamLogoPlaceholder}>
-              <Text style={styles.teamLogoPlaceholderText}>
+            <View style={[
+              styles.teamLogoPlaceholder,
+              isDesktop && styles.teamLogoPlaceholderDesktop
+            ]}>
+              <Text style={[
+                styles.teamLogoPlaceholderText,
+                isDesktop && { fontSize: 24 }
+              ]}>
                 {team.name.substring(0, 2).toUpperCase()}
               </Text>
             </View>
           )}
           <View style={styles.teamInfoContainer}>
-            <Text style={styles.teamName}>{team.name}</Text>
-            <Text style={styles.teamCategory}>
+            <Text style={[
+              styles.teamName,
+              isDesktop && styles.teamNameDesktop
+            ]}>
+              {team.name}
+            </Text>
+            <Text style={[
+              styles.teamCategory,
+              isDesktop && styles.teamCategoryDesktop
+            ]}>
               {team.category || "Sin categoría"}
             </Text>
           </View>
@@ -102,19 +146,25 @@ export default function StartMatchScreen({ user, navigation }) {
 
   if (isLoading || isPending) {
     return (
-      <View style={styles.container}>
+      <ScreenContainer
+        fullWidth={isLargeScreen}
+        contentContainerStyle={styles.contentContainer}
+      >
         <HeaderTitle>Select your team</HeaderTitle>
         <View style={styles.loadingContainer}>
           <ActivityIndicator size="large" color="#FFA500" />
           <Text style={styles.loadingText}>Cargando equipos...</Text>
         </View>
-      </View>
+      </ScreenContainer>
     );
   }
 
   if (isError) {
     return (
-      <View style={styles.container}>
+      <ScreenContainer
+        fullWidth={isLargeScreen}
+        contentContainerStyle={styles.contentContainer}
+      >
         <HeaderTitle>Select your team</HeaderTitle>
         <View style={styles.errorContainer}>
           <Text style={styles.errorText}>
@@ -124,39 +174,58 @@ export default function StartMatchScreen({ user, navigation }) {
             <Text style={styles.retryButtonText}>Reintentar</Text>
           </TouchableOpacity>
         </View>
-      </View>
+      </ScreenContainer>
     );
   }
 
   return (
-    <View style={styles.container}>
+    <ScreenContainer
+      fullWidth={isLargeScreen}
+      contentContainerStyle={styles.contentContainer}
+    >
       <HeaderTitle>Select your team</HeaderTitle>
       
-      <View style={styles.boxSelectorContainer}>
-        <BoxSelector
-          items={teams}
-          onSelect={handleSelectTeam}
-          emptyMessage="No teams found. Create a team first!"
-          customRenderItem={renderTeamItem}
-        >
-          <TouchableOpacity
-            style={styles.createButton}
-            onPress={() => navigation.navigate("Teams")}
+      <View style={styles.content}>
+        <View style={styles.boxSelectorContainer}>
+          <BoxSelector
+            items={teams}
+            onSelect={handleSelectTeam}
+            emptyMessage="No teams found. Create a team first!"
+            customRenderItem={renderTeamItem}
           >
-            <Text style={styles.createButtonText}>Create a new team</Text>
-          </TouchableOpacity>
-        </BoxSelector>
+            <TouchableOpacity
+              style={[
+                styles.createButton,
+                deviceType === 'desktop' && styles.createButtonDesktop
+              ]}
+              onPress={() => navigation.navigate("Teams")}
+            >
+              <Text style={[
+                styles.createButtonText,
+                deviceType === 'desktop' && styles.createButtonTextDesktop
+              ]}>
+                Create a new team
+              </Text>
+            </TouchableOpacity>
+          </BoxSelector>
+        </View>
       </View>
-    </View>
+    </ScreenContainer>
   );
 }
 
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: "white",
-    paddingTop: 80,
+  contentContainer: {
     alignItems: "center",
+    justifyContent: "flex-start",
+    width: "100%",
+  },
+  content: {
+    width: "100%",
+    maxWidth: "100%",
+    padding: 20,
+    paddingBottom: 20,
+    flex: 1,
   },
   loadingContainer: {
     flex: 1,
@@ -192,12 +261,10 @@ const styles = StyleSheet.create({
     fontSize: 16,
   },
   boxSelectorContainer: {
-    width: "95%",
-    height: "90%",
-    marginBottom: 10,
+    width: "100%",
+    flex: 1,
     alignItems: "center",
     justifyContent: "center",
-    alignSelf: "center",
   },
   createButton: {
     backgroundColor: "#FFF9E7",
@@ -207,10 +274,19 @@ const styles = StyleSheet.create({
     alignItems: "center",
     marginTop: 10,
   },
+  createButtonDesktop: {
+    paddingVertical: 24,
+    width: "80%",
+    maxWidth: 500,
+    marginTop: 20,
+  },
   createButtonText: {
     textAlign: "center",
     fontSize: 23,
     fontWeight: "600",
+  },
+  createButtonTextDesktop: {
+    fontSize: 26,
   },
   itemButton: {
     backgroundColor: "white",
@@ -218,12 +294,20 @@ const styles = StyleSheet.create({
     borderRadius: 8,
     width: "100%",
   },
+  itemButtonDesktop: {
+    paddingVertical: 15,
+    borderRadius: 12,
+  },
   teamItemContainer: {
     flexDirection: "row",
     alignItems: "center",
     paddingVertical: 12,
     paddingHorizontal: 15,
     width: "100%",
+  },
+  teamItemContainerDesktop: {
+    paddingVertical: 16,
+    paddingHorizontal: 20,
   },
   selectedTeamItem: {
     backgroundColor: "#FFF8E1",
@@ -237,6 +321,13 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: "#E6E0CE",
   },
+  teamLogoDesktop: {
+    width: 100,
+    height: 100,
+    borderRadius: 50,
+    marginRight: 40,
+    marginLeft: 40,
+  },
   teamLogoPlaceholder: {
     width: 60,
     height: 60,
@@ -245,6 +336,12 @@ const styles = StyleSheet.create({
     justifyContent: "center",
     alignItems: "center",
     marginRight: 15,
+  },
+  teamLogoPlaceholderDesktop: {
+    width: 80,
+    height: 80,
+    borderRadius: 40,
+    marginRight: 20,
   },
   teamLogoPlaceholderText: {
     color: "white",
@@ -260,8 +357,15 @@ const styles = StyleSheet.create({
     fontWeight: "bold",
     marginBottom: 3,
   },
+  teamNameDesktop: {
+    fontSize: 26,
+    marginBottom: 5,
+  },
   teamCategory: {
     fontSize: 17,
     color: "#777",
+  },
+  teamCategoryDesktop: {
+    fontSize: 20,
   },
 });

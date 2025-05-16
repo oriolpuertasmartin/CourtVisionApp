@@ -8,6 +8,7 @@ import {
   Image,
   Alert,
   Platform,
+  Dimensions,
 } from "react-native";
 import BoxSelector from "../../components/BoxSelector";
 import { useOrientation } from "../../components/OrientationHandler";
@@ -16,12 +17,29 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { Ionicons } from "@expo/vector-icons";
 import ConfirmModal from "../../components/ConfirmModal";
 import HeaderTitle from "../../components/HeaderTitle";
+import ScreenContainer from "../../components/ScreenContainer";
+import { useDeviceType } from "../../components/ResponsiveUtils";
 
 export default function TeamsScreen({ navigation, route }) {
   const [user, setUser] = useState(route.params?.user || null);
   const queryClient = useQueryClient();
   const [modalVisible, setModalVisible] = useState(false);
   const [teamToDelete, setTeamToDelete] = useState(null);
+  const deviceType = useDeviceType();
+
+  // Para detectar el tamaño de la pantalla y ajustar el layout
+  const [screenWidth, setScreenWidth] = useState(Dimensions.get('window').width);
+  const isLargeScreen = screenWidth > 768;
+
+  // Actualizar dimensiones cuando cambie el tamaño de la pantalla
+  useEffect(() => {
+    const updateDimensions = () => {
+      setScreenWidth(Dimensions.get('window').width);
+    };
+
+    const subscription = Dimensions.addEventListener('change', updateDimensions);
+    return () => subscription.remove();
+  }, []);
 
   // Usar el hook de orientación
   const orientation = useOrientation();
@@ -159,6 +177,8 @@ export default function TeamsScreen({ navigation, route }) {
       return null;
     }
 
+    const isDesktop = deviceType === 'desktop';
+    
     return (
       <View style={styles.teamItemContainer}>
         {/* Botón de eliminar */}
@@ -176,18 +196,35 @@ export default function TeamsScreen({ navigation, route }) {
         <View style={styles.teamContentRow}>
           {/* Team logo/photo */}
           {team.team_photo ? (
-            <Image source={{ uri: team.team_photo }} style={styles.teamLogo} />
+            <Image source={{ uri: team.team_photo }} style={[
+              styles.teamLogo,
+              isDesktop && styles.teamLogoDesktop
+            ]} />
           ) : (
-            <View style={styles.teamLogoPlaceholder}>
-              <Text style={styles.teamLogoPlaceholderText}>
+            <View style={[
+              styles.teamLogoPlaceholder,
+              isDesktop && styles.teamLogoPlaceholderDesktop
+            ]}>
+              <Text style={[
+                styles.teamLogoPlaceholderText,
+                isDesktop && styles.teamLogoPlaceholderTextDesktop
+              ]}>
                 {team.name.substring(0, 2).toUpperCase()}
               </Text>
             </View>
           )}
 
           <View style={styles.teamInfoContainer}>
-            <Text style={styles.teamName}>{team.name}</Text>
-            <Text style={styles.teamCategory}>
+            <Text style={[
+              styles.teamName,
+              isDesktop && styles.teamNameDesktop
+            ]}>
+              {team.name}
+            </Text>
+            <Text style={[
+              styles.teamCategory,
+              isDesktop && styles.teamCategoryDesktop
+            ]}>
               {team.category || "Sin categoría"}
             </Text>
           </View>
@@ -195,69 +232,109 @@ export default function TeamsScreen({ navigation, route }) {
 
         <View style={styles.actionsRow}>
           <TouchableOpacity
-            style={styles.actionButton}
+            style={[
+              styles.actionButton,
+              isDesktop && styles.actionButtonDesktop
+            ]}
             onPress={() => handleViewTeamDetails(team._id)}
           >
-            <Text style={styles.actionButtonText}>Details</Text>
+            <Text style={[
+              styles.actionButtonText,
+              isDesktop && styles.actionButtonTextDesktop
+            ]}>Details</Text>
           </TouchableOpacity>
           <TouchableOpacity
-            style={styles.actionButton}
+            style={[
+              styles.actionButton,
+              isDesktop && styles.actionButtonDesktop
+            ]}
             onPress={() => handleViewTeamMatches(team._id)}
           >
-            <Text style={styles.actionButtonText}>Matches</Text>
+            <Text style={[
+              styles.actionButtonText,
+              isDesktop && styles.actionButtonTextDesktop
+            ]}>Matches</Text>
           </TouchableOpacity>
 
           <TouchableOpacity
-            style={styles.actionButton}
+            style={[
+              styles.actionButton,
+              isDesktop && styles.actionButtonDesktop
+            ]}
             onPress={() => handleViewTeamPlayers(team._id)}
           >
-            <Text style={styles.actionButtonText}>Players</Text>
+            <Text style={[
+              styles.actionButtonText,
+              isDesktop && styles.actionButtonTextDesktop
+            ]}>Players</Text>
           </TouchableOpacity>
         </View>
       </View>
     );
   };
 
+  // Componente para renderizar cuando está cargando
+  const renderLoading = () => (
+    <View style={styles.loadingContainer}>
+      <ActivityIndicator size="large" color="#FFA500" />
+      <Text style={styles.loadingText}>Cargando equipos...</Text>
+    </View>
+  );
+
+  // Componente para renderizar cuando hay error
+  const renderError = () => (
+    <View style={styles.errorContainer}>
+      <Text style={styles.errorText}>
+        {queryError?.message ||
+          "No se pudieron cargar los equipos. Por favor, intenta de nuevo."}
+      </Text>
+      <TouchableOpacity
+        style={styles.retryButton}
+        onPress={() => refetch()}
+      >
+        <Text style={styles.retryButtonText}>Reintentar</Text>
+      </TouchableOpacity>
+    </View>
+  );
+
+  // Componente para renderizar la lista de equipos
+  const renderTeamsList = () => (
+    <View style={styles.content}>
+      <View style={styles.boxSelectorContainer}>
+        <BoxSelector
+          items={teams}
+          customRenderItem={renderTeamItem}
+          onSelect={() => {}}
+          emptyMessage="No teams found. Create your first team!"
+        >
+          <TouchableOpacity
+            style={[
+              styles.createButton,
+              deviceType === 'desktop' && styles.createButtonDesktop
+            ]}
+            onPress={handleCreateTeam}
+          >
+            <Text style={[
+              styles.createButtonText,
+              deviceType === 'desktop' && styles.createButtonTextDesktop
+            ]}>
+              Create a new team
+            </Text>
+          </TouchableOpacity>
+        </BoxSelector>
+      </View>
+    </View>
+  );
+
   return (
-    <View style={styles.container}>
-      {/* Usar el componente HeaderTitle en lugar del Text */}
+    <ScreenContainer
+      fullWidth={isLargeScreen}
+      contentContainerStyle={styles.contentContainer}
+    >
+      {/* Usar el componente HeaderTitle */}
       <HeaderTitle>My teams</HeaderTitle>
 
-      {isLoading ? (
-        <View style={styles.loadingContainer}>
-          <ActivityIndicator size="large" color="#FFA500" />
-          <Text style={styles.loadingText}>Cargando equipos...</Text>
-        </View>
-      ) : isError ? (
-        <View style={styles.errorContainer}>
-          <Text style={styles.errorText}>
-            {queryError?.message ||
-              "No se pudieron cargar los equipos. Por favor, intenta de nuevo."}
-          </Text>
-          <TouchableOpacity
-            style={styles.retryButton}
-            onPress={() => refetch()}
-          >
-            <Text style={styles.retryButtonText}>Reintentar</Text>
-          </TouchableOpacity>
-        </View>
-      ) : (
-        <View style={styles.boxSelectorContainer}>
-          <BoxSelector
-            items={teams}
-            customRenderItem={renderTeamItem}
-            onSelect={() => {}}
-            emptyMessage="No teams found. Create your first team!"
-          >
-            <TouchableOpacity
-              style={styles.createButton}
-              onPress={handleCreateTeam}
-            >
-              <Text style={styles.createButtonText}>Create a new team</Text>
-            </TouchableOpacity>
-          </BoxSelector>
-        </View>
-      )}
+      {isLoading ? renderLoading() : isError ? renderError() : renderTeamsList()}
 
       {/* Modal de confirmación personalizado */}
       <ConfirmModal
@@ -270,24 +347,28 @@ export default function TeamsScreen({ navigation, route }) {
           setTeamToDelete(null);
         }}
       />
-    </View>
+    </ScreenContainer>
   );
 }
 
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: "white",
-    paddingTop: 80, // Mantener consistente con InfoScreen
+  contentContainer: {
     alignItems: "center",
+    justifyContent: "flex-start",
+    width: "100%",
+  },
+  content: {
+    width: "100%",
+    maxWidth: "100%",
+    padding: 20,
+    paddingBottom: 20,
+    flex: 1,
   },
   boxSelectorContainer: {
-    width: "95%",
-    height: "90%",
-    marginBottom: 10,
+    width: "100%",
+    flex: 1,
     alignItems: "center",
     justifyContent: "center",
-    alignSelf: "center",
   },
   loadingContainer: {
     flex: 1,
@@ -326,16 +407,23 @@ const styles = StyleSheet.create({
     backgroundColor: "#EB840B",
     paddingVertical: 20,
     borderRadius: 20,
-    width: 500,
+    width: "90%", 
     alignItems: "center",
     marginTop: 10,
     alignSelf: "center",
+  },
+  createButtonDesktop: {
+    width: 500,
+    paddingVertical: 24,
   },
   createButtonText: {
     textAlign: "center",
     fontSize: 20,
     fontWeight: "bold",
     color: "white",
+  },
+  createButtonTextDesktop: {
+    fontSize: 22,
   },
   teamItemContainer: {
     width: "100%",
@@ -344,6 +432,11 @@ const styles = StyleSheet.create({
     padding: 15,
     marginBottom: 15,
     position: "relative",
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.1,
+    shadowRadius: 2,
+    elevation: 2,
   },
   deleteButton: {
     position: "absolute",
@@ -360,9 +453,16 @@ const styles = StyleSheet.create({
     fontWeight: "bold",
     marginBottom: 3,
   },
+  teamNameDesktop: {
+    fontSize: 26,
+    marginBottom: 5,
+  },
   teamCategory: {
     fontSize: 17,
     color: "#777",
+  },
+  teamCategoryDesktop: {
+    fontSize: 20,
   },
   actionsRow: {
     flexDirection: "row",
@@ -374,15 +474,23 @@ const styles = StyleSheet.create({
   actionButton: {
     backgroundColor: "#FFA500",
     paddingVertical: 6,
-    paddingHorizontal: 40,
+    paddingHorizontal: 20,
     borderRadius: 20,
     alignItems: "center",
     justifyContent: "center",
-    minWidth: 300,
+    minWidth: 100,
+  },
+  actionButtonDesktop: {
+    paddingVertical: 8,
+    paddingHorizontal: 40,
+    minWidth: 140,
   },
   actionButtonText: {
     color: "white",
     fontWeight: "bold",
+    fontSize: 16,
+  },
+  actionButtonTextDesktop: {
     fontSize: 17,
   },
   teamContentRow: {
@@ -392,26 +500,40 @@ const styles = StyleSheet.create({
     paddingLeft: 25,
   },
   teamLogo: {
+    width: 70,
+    height: 70,
+    borderRadius: 35,
+    marginRight: 20,
+    borderWidth: 1,
+    borderColor: "#E6E0CE",
+  },
+  teamLogoDesktop: {
     width: 80,
     height: 80,
     borderRadius: 45,
     marginRight: 30,
     marginLeft: 10,
-    borderWidth: 1,
-    borderColor: "#E6E0CE",
   },
   teamLogoPlaceholder: {
-    width: 80,
-    height: 80,
-    borderRadius: 45,
+    width: 70,
+    height: 70,
+    borderRadius: 35,
     backgroundColor: "#F4CC8D",
     justifyContent: "center",
     alignItems: "center",
     marginRight: 15,
   },
+  teamLogoPlaceholderDesktop: {
+    width: 80, 
+    height: 80,
+    borderRadius: 45,
+  },
   teamLogoPlaceholderText: {
     color: "white",
     fontWeight: "bold",
+    fontSize: 16,
+  },
+  teamLogoPlaceholderTextDesktop: {
     fontSize: 18,
   },
 });
