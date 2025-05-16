@@ -6,6 +6,8 @@ import {
   ActivityIndicator,
   Alert,
   TouchableOpacity,
+  Dimensions,
+  ScrollView,
 } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import PlayerButton from "../../components/PlayerButton";
@@ -14,6 +16,8 @@ import Scoreboard from "../../components/ScoreBoard";
 import PrimaryButton from "../../components/PrimaryButton";
 import API_BASE_URL from "../../config/apiConfig";
 import SubpageTitle from "../../components/SubpageTitle";
+import ScreenContainer from "../../components/ScreenContainer";
+import { useDeviceType } from "../../components/ResponsiveUtils";
 
 export default function StatsScreen({ route, navigation }) {
   const { selectedPlayers, matchId, teamId } = route.params;
@@ -29,6 +33,21 @@ export default function StatsScreen({ route, navigation }) {
   const [teamBScore, setTeamBScore] = useState(0);
   const [teamAFouls, setTeamAFouls] = useState(0);
   const [teamBFouls, setTeamBFouls] = useState(0);
+  const deviceType = useDeviceType();
+
+  // Para detectar el tamaño de la pantalla y ajustar el layout
+  const [screenWidth, setScreenWidth] = useState(Dimensions.get('window').width);
+  const isLargeScreen = screenWidth > 768;
+
+  // Actualizar dimensiones cuando cambie el tamaño de la pantalla
+  useEffect(() => {
+    const updateDimensions = () => {
+      setScreenWidth(Dimensions.get('window').width);
+    };
+
+    const subscription = Dimensions.addEventListener('change', updateDimensions);
+    return () => subscription.remove();
+  }, []);
 
   useEffect(() => {
     async function fetchMatchData() {
@@ -514,16 +533,276 @@ export default function StatsScreen({ route, navigation }) {
     );
   };
 
+  // Renderizar el contenido diferente según el tamaño de pantalla
+  const renderGameContent = () => {
+    // Móvil pequeño
+    if (screenWidth < 480) {
+      return (
+        <View style={styles.mobileContainer}>
+          <ScrollView contentContainerStyle={styles.mobileScrollContent}>
+            <View style={styles.mobileScoreboardContainer}>
+              <Scoreboard
+                matchId={matchId}
+                teamAName={teamAName}
+                teamBName={teamBName}
+                teamAScore={teamAScore}
+                teamBScore={teamBScore}
+                teamAFouls={teamAFouls}
+                teamBFouls={teamBFouls}
+                period="H1"
+                initialTime="10:00"
+              />
+            </View>
+            
+            <View style={styles.mobilePlayerSection}>
+              <Text style={styles.sectionTitle}>Starting Five</Text>
+              <ScrollView horizontal showsHorizontalScrollIndicator={false}>
+                {startingPlayers.map((player) => (
+                  <View key={player.playerId} style={styles.mobilePlayerItem}>
+                    <PlayerButton
+                      player={player}
+                      playerstats={player}
+                      onPress={() => handleSelectPlayer(player.playerId)}
+                      isSelected={selectedPlayerId === player.playerId}
+                      size="small"
+                    />
+                  </View>
+                ))}
+              </ScrollView>
+            </View>
+            
+            {opponentsStats && (
+              <View style={styles.mobileOpponentSection}>
+                <Text style={styles.sectionTitle}>Opponent</Text>
+                <View style={styles.mobileOpponentItem}>
+                  <PlayerButton
+                    key="opponent"
+                    player={{
+                      name: teamBName || "Opponent Team",
+                      number: "",
+                    }}
+                    playerstats={opponentsStats}
+                    onPress={() => handleSelectPlayer("opponent")}
+                    isSelected={selectedPlayerId === "opponent"}
+                    size="small"
+                  />
+                </View>
+              </View>
+            )}
+            
+            <View style={styles.mobilePlayerSection}>
+              <Text style={styles.sectionTitle}>Bench</Text>
+              <ScrollView horizontal showsHorizontalScrollIndicator={false}>
+                {benchStats.map((player) => (
+                  <View key={player._id} style={styles.mobilePlayerItem}>
+                    <PlayerButton
+                      player={player}
+                      playerstats={player}
+                      onPress={() => handleSelectPlayer(player.playerId)}
+                      isSelected={selectedPlayerId === player.playerId}
+                      size="small"
+                    />
+                  </View>
+                ))}
+              </ScrollView>
+            </View>
+            
+            {/* Botones para estadísticas */}
+            <View style={styles.mobileStatsButtonsContainer}>
+              <StatsButtons onStatPress={handleStatUpdate} isMobile={true} />
+            </View>
+            
+            {/* Botón para finalizar partido */}
+            <View style={styles.finishButtonContainer}>
+              <TouchableOpacity
+                onPress={finalizarPartido}
+                style={styles.finishButton}
+              >
+                <Text style={styles.finishButtonText}>
+                  Finish the match
+                </Text>
+              </TouchableOpacity>
+            </View>
+          </ScrollView>
+        </View>
+      );
+    }
+    // Tablet o móvil grande
+    else if (screenWidth < 768) {
+      return (
+        <View style={styles.tabletContainer}>
+          <View style={styles.tabletTopSection}>
+            <View style={styles.tabletStartingSection}>
+              {startingPlayers.map((player) => (
+                <View key={player.playerId} style={styles.tabletPlayerItem}>
+                  <PlayerButton
+                    player={player}
+                    playerstats={player}
+                    onPress={() => handleSelectPlayer(player.playerId)}
+                    isSelected={selectedPlayerId === player.playerId}
+                  />
+                </View>
+              ))}
+            </View>
+            
+            {opponentsStats && (
+              <View style={styles.tabletOpponentContainer}>
+                <PlayerButton
+                  key="opponent"
+                  player={{
+                    name: teamBName || "Opponent Team",
+                    number: "",
+                  }}
+                  playerstats={opponentsStats}
+                  onPress={() => handleSelectPlayer("opponent")}
+                  isSelected={selectedPlayerId === "opponent"}
+                />
+              </View>
+            )}
+          </View>
+          
+          <View style={styles.tabletScoreboardContainer}>
+            <Scoreboard
+              matchId={matchId}
+              teamAName={teamAName}
+              teamBName={teamBName}
+              teamAScore={teamAScore}
+              teamBScore={teamBScore}
+              teamAFouls={teamAFouls}
+              teamBFouls={teamBFouls}
+              period="H1"
+              initialTime="10:00"
+            />
+            
+            <TouchableOpacity
+              onPress={finalizarPartido}
+              style={styles.finishButton}
+            >
+              <Text style={styles.finishButtonText}>
+                Finish the match
+              </Text>
+            </TouchableOpacity>
+          </View>
+          
+          <StatsButtons onStatPress={handleStatUpdate} />
+          
+          <View style={styles.tabletBottomContainer}>
+            <ScrollView horizontal showsHorizontalScrollIndicator={false}>
+              {benchStats.map((player) => (
+                <View key={player._id} style={styles.tabletBenchItem}>
+                  <PlayerButton
+                    player={player}
+                    playerstats={player}
+                    onPress={() => handleSelectPlayer(player.playerId)}
+                    isSelected={selectedPlayerId === player.playerId}
+                  />
+                </View>
+              ))}
+            </ScrollView>
+          </View>
+        </View>
+      );
+    } 
+    // Pantalla grande (desktop)
+    else {
+      return (
+        <View style={styles.desktopContainer}>
+          <View style={styles.topContainer}>
+            <View style={styles.startingplayersContainer}>
+              {startingPlayers.map((player) => (
+                <View key={player.playerId} style={styles.startingPlayerItem}>
+                  <PlayerButton
+                    player={player}
+                    playerstats={player}
+                    onPress={() => handleSelectPlayer(player.playerId)}
+                    isSelected={selectedPlayerId === player.playerId}
+                  />
+                </View>
+              ))}
+            </View>
+          </View>
+
+          {opponentsStats && (
+            <View style={styles.opponentButtonContainer}>
+              <PlayerButton
+                key="opponent"
+                player={{
+                  name: teamBName || "Opponent Team",
+                  number: "",
+                }}
+                playerstats={opponentsStats}
+                onPress={() => handleSelectPlayer("opponent")}
+                isSelected={selectedPlayerId === "opponent"}
+              />
+            </View>
+          )}
+
+          <View style={styles.scoreboardContainer}>
+            <Scoreboard
+              matchId={matchId}
+              teamAName={teamAName}
+              teamBName={teamBName}
+              teamAScore={teamAScore}
+              teamBScore={teamBScore}
+              teamAFouls={teamAFouls}
+              teamBFouls={teamBFouls}
+              period="H1"
+              initialTime="10:00"
+            />
+
+            <View style={styles.finishButtonContainer}>
+              <TouchableOpacity
+                onPress={finalizarPartido}
+                style={styles.finishButton}
+              >
+                <Text style={styles.finishButtonText}>
+                  Finish the match
+                </Text>
+              </TouchableOpacity>
+            </View>
+          </View>
+
+          <StatsButtons onStatPress={handleStatUpdate} />
+
+          <View style={styles.bottomContainer}>
+            <View style={styles.benchPlayersContainer}>
+              {benchStats.map((player) => (
+                <View key={player._id} style={styles.benchItem}>
+                  <PlayerButton
+                    player={player}
+                    playerstats={player}
+                    onPress={() => handleSelectPlayer(player.playerId)}
+                    isSelected={selectedPlayerId === player.playerId}
+                  />
+                </View>
+              ))}
+            </View>
+          </View>
+        </View>
+      );
+    }
+  };
+
   if (loading) {
     return (
-      <View style={styles.container}>
-        <ActivityIndicator size="large" color="#FFA500" />
-      </View>
+      <ScreenContainer
+        fullWidth={isLargeScreen}
+        contentContainerStyle={styles.contentContainer}
+      >
+        <View style={styles.loadingContainer}>
+          <ActivityIndicator size="large" color="#FFA500" />
+          <Text style={styles.loadingText}>Cargando datos...</Text>
+        </View>
+      </ScreenContainer>
     );
   }
 
   return (
-    <View style={styles.container}>
+    <ScreenContainer
+      fullWidth={isLargeScreen}
+      contentContainerStyle={styles.contentContainer}
+      scrollable={false}
+    >
       {/* Botón para volver */}
       <TouchableOpacity
         style={styles.backButton}
@@ -535,87 +814,26 @@ export default function StatsScreen({ route, navigation }) {
       {/* Usar SubpageTitle en lugar del título regular */}
       <SubpageTitle>Game Stats</SubpageTitle>
 
-      <View style={styles.topContainer}>
-        <View style={styles.startingplayersContainer}>
-          {startingPlayers.map((player) => (
-            <View key={player.playerId} style={styles.startingPlayerItem}>
-              <PlayerButton
-                player={player}
-                playerstats={player}
-                onPress={() => handleSelectPlayer(player.playerId)}
-                isSelected={selectedPlayerId === player.playerId}
-              />
-            </View>
-          ))}
-        </View>
-      </View>
-
-      {opponentsStats && (
-        <View style={styles.opponentButtonContainer}>
-          <PlayerButton
-            key="opponent"
-            player={{
-              name: teamBName || "Opponent Team",
-              number: "",
-            }}
-            playerstats={opponentsStats}
-            onPress={() => handleSelectPlayer("opponent")}
-            isSelected={selectedPlayerId === "opponent"}
-          />
-        </View>
-      )}
-
-      <View style={styles.scoreboardContainer}>
-        <Scoreboard
-          matchId={matchId}
-          teamAName={teamAName}
-          teamBName={teamBName}
-          teamAScore={teamAScore}
-          teamBScore={teamBScore}
-          teamAFouls={teamAFouls}
-          teamBFouls={teamBFouls}
-          period="H1"
-          initialTime="10:00"
-        />
-
-        {/* Botón para finalizar partido */}
-        <View style={styles.finishButtonContainer}>
-          <TouchableOpacity
-            onPress={finalizarPartido}
-            style={styles.finishButton}
-          >
-            <Text style={styles.finishButtonText}>
-              Finish the match
-            </Text>
-          </TouchableOpacity>
-        </View>
-      </View>
-
-      <StatsButtons onStatPress={handleStatUpdate} />
-
-      <View style={styles.bottomContainer}>
-        <View style={styles.benchPlayersContainer}>
-          {benchStats.map((player) => (
-            <View key={player._id} style={styles.benchItem}>
-              <PlayerButton
-                player={player}
-                playerstats={player}
-                onPress={() => handleSelectPlayer(player.playerId)}
-                isSelected={selectedPlayerId === player.playerId}
-              />
-            </View>
-          ))}
-        </View>
-      </View>
-    </View>
+      {/* Contenido principal adaptativo */}
+      {renderGameContent()}
+    </ScreenContainer>
   );
 }
 
 const styles = StyleSheet.create({
-  container: {
+  contentContainer: {
+    alignItems: "center",
+    justifyContent: "flex-start",
+    width: "100%",
+  },
+  loadingContainer: {
     flex: 1,
-    backgroundColor: "white",
-    paddingTop: 80, 
+    justifyContent: "center",
+    alignItems: "center",
+  },
+  loadingText: {
+    marginTop: 10,
+    fontSize: 16,
   },
   backButton: {
     position: "absolute",
@@ -624,8 +842,18 @@ const styles = StyleSheet.create({
     zIndex: 10,
     padding: 10,
   },
+  // Estilos para versión Desktop
+  desktopContainer: {
+    flex: 1,
+    backgroundColor: "white",
+    width: "100%",
+    position: "relative",
+  },
   topContainer: {
     marginTop: 30, 
+    position: "relative",
+    width: "100%",
+    height: "30%",
   },
   bottomContainer: {
     position: "absolute",
@@ -700,4 +928,94 @@ const styles = StyleSheet.create({
     fontWeight: "bold",
     color: "white",
   },
+  
+  // Estilos para Tablet
+  tabletContainer: {
+    flex: 1,
+    width: "100%",
+    paddingTop: 20,
+  },
+  tabletTopSection: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    paddingHorizontal: 20,
+    marginBottom: 20,
+  },
+  tabletStartingSection: {
+    flexDirection: "row",
+    flexWrap: "wrap",
+    width: "60%",
+  },
+  tabletPlayerItem: {
+    width: "33%",
+    padding: 5,
+    marginBottom: 10,
+  },
+  tabletOpponentContainer: {
+    width: "30%",
+    alignItems: "center",
+    justifyContent: "center",
+    paddingRight: 20,
+  },
+  tabletScoreboardContainer: {
+    alignItems: "center",
+    marginBottom: 20,
+  },
+  tabletBottomContainer: {
+    position: "absolute",
+    bottom: 0,
+    left: 0,
+    right: 0,
+    backgroundColor: "#f5f5f5",
+    padding: 10,
+    borderTopWidth: 1,
+    borderTopColor: "#ddd",
+  },
+  tabletBenchItem: {
+    width: 120,
+    marginHorizontal: 5,
+    padding: 5,
+  },
+  
+  // Estilos para Móvil
+  mobileContainer: {
+    flex: 1,
+    width: "100%",
+  },
+  mobileScrollContent: {
+    padding: 10,
+    paddingBottom: 50,
+  },
+  mobileScoreboardContainer: {
+    alignItems: "center",
+    marginVertical: 10,
+    transform: [{ scale: 0.85 }],
+  },
+  mobilePlayerSection: {
+    marginVertical: 10,
+  },
+  sectionTitle: {
+    fontSize: 16,
+    fontWeight: "bold",
+    marginBottom: 10,
+    paddingLeft: 10,
+  },
+  mobilePlayerItem: {
+    width: 120,
+    marginRight: 10,
+    marginBottom: 10,
+  },
+  mobileOpponentSection: {
+    marginVertical: 10,
+  },
+  mobileOpponentItem: {
+    alignSelf: "center",
+    marginVertical: 10,
+    width: "80%",
+  },
+  mobileStatsButtonsContainer: {
+    marginVertical: 20,
+    alignItems: "center",
+    transform: [{ scale: 0.8 }],
+  }
 });

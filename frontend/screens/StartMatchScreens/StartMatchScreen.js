@@ -266,27 +266,28 @@ const styles = StyleSheet.create({
     alignItems: "center",
     justifyContent: "center",
   },
+  // Botón de creación actualizado para coincidir con TeamsScreen
   createButton: {
-    backgroundColor: "#FFF9E7",
+    backgroundColor: "#EB840B",
     paddingVertical: 20,
-    borderRadius: 8,
-    width: "90%",
+    borderRadius: 20,
+    width: "90%", 
     alignItems: "center",
     marginTop: 10,
+    alignSelf: "center",
   },
   createButtonDesktop: {
+    width: 500,
     paddingVertical: 24,
-    width: "80%",
-    maxWidth: 500,
-    marginTop: 20,
   },
   createButtonText: {
     textAlign: "center",
-    fontSize: 23,
-    fontWeight: "600",
+    fontSize: 20,
+    fontWeight: "bold",
+    color: "white",
   },
   createButtonTextDesktop: {
-    fontSize: 26,
+    fontSize: 22,
   },
   itemButton: {
     backgroundColor: "white",

@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import {
   StyleSheet,
   View,
@@ -7,6 +7,7 @@ import {
   ActivityIndicator,
   Text,
   Image,
+  Dimensions,
 } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import BoxSelector from "../../components/BoxSelector";
@@ -14,11 +15,28 @@ import PrimaryButton from "../../components/PrimaryButton";
 import API_BASE_URL from "../../config/apiConfig";
 import { useQuery, useMutation } from "@tanstack/react-query";
 import SubpageTitle from "../../components/SubpageTitle";
+import ScreenContainer from "../../components/ScreenContainer";
+import { useDeviceType } from "../../components/ResponsiveUtils";
 
 export default function StartingPlayers({ route, navigation }) {
   const { teamId: routeTeamId, updatedMatch } = route.params;
   const teamId = routeTeamId || updatedMatch?.teamId;
   const [selectedPlayers, setSelectedPlayers] = useState([]);
+  const deviceType = useDeviceType();
+
+  // Para detectar el tamaño de la pantalla y ajustar el layout
+  const [screenWidth, setScreenWidth] = useState(Dimensions.get('window').width);
+  const isLargeScreen = screenWidth > 768;
+
+  // Actualizar dimensiones cuando cambie el tamaño de la pantalla
+  useEffect(() => {
+    const updateDimensions = () => {
+      setScreenWidth(Dimensions.get('window').width);
+    };
+
+    const subscription = Dimensions.addEventListener('change', updateDimensions);
+    return () => subscription.remove();
+  }, []);
 
   // Consulta para obtener jugadores del equipo
   const {
@@ -144,6 +162,7 @@ export default function StartingPlayers({ route, navigation }) {
   // Función para renderizar cada jugador con su foto/número y posición
   const renderPlayerItem = (player) => {
     const isSelected = selectedPlayers.includes(player._id);
+    const isSmallScreen = screenWidth < 480;
     
     return (
       <TouchableOpacity
@@ -157,17 +176,39 @@ export default function StartingPlayers({ route, navigation }) {
           ]}
         >
           {player.player_photo ? (
-            <Image source={{ uri: player.player_photo }} style={styles.playerPhoto} />
+            <Image 
+              source={{ uri: player.player_photo }} 
+              style={[
+                styles.playerPhoto,
+                isSmallScreen && { width: 60, height: 60, borderRadius: 30, marginRight: 15 }
+              ]} 
+            />
           ) : (
-            <View style={styles.playerNumberCircle}>
-              <Text style={styles.playerNumberText}>
+            <View style={[
+              styles.playerNumberCircle,
+              isSmallScreen && { width: 50, height: 50, borderRadius: 25, marginRight: 15, marginLeft: 10 }
+            ]}>
+              <Text style={[
+                styles.playerNumberText,
+                isSmallScreen && { fontSize: 18 }
+              ]}>
                 {player.number || "0"}
               </Text>
             </View>
           )}
           <View style={styles.playerInfoContainer}>
-            <Text style={styles.playerName}>{player.name}</Text>
-            <Text style={styles.playerPosition}>{player.position || "Sin posición"}</Text>
+            <Text style={[
+              styles.playerName,
+              isSmallScreen && { fontSize: 18 }
+            ]}>
+              {player.name}
+            </Text>
+            <Text style={[
+              styles.playerPosition,
+              isSmallScreen && { fontSize: 14 }
+            ]}>
+              {player.position || "Sin posición"}
+            </Text>
           </View>
         </View>
       </TouchableOpacity>
@@ -176,28 +217,41 @@ export default function StartingPlayers({ route, navigation }) {
 
   if (isLoading) {
     return (
-      <View style={[styles.container, styles.loadingContainer]}>
-        <ActivityIndicator size="large" color="#FFA500" />
-        <Text style={styles.loadingText}>Cargando jugadores...</Text>
-      </View>
+      <ScreenContainer
+        fullWidth={isLargeScreen}
+        contentContainerStyle={styles.contentContainer}
+      >
+        <View style={styles.loadingContainer}>
+          <ActivityIndicator size="large" color="#FFA500" />
+          <Text style={styles.loadingText}>Cargando jugadores...</Text>
+        </View>
+      </ScreenContainer>
     );
   }
 
   if (isError) {
     return (
-      <View style={[styles.container, styles.errorContainer]}>
-        <Text style={styles.errorText}>
-          {error?.message || "Error al cargar jugadores"}
-        </Text>
-        <TouchableOpacity style={styles.retryButton} onPress={() => refetch()}>
-          <Text style={styles.retryButtonText}>Reintentar</Text>
-        </TouchableOpacity>
-      </View>
+      <ScreenContainer
+        fullWidth={isLargeScreen}
+        contentContainerStyle={styles.contentContainer}
+      >
+        <View style={styles.errorContainer}>
+          <Text style={styles.errorText}>
+            {error?.message || "Error al cargar jugadores"}
+          </Text>
+          <TouchableOpacity style={styles.retryButton} onPress={() => refetch()}>
+            <Text style={styles.retryButtonText}>Reintentar</Text>
+          </TouchableOpacity>
+        </View>
+      </ScreenContainer>
     );
   }
 
   return (
-    <View style={styles.container}>
+    <ScreenContainer
+      fullWidth={isLargeScreen}
+      contentContainerStyle={styles.contentContainer}
+    >
       {/* Botón para volver */}
       <TouchableOpacity
         style={styles.backButton}
@@ -209,27 +263,36 @@ export default function StartingPlayers({ route, navigation }) {
       {/* Usar el componente SubpageTitle */}
       <SubpageTitle>Select Starting Players</SubpageTitle>
 
-      {/* Contador de jugadores seleccionados */}
-      <Text style={styles.selectionCounter}>{selectedPlayers.length}/5 players selected</Text>
-      
-      <View style={styles.boxSelectorContainer}>
-        <BoxSelector
-          items={players}
-          onSelect={handleSelectPlayer}
-          emptyMessage="No hay jugadores disponibles. Crea jugadores primero."
-          customRenderItem={renderPlayerItem}
-        >
-          <PrimaryButton
-            title={isPending ? "Guardando..." : "Comenzar partido"}
-            onPress={handleStart}
-            style={[
-              styles.startButton,
-              selectedPlayers.length !== 5 && styles.disabledButton,
-            ]}
-            textStyle={styles.startButtonText}
-            disabled={selectedPlayers.length !== 5 || isPending}
-          />
-        </BoxSelector>
+      <View style={styles.content}>
+        {/* Contador de jugadores seleccionados */}
+        <Text style={styles.selectionCounter}>{selectedPlayers.length}/5 players selected</Text>
+        
+        <View style={[
+          styles.boxSelectorContainer,
+          isLargeScreen ? { width: "70%" } : 
+          screenWidth < 480 ? { width: "95%" } : { width: "85%" },
+          isLargeScreen ? { height: "65%" } : { height: "55%" }
+        ]}>
+          <BoxSelector
+            items={players}
+            onSelect={handleSelectPlayer}
+            emptyMessage="No hay jugadores disponibles. Crea jugadores primero."
+            customRenderItem={renderPlayerItem}
+          >
+            <PrimaryButton
+              title={isPending ? "Guardando..." : "Comenzar partido"}
+              onPress={handleStart}
+              style={[
+                styles.startButton,
+                selectedPlayers.length !== 5 && styles.disabledButton,
+                isLargeScreen ? { width: '30%' } : 
+                screenWidth < 480 ? { width: '60%' } : { width: '40%' }
+              ]}
+              textStyle={styles.startButtonText}
+              disabled={selectedPlayers.length !== 5 || isPending}
+            />
+          </BoxSelector>
+        </View>
       </View>
 
       {isPending && (
@@ -237,15 +300,22 @@ export default function StartingPlayers({ route, navigation }) {
           <ActivityIndicator size="large" color="#FFA500" />
         </View>
       )}
-    </View>
+    </ScreenContainer>
   );
 }
 
 const styles = StyleSheet.create({
-  container: {
+  contentContainer: {
+    alignItems: "center",
+    justifyContent: "flex-start",
+    width: "100%",
+  },
+  content: {
+    width: "100%",
+    maxWidth: "100%",
+    padding: 20,
+    paddingBottom: 20,
     flex: 1,
-    backgroundColor: "white",
-    paddingTop: 80, 
     alignItems: "center",
   },
   selectionCounter: {
@@ -255,6 +325,7 @@ const styles = StyleSheet.create({
     fontWeight: "500",
   },
   loadingContainer: {
+    flex: 1,
     justifyContent: "center",
     alignItems: "center",
   },
@@ -267,6 +338,7 @@ const styles = StyleSheet.create({
     justifyContent: "center",
     alignItems: "center",
     paddingHorizontal: 20,
+    flex: 1,
   },
   errorText: {
     fontSize: 16,
@@ -293,7 +365,7 @@ const styles = StyleSheet.create({
     padding: 10,
   },
   boxSelectorContainer: {
-    width: "70%",
+    width: "85%",
     height: "60%",
     marginBottom: 10,
     alignItems: "center",

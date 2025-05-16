@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import {
   View,
   Text,
@@ -8,6 +8,7 @@ import {
   Image,
   Platform,
   Alert,
+  Dimensions,
 } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import BoxFill from "../../components/BoxFill";
@@ -17,6 +18,8 @@ import API_BASE_URL from "../../config/apiConfig";
 import { useMutation } from "@tanstack/react-query";
 import * as ImagePicker from "expo-image-picker";
 import SubpageTitle from "../../components/SubpageTitle";
+import ScreenContainer from "../../components/ScreenContainer";
+import { useDeviceType } from "../../components/ResponsiveUtils";
 
 export default function CreateTeamScreen({ route, navigation }) {
   const { userId } = route.params;
@@ -26,6 +29,21 @@ export default function CreateTeamScreen({ route, navigation }) {
     team_photo: "",
   });
   const [imagePreview, setImagePreview] = useState(null);
+  const deviceType = useDeviceType();
+
+  // Para detectar el tamaño de la pantalla y ajustar el layout
+  const [screenWidth, setScreenWidth] = useState(Dimensions.get('window').width);
+  const isLargeScreen = screenWidth > 768;
+
+  // Actualizar dimensiones cuando cambie el tamaño de la pantalla
+  useEffect(() => {
+    const updateDimensions = () => {
+      setScreenWidth(Dimensions.get('window').width);
+    };
+
+    const subscription = Dimensions.addEventListener('change', updateDimensions);
+    return () => subscription.remove();
+  }, []);
 
   // Usar el hook de orientación
   const orientation = useOrientation();
@@ -131,7 +149,10 @@ export default function CreateTeamScreen({ route, navigation }) {
   };
 
   return (
-    <View style={styles.container}>
+    <ScreenContainer
+      fullWidth={isLargeScreen}
+      contentContainerStyle={styles.contentContainer}
+    >
       {/* Botón para volver */}
       <TouchableOpacity
         style={styles.backButton}
@@ -140,56 +161,65 @@ export default function CreateTeamScreen({ route, navigation }) {
         <Ionicons name="arrow-back" size={24} color="black" />
       </TouchableOpacity>
 
-      {/* Reemplazamos el Text por el componente SubpageTitle */}
+      {/* Usar SubpageTitle en lugar de Text normal */}
       <SubpageTitle>Create New Team</SubpageTitle>
 
-      {/* Sección para subir imagen */}
-      <View style={styles.imageSection}>
-        {imagePreview ? (
-          <Image source={{ uri: imagePreview }} style={styles.imagePreview} />
-        ) : (
-          <View style={styles.imagePlaceholder}>
-            <Ionicons name="image-outline" size={40} color="#FFA500" />
-            <Text style={styles.imagePlaceholderText}>Team Logo</Text>
-          </View>
-        )}
-        <TouchableOpacity style={styles.uploadButton} onPress={pickImage}>
-          <Ionicons name="cloud-upload-outline" size={20} color="white" />
-          <Text style={styles.uploadButtonText}>Upload Logo</Text>
-        </TouchableOpacity>
-      </View>
+      <View style={styles.content}>
+        {/* Sección para subir imagen */}
+        <View style={styles.imageSection}>
+          {imagePreview ? (
+            <Image source={{ uri: imagePreview }} style={styles.imagePreview} />
+          ) : (
+            <View style={styles.imagePlaceholder}>
+              <Ionicons name="image-outline" size={40} color="#FFA500" />
+              <Text style={styles.imagePlaceholderText}>Team Logo</Text>
+            </View>
+          )}
+          <TouchableOpacity style={styles.uploadButton} onPress={pickImage}>
+            <Ionicons name="cloud-upload-outline" size={20} color="white" />
+            <Text style={styles.uploadButtonText}>Upload Logo</Text>
+          </TouchableOpacity>
+        </View>
 
-      <BoxFill
-        title="Team Information"
-        fields={[
-          { name: "name", placeholder: "Team Name *", required: true },
-          { name: "category", placeholder: "Category *", required: true },
-        ]}
-        formData={formData}
-        onChangeForm={setFormData}
-      >
-        <PrimaryButton
-          title={isPending ? "Creating..." : "Create Team & Add Players"}
-          onPress={handleSubmit}
-          style={styles.createButton}
-          disabled={isPending}
-        />
-      </BoxFill>
+        <BoxFill
+          title="Team Information"
+          fields={[
+            { name: "name", placeholder: "Team Name *", required: true },
+            { name: "category", placeholder: "Category *", required: true },
+          ]}
+          formData={formData}
+          onChangeForm={setFormData}
+        >
+          <PrimaryButton
+            title={isPending ? "Creating..." : "Create Team & Add Players"}
+            onPress={handleSubmit}
+            style={styles.createButton}
+            disabled={isPending}
+          />
+        </BoxFill>
+      </View>
 
       {isPending && (
         <View style={styles.loadingOverlay}>
           <ActivityIndicator size="large" color="#FFA500" />
         </View>
       )}
-    </View>
+    </ScreenContainer>
   );
 }
 
 const styles = StyleSheet.create({
-  container: {
+  contentContainer: {
+    alignItems: "center",
+    justifyContent: "flex-start",
+    width: "100%",
+  },
+  content: {
+    width: "100%",
+    maxWidth: "100%",
+    padding: 20,
+    paddingBottom: 20,
     flex: 1,
-    backgroundColor: "#FFF8E1",
-    paddingTop: 80, 
     alignItems: "center",
   },
   backButton: {

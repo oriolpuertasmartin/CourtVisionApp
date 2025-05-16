@@ -9,16 +9,35 @@ import {
   Image,
   Alert,
   TextInput,
+  Dimensions,
+  Platform,
 } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { useOrientation } from "../../components/OrientationHandler";
 import API_BASE_URL from "../../config/apiConfig";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import * as ImagePicker from "expo-image-picker";
+import ScreenContainer from "../../components/ScreenContainer";
+import { useDeviceType } from "../../components/ResponsiveUtils";
 
 export default function TeamDetailsScreen({ route, navigation }) {
   const { teamId } = route.params;
   const queryClient = useQueryClient();
+  const deviceType = useDeviceType();
+
+  // Para detectar el tamaño de la pantalla y ajustar el layout
+  const [screenWidth, setScreenWidth] = useState(Dimensions.get('window').width);
+  const isLargeScreen = screenWidth > 768;
+
+  // Actualizar dimensiones cuando cambie el tamaño de la pantalla
+  useEffect(() => {
+    const updateDimensions = () => {
+      setScreenWidth(Dimensions.get('window').width);
+    };
+
+    const subscription = Dimensions.addEventListener('change', updateDimensions);
+    return () => subscription.remove();
+  }, []);
 
   const [isEditing, setIsEditing] = useState(false);
   const [editableTeam, setEditableTeam] = useState({
@@ -284,33 +303,46 @@ export default function TeamDetailsScreen({ route, navigation }) {
 
   if (isLoading) {
     return (
-      <View style={styles.loadingContainer}>
-        <ActivityIndicator size="large" color="#FFA500" />
-        <Text style={styles.loadingText}>
-          Cargando información del equipo...
-        </Text>
-      </View>
+      <ScreenContainer
+        fullWidth={isLargeScreen}
+        contentContainerStyle={styles.contentContainer}
+      >
+        <View style={styles.loadingContainer}>
+          <ActivityIndicator size="large" color="#FFA500" />
+          <Text style={styles.loadingText}>
+            Cargando información del equipo...
+          </Text>
+        </View>
+      </ScreenContainer>
     );
   }
 
   if (isError) {
     return (
-      <View style={styles.loadingContainer}>
-        <Text style={styles.errorText}>
-          {errorMessage || "Error al cargar datos"}
-        </Text>
-        <TouchableOpacity
-          style={styles.retryButton}
-          onPress={() => refetchTeam()}
-        >
-          <Text style={styles.retryButtonText}>Reintentar</Text>
-        </TouchableOpacity>
-      </View>
+      <ScreenContainer
+        fullWidth={isLargeScreen}
+        contentContainerStyle={styles.contentContainer}
+      >
+        <View style={styles.loadingContainer}>
+          <Text style={styles.errorText}>
+            {errorMessage || "Error al cargar datos"}
+          </Text>
+          <TouchableOpacity
+            style={styles.retryButton}
+            onPress={() => refetchTeam()}
+          >
+            <Text style={styles.retryButtonText}>Reintentar</Text>
+          </TouchableOpacity>
+        </View>
+      </ScreenContainer>
     );
   }
 
   return (
-    <View style={styles.container}>
+    <ScreenContainer
+      fullWidth={isLargeScreen}
+      contentContainerStyle={styles.contentContainer}
+    >
       {/* Botón para volver */}
       <TouchableOpacity
         style={styles.backButton}
@@ -319,7 +351,7 @@ export default function TeamDetailsScreen({ route, navigation }) {
         <Ionicons name="arrow-back" size={24} color="black" />
       </TouchableOpacity>
 
-      <ScrollView style={styles.scrollContainer}>
+      <View style={styles.content}>
         {/* Cabecera del equipo */}
         <View style={styles.teamHeader}>
           <TouchableOpacity
@@ -537,12 +569,23 @@ export default function TeamDetailsScreen({ route, navigation }) {
             </Text>
           )}
         </View>
-      </ScrollView>
-    </View>
+      </View>
+    </ScreenContainer>
   );
 }
 
 const styles = StyleSheet.create({
+  contentContainer: {
+    alignItems: "center",
+    justifyContent: "flex-start",
+    width: "100%",
+  },
+  content: {
+    width: "100%",
+    maxWidth: "100%",
+    padding: 20,
+    paddingBottom: 20,
+  },
   container: {
     flex: 1,
     backgroundColor: "white",
@@ -591,6 +634,7 @@ const styles = StyleSheet.create({
   teamHeader: {
     alignItems: "center",
     marginBottom: 30,
+    marginTop: 60,
   },
   teamPhoto: {
     width: 170,

@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useState, useEffect } from "react";
 import {
   View,
   Text,
@@ -6,6 +6,8 @@ import {
   TouchableOpacity,
   ActivityIndicator,
   Alert,
+  Dimensions,
+  Platform,
 } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import BoxSelector from "../../components/BoxSelector";
@@ -13,9 +15,26 @@ import { useOrientation } from "../../components/OrientationHandler";
 import API_BASE_URL from "../../config/apiConfig";
 import { useQuery } from "@tanstack/react-query";
 import SubpageTitle from "../../components/SubpageTitle";
+import ScreenContainer from "../../components/ScreenContainer";
+import { useDeviceType } from "../../components/ResponsiveUtils";
 
 export default function TeamMatchesScreen({ route, navigation }) {
   const { teamId, userId } = route.params;
+  const deviceType = useDeviceType();
+
+  // Para detectar el tamaño de la pantalla y ajustar el layout
+  const [screenWidth, setScreenWidth] = useState(Dimensions.get('window').width);
+  const isLargeScreen = screenWidth > 768;
+
+  // Actualizar dimensiones cuando cambie el tamaño de la pantalla
+  useEffect(() => {
+    const updateDimensions = () => {
+      setScreenWidth(Dimensions.get('window').width);
+    };
+
+    const subscription = Dimensions.addEventListener('change', updateDimensions);
+    return () => subscription.remove();
+  }, []);
 
   // Usar el hook de orientación
   const orientation = useOrientation();
@@ -96,8 +115,46 @@ export default function TeamMatchesScreen({ route, navigation }) {
   const isError = isTeamError || isMatchesError;
   const errorMessage = teamError?.message || matchesError?.message;
 
+  if (isLoading) {
+    return (
+      <ScreenContainer
+        fullWidth={isLargeScreen}
+        contentContainerStyle={styles.contentContainer}
+      >
+        <View style={styles.loadingContainer}>
+          <ActivityIndicator size="large" color="#FFA500" />
+          <Text style={styles.loadingText}>Cargando partidos...</Text>
+        </View>
+      </ScreenContainer>
+    );
+  }
+
+  if (isError) {
+    return (
+      <ScreenContainer
+        fullWidth={isLargeScreen}
+        contentContainerStyle={styles.contentContainer}
+      >
+        <View style={styles.errorContainer}>
+          <Text style={styles.errorText}>
+            {errorMessage || "Error al cargar los partidos"}
+          </Text>
+          <TouchableOpacity
+            style={styles.retryButton}
+            onPress={() => refetchMatches()}
+          >
+            <Text style={styles.retryButtonText}>Reintentar</Text>
+          </TouchableOpacity>
+        </View>
+      </ScreenContainer>
+    );
+  }
+
   return (
-    <View style={styles.container}>
+    <ScreenContainer
+      fullWidth={isLargeScreen}
+      contentContainerStyle={styles.contentContainer}
+    >
       {/* Botón para volver */}
       <TouchableOpacity
         style={styles.backButton}
@@ -111,42 +168,29 @@ export default function TeamMatchesScreen({ route, navigation }) {
         {team ? `${team.name} Matches` : "Team Matches"}
       </SubpageTitle>
 
-      {isLoading ? (
-        <View style={styles.loadingContainer}>
-          <ActivityIndicator size="large" color="#FFA500" />
-          <Text style={styles.loadingText}>Cargando partidos...</Text>
-        </View>
-      ) : isError ? (
-        <View style={styles.errorContainer}>
-          <Text style={styles.errorText}>
-            {errorMessage || "Error al cargar los partidos"}
-          </Text>
-          <TouchableOpacity
-            style={styles.retryButton}
-            onPress={() => refetchMatches()}
-          >
-            <Text style={styles.retryButtonText}>Reintentar</Text>
-          </TouchableOpacity>
-        </View>
-      ) : (
-        <View style={styles.boxSelectorContainer}>
-          <BoxSelector
-            items={formattedMatches}
-            onSelect={handleSelectMatch}
-            emptyMessage="No matches found for this team"
-          />
-        </View>
-      )}
-    </View>
+      <View style={styles.content}>
+        <BoxSelector
+          items={formattedMatches}
+          onSelect={handleSelectMatch}
+          emptyMessage="No matches found for this team"
+        />
+      </View>
+    </ScreenContainer>
   );
 }
 
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: "white",
-    paddingTop: 80, 
+  contentContainer: {
     alignItems: "center",
+    justifyContent: "flex-start",
+    width: "100%",
+  },
+  content: {
+    width: "100%",
+    maxWidth: "100%",
+    padding: 20,
+    paddingBottom: 20,
+    flex: 1,
   },
   backButton: {
     position: "absolute",

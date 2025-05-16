@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import {
   View,
   Text,
@@ -9,6 +9,8 @@ import {
   Alert,
   Image,
   TextInput,
+  Dimensions,
+  Platform,
 } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { useOrientation } from "../../components/OrientationHandler";
@@ -17,10 +19,28 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import ConfirmModal from "../../components/ConfirmModal";
 import * as ImagePicker from "expo-image-picker";
 import SubpageTitle from "../../components/SubpageTitle";
+import ScreenContainer from "../../components/ScreenContainer";
+import { useDeviceType } from "../../components/ResponsiveUtils";
 
 export default function TeamPlayersScreen({ route, navigation }) {
   const { teamId } = route.params;
   const queryClient = useQueryClient();
+  const deviceType = useDeviceType();
+
+  // Para detectar el tamaño de la pantalla y ajustar el layout
+  const [screenWidth, setScreenWidth] = useState(Dimensions.get('window').width);
+  const isLargeScreen = screenWidth > 768;
+
+  // Actualizar dimensiones cuando cambie el tamaño de la pantalla
+  useEffect(() => {
+    const updateDimensions = () => {
+      setScreenWidth(Dimensions.get('window').width);
+    };
+
+    const subscription = Dimensions.addEventListener('change', updateDimensions);
+    return () => subscription.remove();
+  }, []);
+
   const [modalVisible, setModalVisible] = useState(false);
   const [playerToDelete, setPlayerToDelete] = useState(null);
 
@@ -428,31 +448,44 @@ export default function TeamPlayersScreen({ route, navigation }) {
 
   if (isLoading) {
     return (
-      <View style={styles.loadingContainer}>
-        <ActivityIndicator size="large" color="#FFA500" />
-        <Text style={styles.loadingText}>Cargando jugadores...</Text>
-      </View>
+      <ScreenContainer
+        fullWidth={isLargeScreen}
+        contentContainerStyle={styles.contentContainer}
+      >
+        <View style={styles.loadingContainer}>
+          <ActivityIndicator size="large" color="#FFA500" />
+          <Text style={styles.loadingText}>Cargando jugadores...</Text>
+        </View>
+      </ScreenContainer>
     );
   }
 
   if (isError) {
     return (
-      <View style={styles.loadingContainer}>
-        <Text style={styles.errorText}>
-          {errorMessage || "Error al cargar datos"}
-        </Text>
-        <TouchableOpacity
-          style={styles.retryButton}
-          onPress={() => refetchPlayers()}
-        >
-          <Text style={styles.retryButtonText}>Reintentar</Text>
-        </TouchableOpacity>
-      </View>
+      <ScreenContainer
+        fullWidth={isLargeScreen}
+        contentContainerStyle={styles.contentContainer}
+      >
+        <View style={styles.loadingContainer}>
+          <Text style={styles.errorText}>
+            {errorMessage || "Error al cargar datos"}
+          </Text>
+          <TouchableOpacity
+            style={styles.retryButton}
+            onPress={() => refetchPlayers()}
+          >
+            <Text style={styles.retryButtonText}>Reintentar</Text>
+          </TouchableOpacity>
+        </View>
+      </ScreenContainer>
     );
   }
 
   return (
-    <View style={styles.container}>
+    <ScreenContainer
+      fullWidth={isLargeScreen}
+      contentContainerStyle={styles.contentContainer}
+    >
       {/* Botón para volver */}
       <TouchableOpacity
         style={styles.backButton}
@@ -466,27 +499,32 @@ export default function TeamPlayersScreen({ route, navigation }) {
         {team ? `${team.name} Players` : "Team Players"}
       </SubpageTitle>
 
-      {players.length === 0 ? (
-        <View style={styles.emptyContainer}>
-          <Text style={styles.emptyText}>No players in this team yet</Text>
-          <Text style={styles.emptySubtext}>
-            Add players to start tracking their stats
-          </Text>
-        </View>
-      ) : (
-        <FlatList
-          data={players}
-          renderItem={renderPlayerItem}
-          keyExtractor={(item) => item._id}
-          contentContainerStyle={styles.listContainer}
-        />
-      )}
+      <View style={styles.content}>
+        {players.length === 0 ? (
+          <View style={styles.emptyContainer}>
+            <Text style={styles.emptyText}>No players in this team yet</Text>
+            <Text style={styles.emptySubtext}>
+              Add players to start tracking their stats
+            </Text>
+          </View>
+        ) : (
+          <FlatList
+            data={players}
+            renderItem={renderPlayerItem}
+            keyExtractor={(item) => item._id}
+            contentContainerStyle={[
+              styles.listContainer,
+              isLargeScreen ? { paddingHorizontal: 200 } : { paddingHorizontal: 20 }
+            ]}
+          />
+        )}
 
-      {/* Botón para añadir jugador */}
-      <TouchableOpacity style={styles.addButton} onPress={handleAddPlayer}>
-        <Ionicons name="add" size={24} color="white" />
-        <Text style={styles.addButtonText}>Add New Player</Text>
-      </TouchableOpacity>
+        {/* Botón para añadir jugador */}
+        <TouchableOpacity style={styles.addButton} onPress={handleAddPlayer}>
+          <Ionicons name="add" size={24} color="white" />
+          <Text style={styles.addButtonText}>Add New Player</Text>
+        </TouchableOpacity>
+      </View>
 
       {/* Modal de confirmación */}
       <ConfirmModal
@@ -499,11 +537,23 @@ export default function TeamPlayersScreen({ route, navigation }) {
           setPlayerToDelete(null);
         }}
       />
-    </View>
+    </ScreenContainer>
   );
 }
 
 const styles = StyleSheet.create({
+  contentContainer: {
+    alignItems: "center",
+    justifyContent: "flex-start",
+    width: "100%",
+  },
+  content: {
+    width: "100%",
+    maxWidth: "100%",
+    padding: 20,
+    paddingBottom: 20,
+    flex: 1,
+  },
   container: {
     flex: 1,
     backgroundColor: "white",
@@ -546,7 +596,6 @@ const styles = StyleSheet.create({
     padding: 10,
   },
   listContainer: {
-    paddingHorizontal: 200,
     paddingBottom: 90, 
   },
   playerCard: {

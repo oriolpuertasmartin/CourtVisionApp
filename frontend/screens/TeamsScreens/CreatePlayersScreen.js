@@ -1,13 +1,14 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import {
   View,
   Text,
   StyleSheet,
   TouchableOpacity,
   Alert,
-  ScrollView,
   ActivityIndicator,
   Image,
+  Dimensions,
+  FlatList,
 } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import BoxFill from "../../components/BoxFill";
@@ -16,10 +17,27 @@ import API_BASE_URL from "../../config/apiConfig";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import * as ImagePicker from "expo-image-picker";
 import SubpageTitle from "../../components/SubpageTitle";
+import ScreenContainer from "../../components/ScreenContainer";
+import { useDeviceType } from "../../components/ResponsiveUtils";
 
 export default function CreatePlayersScreen({ route, navigation }) {
   const { teamId } = route.params;
   const queryClient = useQueryClient();
+  const deviceType = useDeviceType();
+
+  // Para detectar el tamaño de la pantalla y ajustar el layout
+  const [screenWidth, setScreenWidth] = useState(Dimensions.get('window').width);
+  const isLargeScreen = screenWidth > 768;
+
+  // Actualizar dimensiones cuando cambie el tamaño de la pantalla
+  useEffect(() => {
+    const updateDimensions = () => {
+      setScreenWidth(Dimensions.get('window').width);
+    };
+
+    const subscription = Dimensions.addEventListener('change', updateDimensions);
+    return () => subscription.remove();
+  }, []);
 
   const [formData, setFormData] = useState({
     name: "",
@@ -54,7 +72,7 @@ export default function CreatePlayersScreen({ route, navigation }) {
       base64: true,
     });
 
-    if (!result.cancelled && result.assets && result.assets[0]) {
+    if (!result.canceled && result.assets && result.assets[0]) {
       // Limit the image size by checking the base64 length
       const base64Data = result.assets[0].base64;
 
@@ -264,19 +282,225 @@ export default function CreatePlayersScreen({ route, navigation }) {
     }
   };
 
+  // Renderizar componente de lista de jugadores existentes
+  const renderPlayersList = () => (
+    players.length > 0 ? (
+      <View style={{
+        width: screenWidth < 480 ? "95%" : "90%",
+        maxHeight: screenWidth < 480 ? 150 : 200,
+        marginBottom: screenWidth < 480 ? 10 : 20,
+      }}>
+        <Text style={{
+          fontSize: screenWidth < 480 ? 16 : 18,
+          fontWeight: "bold",
+          marginBottom: 10,
+        }}>
+          Team Players ({players.length}/13)
+        </Text>
+        <View style={styles.playersGrid}>
+          {players.map((player) => (
+            <TouchableOpacity
+              key={player._id}
+              style={{
+                backgroundColor: "#E6E0CE",
+                borderRadius: 20,
+                paddingVertical: screenWidth < 480 ? 6 : 8,
+                paddingHorizontal: screenWidth < 480 ? 10 : 12,
+                margin: screenWidth < 480 ? 3 : 5,
+                flexDirection: "row",
+                alignItems: "center",
+              }}
+              onPress={() =>
+                Alert.alert(
+                  `${player.name}`,
+                  `Position: ${player.position}\nNumber: ${player.number}`
+                )
+              }
+            >
+              <Text style={{
+                fontWeight: "bold",
+                marginRight: 5,
+                color: "#FFA500",
+                fontSize: screenWidth < 480 ? 12 : 14,
+              }}>#{player.number}</Text>
+              <Text style={{
+                fontSize: screenWidth < 480 ? 12 : 14,
+              }}>{player.name}</Text>
+            </TouchableOpacity>
+          ))}
+        </View>
+      </View>
+    ) : null
+  );
+
+  // Renderizar componente para subir imagen
+  const renderImageUploader = () => (
+    <View style={{
+      width: screenWidth < 480 ? "90%" : (screenWidth < 768 ? "80%" : "70%"),
+      backgroundColor: "#FFF9E7",
+      borderRadius: 12,
+      padding: screenWidth < 480 ? 15 : 20,
+      marginVertical: screenWidth < 480 ? 10 : 15,
+      alignItems: "center",
+      shadowColor: "#000",
+      shadowOffset: { width: 0, height: 2 },
+      shadowOpacity: 0.1,
+      shadowRadius: 3,
+      elevation: 2,
+    }}>
+      <Text style={{
+        fontSize: screenWidth < 480 ? 14 : 16,
+        fontWeight: "bold",
+        marginBottom: screenWidth < 480 ? 10 : 15,
+        textAlign: "center",
+        color: "#333",
+      }}>Player Photo</Text>
+      <View style={styles.imageSection}>
+        {imagePreview ? (
+          <Image
+            source={{ uri: imagePreview }}
+            style={{
+              width: screenWidth < 480 ? 90 : 120,
+              height: screenWidth < 480 ? 90 : 120,
+              borderRadius: screenWidth < 480 ? 45 : 60,
+              marginBottom: 10,
+              borderWidth: 2,
+              borderColor: "#FFA500",
+            }}
+          />
+        ) : (
+          <View style={{
+            width: screenWidth < 480 ? 90 : 120,
+            height: screenWidth < 480 ? 90 : 120,
+            borderRadius: screenWidth < 480 ? 45 : 60,
+            backgroundColor: "#E6E0CE",
+            justifyContent: "center",
+            alignItems: "center",
+            marginBottom: 10,
+          }}>
+            <Ionicons name="person-outline" size={40} color="#FFA500" />
+            <Text style={{
+              marginTop: 5,
+              color: "#FFA500",
+              fontWeight: "bold",
+              fontSize: screenWidth < 480 ? 12 : 14,
+            }}>Player Photo</Text>
+          </View>
+        )}
+        <TouchableOpacity 
+          style={{
+            flexDirection: "row",
+            alignItems: "center",
+            backgroundColor: "#FFA500",
+            paddingVertical: screenWidth < 480 ? 6 : 8,
+            paddingHorizontal: screenWidth < 480 ? 12 : 15,
+            borderRadius: 20,
+            marginTop: 5,
+          }} 
+          onPress={pickImage}
+        >
+          <Ionicons name="cloud-upload-outline" size={20} color="white" />
+          <Text style={{
+            color: "white",
+            fontWeight: "bold",
+            marginLeft: 5,
+            fontSize: screenWidth < 480 ? 12 : 14,
+          }}>Upload Photo</Text>
+        </TouchableOpacity>
+      </View>
+    </View>
+  );
+
+  // Renderizar componente del formulario
+  const renderPlayerForm = () => (
+    <BoxFill
+      title="Player Information"
+      fields={[
+        { name: "name", placeholder: "Name *", required: true },
+        {
+          name: "number",
+          placeholder: "Number *",
+          keyboardType: "numeric",
+          required: true,
+        },
+        { name: "position", placeholder: "Position *", required: true },
+        {
+          name: "height",
+          placeholder: "Height (cm)",
+          keyboardType: "numeric",
+        },
+        {
+          name: "weight",
+          placeholder: "Weight (kg)",
+          keyboardType: "numeric",
+        },
+        { name: "age", placeholder: "Age", keyboardType: "numeric" },
+        { name: "nationality", placeholder: "Nationality" },
+      ]}
+      formData={formData}
+      onChangeForm={setFormData}
+    >
+      <Text style={{
+        fontSize: screenWidth < 480 ? 12 : 14,
+        color: "#666",
+        marginTop: 5,
+        textAlign: "center",
+      }}>
+        {players.length < 13 
+          ? `Puedes añadir ${13 - players.length} jugadores más` 
+          : "Límite de jugadores alcanzado (13/13)"}
+      </Text>
+      
+      <PrimaryButton
+        title={isAdding ? "Adding..." : "Add Player"}
+        onPress={handleAddPlayer}
+        style={[
+          styles.addButton,
+          players.length >= 13 && styles.disabledButton
+        ]}
+        disabled={isAdding || players.length >= 13}
+      />
+      <PrimaryButton
+        title="Finish"
+        onPress={handleFinish}
+        style={styles.finishButton}
+        disabled={isAdding}
+      />
+    </BoxFill>
+  );
+
+  // Renderizar todos los elementos del formulario como un solo componente
+  const renderFormContent = () => (
+    <View style={styles.formContentContainer}>
+      {renderPlayersList()}
+      {renderImageUploader()}
+      {renderPlayerForm()}
+    </View>
+  );
+
   const isLoading = isTeamLoading || isPlayersLoading;
 
   if (isLoading) {
     return (
-      <View style={[styles.container, styles.loadingContainer]}>
-        <ActivityIndicator size="large" color="#FFA500" />
-        <Text style={styles.loadingText}>Loading team data...</Text>
-      </View>
+      <ScreenContainer
+        fullWidth={isLargeScreen}
+        contentContainerStyle={styles.contentContainer}
+        scrollable={false}
+      >
+        <View style={styles.loadingContainer}>
+          <ActivityIndicator size="large" color="#FFA500" />
+          <Text style={styles.loadingText}>Loading team data...</Text>
+        </View>
+      </ScreenContainer>
     );
   }
 
   return (
-    <View style={styles.container}>
+    <ScreenContainer
+      fullWidth={isLargeScreen}
+      contentContainerStyle={styles.contentContainer}
+      scrollable={false}
+    >
       {/* Botón para volver */}
       <TouchableOpacity
         style={styles.backButton}
@@ -285,138 +509,59 @@ export default function CreatePlayersScreen({ route, navigation }) {
         <Ionicons name="arrow-back" size={24} color="black" />
       </TouchableOpacity>
 
-      {/* Reemplazamos el Text por el componente SubpageTitle */}
+      {/* Usar SubpageTitle en lugar de Text normal */}
       <SubpageTitle>
         {team ? `Add Players to ${team.name}` : "Add Players"}
       </SubpageTitle>
 
-      {/* ScrollView para hacer todo el contenido desplazable */}
-      <ScrollView
-        contentContainerStyle={styles.scrollContainer}
-        showsVerticalScrollIndicator={true}
-        bounces={true}
-      >
-        {/* Lista de jugadores existentes */}
-        {players.length > 0 && (
-          <View style={styles.playersListContainer}>
-            <Text style={styles.listTitle}>
-              Team Players ({players.length}/13)
-            </Text>
-            <View style={styles.playersGrid}>
-              {players.map((player) => (
-                <TouchableOpacity
-                  key={player._id}
-                  style={styles.playerChip}
-                  onPress={() =>
-                    Alert.alert(
-                      `${player.name}`,
-                      `Position: ${player.position}\nNumber: ${player.number}`
-                    )
-                  }
-                >
-                  <Text style={styles.playerChipNumber}>#{player.number}</Text>
-                  <Text style={styles.playerChipName}>{player.name}</Text>
-                </TouchableOpacity>
-              ))}
-            </View>
-          </View>
-        )}
-
-        {/* Sección para subir imagen */}
-        <View style={styles.whiteBox}>
-          <Text style={styles.sectionTitle}>Player Photo</Text>
-          <View style={styles.imageSection}>
-            {imagePreview ? (
-              <Image
-                source={{ uri: imagePreview }}
-                style={styles.imagePreview}
-              />
-            ) : (
-              <View style={styles.imagePlaceholder}>
-                <Ionicons name="person-outline" size={40} color="#FFA500" />
-                <Text style={styles.imagePlaceholderText}>Player Photo</Text>
-              </View>
-            )}
-            <TouchableOpacity style={styles.uploadButton} onPress={pickImage}>
-              <Ionicons name="cloud-upload-outline" size={20} color="white" />
-              <Text style={styles.uploadButtonText}>Upload Photo</Text>
-            </TouchableOpacity>
-          </View>
-        </View>
-
-        {/* Formulario para añadir jugador */}
-        <BoxFill
-          title="Player Information"
-          fields={[
-            { name: "name", placeholder: "Name *", required: true },
-            {
-              name: "number",
-              placeholder: "Number *",
-              keyboardType: "numeric",
-              required: true,
-            },
-            { name: "position", placeholder: "Position *", required: true },
-            {
-              name: "height",
-              placeholder: "Height (cm)",
-              keyboardType: "numeric",
-            },
-            {
-              name: "weight",
-              placeholder: "Weight (kg)",
-              keyboardType: "numeric",
-            },
-            { name: "age", placeholder: "Age", keyboardType: "numeric" },
-            { name: "nationality", placeholder: "Nationality" },
+      <View style={styles.content}>
+        {/* Usar FlatList en lugar de ScrollView para evitar anidamiento de listas virtualizadas */}
+        <FlatList
+          data={[{ key: 'formSection' }]}
+          renderItem={() => renderFormContent()}
+          keyExtractor={item => item.key}
+          contentContainerStyle={[
+            styles.listContainer,
+            isLargeScreen ? { paddingHorizontal: 100 } : { paddingHorizontal: 0 }
           ]}
-          formData={formData}
-          onChangeForm={setFormData}
-        >
-          <Text style={styles.infoText}>
-            {players.length < 13 
-              ? `Puedes añadir ${13 - players.length} jugadores más` 
-              : "Límite de jugadores alcanzado (13/13)"}
-          </Text>
-          
-          <PrimaryButton
-            title={isAdding ? "Adding..." : "Add Player"}
-            onPress={handleAddPlayer}
-            style={[
-              styles.addButton,
-              players.length >= 13 && styles.disabledButton
-            ]}
-            disabled={isAdding || players.length >= 13}
-          />
-          <PrimaryButton
-            title="Finish"
-            onPress={handleFinish}
-            style={styles.finishButton}
-            disabled={isAdding}
-          />
-        </BoxFill>
-      </ScrollView>
-    </View>
+          showsVerticalScrollIndicator={true}
+          bounces={true}
+        />
+      </View>
+    </ScreenContainer>
   );
 }
 
+// Estos son los estilos que no dependen de screenWidth
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: "#FFF8E1",
-    paddingTop: 80, 
+  contentContainer: {
     alignItems: "center",
+    justifyContent: "flex-start",
+    width: "100%",
   },
-  scrollContainer: {
+  content: {
+    width: "100%",
+    maxWidth: "100%",
+    padding: 20,
+    paddingBottom: 20,
+    flex: 1,
+  },
+  formContentContainer: {
     width: "100%",
     alignItems: "center",
-    paddingBottom: 30, 
   },
   loadingContainer: {
+    flex: 1,
     justifyContent: "center",
+    alignItems: "center",
   },
   loadingText: {
     marginTop: 10,
     fontSize: 16,
+  },
+  listContainer: {
+    paddingBottom: 30,
+    width: "100%",
   },
   backButton: {
     position: "absolute",
@@ -425,125 +570,17 @@ const styles = StyleSheet.create({
     zIndex: 10,
     padding: 10,
   },
-  playersListContainer: {
-    width: "90%",
-    maxHeight: 200,
-    marginBottom: 20,
-  },
-  listTitle: {
-    fontSize: 18,
-    fontWeight: "bold",
-    marginBottom: 10,
-  },
-  playersList: {
-    maxHeight: 150,
-  },
-  whiteBox: {
-    width: "70%",
-    backgroundColor: "#FFF9E7",
-    borderRadius: 12,
-    padding: 20,
-    marginVertical: 15,
-    alignItems: "center",
-    shadowColor: "#000",
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 3,
-    elevation: 2,
-  },
-  sectionTitle: {
-    fontSize: 16,
-    fontWeight: "bold",
-    marginBottom: 15,
-    textAlign: "center",
-    color: "#333",
-  },
-  imageSection: {
-    alignItems: "center",
-    width: "100%",
-  },
-  imagePreview: {
-    width: 120,
-    height: 120,
-    borderRadius: 60,
-    marginBottom: 10,
-    borderWidth: 2,
-    borderColor: "#FFA500",
-  },
-  imagePlaceholder: {
-    width: 120,
-    height: 120,
-    borderRadius: 60,
-    backgroundColor: "#E6E0CE",
-    justifyContent: "center",
-    alignItems: "center",
-    marginBottom: 10,
-  },
-  imagePlaceholderText: {
-    marginTop: 5,
-    color: "#FFA500",
-    fontWeight: "bold",
-  },
-  uploadButton: {
-    flexDirection: "row",
-    alignItems: "center",
-    backgroundColor: "#FFA500",
-    paddingVertical: 8,
-    paddingHorizontal: 15,
-    borderRadius: 20,
-    marginTop: 5,
-  },
-  uploadButtonText: {
-    color: "white",
-    fontWeight: "bold",
-    marginLeft: 5,
-  },
   playersGrid: {
     flexDirection: "row",
     flexWrap: "wrap",
     justifyContent: "flex-start",
   },
-  playerChip: {
-    backgroundColor: "#E6E0CE",
-    borderRadius: 20,
-    paddingVertical: 8,
-    paddingHorizontal: 12,
-    margin: 5,
-    flexDirection: "row",
+  imageSection: {
     alignItems: "center",
-  },
-  playerChipNumber: {
-    fontWeight: "bold",
-    marginRight: 5,
-    color: "#FFA500",
-  },
-  playerChipName: {
-    fontSize: 14,
-  },
-  playerItem: {
-    backgroundColor: "#E6E0CE",
-    borderRadius: 10,
-    padding: 15,
-    marginBottom: 10,
-    flexDirection: "row",
-    alignItems: "center",
-  },
-  playerNumber: {
-    fontSize: 18,
-    fontWeight: "bold",
-    marginRight: 15,
-    minWidth: 40,
+    width: "100%",
   },
   playerInfo: {
     flex: 1,
-  },
-  playerName: {
-    fontSize: 16,
-    fontWeight: "bold",
-  },
-  playerPosition: {
-    fontSize: 14,
-    color: "#666",
   },
   addButton: {
     backgroundColor: "#FFA500",
@@ -552,12 +589,6 @@ const styles = StyleSheet.create({
   finishButton: {
     backgroundColor: "#28a745",
     marginTop: 10,
-  },
-  infoText: {
-    fontSize: 14,
-    color: "#666",
-    marginTop: 5,
-    textAlign: "center",
   },
   disabledButton: {
     backgroundColor: "#cccccc",

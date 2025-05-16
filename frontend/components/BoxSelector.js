@@ -1,14 +1,71 @@
-import React from 'react';
-import { View, Text, TouchableOpacity, StyleSheet, ScrollView } from 'react-native';
+import React, { useState, useEffect } from 'react';
+import { View, Text, TouchableOpacity, StyleSheet, ScrollView, Dimensions } from 'react-native';
+import { useDeviceType } from './ResponsiveUtils';
 
 export default function BoxSelector({ title, items, onSelect, children, renderItemButtons, emptyMessage, customRenderItem }) {
+  const deviceType = useDeviceType();
+  const [screenWidth, setScreenWidth] = useState(Dimensions.get('window').width);
+  
+  // Actualizar dimensiones cuando cambie el tamaño de la pantalla
+  useEffect(() => {
+    const updateDimensions = () => {
+      setScreenWidth(Dimensions.get('window').width);
+    };
+    
+    const subscription = Dimensions.addEventListener('change', updateDimensions);
+    return () => subscription.remove();
+  }, []);
+
+  // Determinar el margen superior según tamaño de pantalla
+  const getMarginTop = () => {
+    if (screenWidth < 480) return 10; // Menos margen en móviles pequeños
+    if (screenWidth < 768) return 15; // Margen medio para móviles grandes
+    return 20; // Margen normal para tablets y desktop
+  };
+
+  // Determinar la altura máxima del contenedor según la pantalla
+  const getMaxHeight = () => {
+    if (screenWidth < 480) return 450; // Altura para móviles pequeños
+    if (screenWidth < 768) return 550; // Altura para móviles grandes
+    if (screenWidth < 1024) return 650; // Altura para tablets
+    return 750; // Altura para desktop
+  };
+  
+  // Determinar el padding vertical según la pantalla
+  const getPaddingVertical = () => {
+    if (screenWidth < 480) return 8; // Menos espacio en móviles pequeños
+    if (screenWidth < 768) return 10; // Espacio medio en móviles grandes
+    return 12; // Espacio normal en tablets y desktop
+  };
+
+  // Determinar el padding horizontal según la pantalla
+  const getPaddingHorizontal = () => {
+    if (screenWidth < 480) return 8; // Menos espacio en móviles pequeños
+    if (screenWidth < 768) return 10; // Espacio medio en móviles grandes
+    return 12; // Espacio normal en tablets y desktop
+  };
+
   return (
-    <View style={styles.container}>
-      {title && <Text style={styles.title}>{title}</Text>}
-      <View style={styles.box}>
+    <View style={[
+      styles.container,
+      { marginTop: getMarginTop() }
+    ]}>
+      {title && (
+        <Text style={[
+          styles.title,
+          screenWidth < 480 && { fontSize: 20, marginBottom: 15 }
+        ]}>
+          {title}
+        </Text>
+      )}
+      
+      <View style={[
+        styles.box,
+        { maxHeight: getMaxHeight() }
+      ]}>
         <ScrollView 
           contentContainerStyle={styles.scrollContainer} 
-          showsVerticalScrollIndicator={true} // Mostrar indicador de scroll
+          showsVerticalScrollIndicator={true}
         >
           {items.length === 0 ? (
             <Text style={styles.emptyMessage}>{emptyMessage || "No items found"}</Text>
@@ -18,7 +75,8 @@ export default function BoxSelector({ title, items, onSelect, children, renderIt
                 key={item._id || index} 
                 style={[
                   styles.itemContainer, 
-                  index === 0 ? { marginTop: 10 } : null
+                  index === 0 ? { marginTop: 8 } : null,
+                  index === items.length - 1 ? { marginBottom: 8 } : null
                 ]}
               >
                 {customRenderItem ? (
@@ -26,12 +84,30 @@ export default function BoxSelector({ title, items, onSelect, children, renderIt
                 ) : (
                   <>
                     <TouchableOpacity 
-                      style={[styles.itemButton, item.style]}
+                      style={[
+                        styles.itemButton,
+                        item.style,
+                        { 
+                          paddingVertical: getPaddingVertical(),
+                          paddingHorizontal: getPaddingHorizontal() 
+                        }
+                      ]}
                       onPress={() => onSelect(item)}
                     >
-                      <Text style={styles.itemButtonText}>{item.name}</Text>
+                      <Text style={[
+                        styles.itemButtonText,
+                        screenWidth < 480 && { fontSize: 16 }
+                      ]}>
+                        {item.name}
+                      </Text>
+                      
                       {item.subtitle && (
-                        <Text style={styles.itemSubtitle}>{item.subtitle}</Text>
+                        <Text style={[
+                          styles.itemSubtitle,
+                          screenWidth < 480 && { fontSize: 12, marginTop: 3 }
+                        ]}>
+                          {item.subtitle}
+                        </Text>
                       )}
                     </TouchableOpacity>
                     
@@ -44,7 +120,11 @@ export default function BoxSelector({ title, items, onSelect, children, renderIt
         </ScrollView>
         
         {children && (
-          <View style={styles.childrenContainer}>
+          <View style={[
+            styles.childrenContainer,
+            screenWidth < 480 ? { marginTop: 20 } : 
+            screenWidth < 768 ? { marginTop: 25 } : { marginTop: 30 }
+          ]}>
             {children}
           </View>
         )}
@@ -56,22 +136,25 @@ export default function BoxSelector({ title, items, onSelect, children, renderIt
 const styles = StyleSheet.create({
   container: {
     width: '95%',
-    marginTop: 50, 
     alignItems: 'center',
   },
   title: {
     fontSize: 24,
     marginBottom: 20,
     fontWeight: 'bold',
+    color: '#333333',
   },
   box: {
     width: '100%',
-    maxHeight: 750, 
     backgroundColor: '#E6E0CE',
     borderRadius: 12,
     paddingVertical: 10,
     paddingHorizontal: 10,
     elevation: 3,
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 3,
   },
   scrollContainer: {
     flexGrow: 1,
@@ -80,18 +163,24 @@ const styles = StyleSheet.create({
   },
   itemContainer: {
     width: '98%',
-    marginBottom: 15,
+    marginBottom: 12,
   },
   itemButton: {
     backgroundColor: 'white',
-    paddingVertical: 20,
+    paddingVertical: 18,
     borderRadius: 8,
     paddingHorizontal: 25,
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.05,
+    shadowRadius: 2,
+    elevation: 1,
   },
   itemButtonText: {
     fontSize: 18,
     fontWeight: '600',
     textAlign: 'center',
+    color: '#333333',
   },
   itemSubtitle: {
     fontSize: 14,
@@ -102,7 +191,6 @@ const styles = StyleSheet.create({
   childrenContainer: {
     width: '100%',
     alignItems: 'center',
-    marginTop: 30, 
     marginBottom: 10, 
     paddingHorizontal: 5, 
   },
@@ -111,5 +199,6 @@ const styles = StyleSheet.create({
     color: '#666',
     fontSize: 16,
     padding: 20,
+    fontStyle: 'italic',
   },
 });

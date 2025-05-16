@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import {
   View,
   Text,
@@ -9,10 +9,14 @@ import {
   Alert,
   Platform,
   Image,
+  Dimensions,
 } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import API_BASE_URL from "../../config/apiConfig";
 import { useQuery } from "@tanstack/react-query";
+import ScreenContainer from "../../components/ScreenContainer";
+import SubpageTitle from "../../components/SubpageTitle";
+import { useDeviceType } from "../../components/ResponsiveUtils";
 
 export default function StatsView({ route, navigation }) {
   const { matchId } = route.params;
@@ -25,6 +29,22 @@ export default function StatsView({ route, navigation }) {
     blocks: { player: null, value: 0 },
   });
   const [generatingPDF, setGeneratingPDF] = useState(false);
+  const deviceType = useDeviceType();
+
+  // Para detectar el tamaño de la pantalla y ajustar el layout
+  const [screenWidth, setScreenWidth] = useState(Dimensions.get('window').width);
+  const isLargeScreen = screenWidth > 768;
+  const isSmallScreen = screenWidth < 480;
+
+  // Actualizar dimensiones cuando cambie el tamaño de la pantalla
+  useEffect(() => {
+    const updateDimensions = () => {
+      setScreenWidth(Dimensions.get('window').width);
+    };
+
+    const subscription = Dimensions.addEventListener('change', updateDimensions);
+    return () => subscription.remove();
+  }, []);
 
   // Consulta para obtener datos del partido
   const {
@@ -596,121 +616,20 @@ export default function StatsView({ route, navigation }) {
     `;
   };
 
-  // Verifica si está cargando cualquiera de las consultas
-  const isLoading =
-    isMatchLoading ||
-    isPeriodsLoading ||
-    isPlayersLoading ||
-    isTeamLoading ||
-    isStatsLoading;
-
-  if (isLoading) {
+  // Renderizar contenido adaptativo según el tamaño de la pantalla
+  const renderResponsiveContent = () => {
     return (
-      <View style={styles.container}>
-        <ActivityIndicator size="large" color="#FFA500" />
-        <Text style={styles.loadingText}>Cargando estadísticas...</Text>
-      </View>
-    );
-  }
-
-  // Verifica si hay error en la consulta principal
-  if (isMatchError) {
-    return (
-      <View style={styles.container}>
-        <Text style={styles.errorText}>
-          {matchError?.message || "Error al cargar datos del partido"}
-        </Text>
-        <TouchableOpacity style={styles.returnButton} onPress={handleGoBack}>
-          <Text style={styles.returnButtonText}>Volver al inicio</Text>
-        </TouchableOpacity>
-      </View>
-    );
-  }
-
-  return (
-    <View style={styles.container}>
-      {/* Botón para volver */}
-      <TouchableOpacity style={styles.backButton} onPress={handleGoBack}>
-        <Ionicons name="arrow-back" size={24} color="black" />
-      </TouchableOpacity>
-
-      {/* Botón para exportar a PDF */}
-      <TouchableOpacity
-        style={styles.pdfButton}
-        onPress={generatePDF}
-        disabled={generatingPDF}
-      >
-        <Ionicons name="document-text-outline" size={24} color="black" />
-        <Text style={styles.pdfButtonText}>
-          {generatingPDF ? "Generando..." : "Exportar a PDF"}
-        </Text>
-      </TouchableOpacity>
-
-      {/* Resumen del partido */}
-      <View style={styles.matchSummary}>
-        <View style={styles.scoreboardRow}>
-          {/* Lado izquierdo: Equipo A (Logo + Nombre) */}
-          <View style={styles.teamSide}>
-            {/* Logo Equipo A */}
-            <View style={styles.teamLogoContainer}>
-              {team?.team_photo ? (
-                <Image
-                  source={{ uri: team.team_photo }}
-                  style={styles.teamLogo}
-                />
-              ) : (
-                <View style={styles.logoPlaceholder}>
-                  <Text style={styles.logoPlaceholderText}>
-                    {teamName.substring(0, 2).toUpperCase()}
-                  </Text>
-                </View>
-              )}
-            </View>
-            {/* Nombre Equipo A */}
-            <Text style={styles.teamName}>{teamName}</Text>
-          </View>
-
-          {/* Centro: Puntuación */}
-          <View style={styles.scoreContainer}>
-            <Text style={styles.scoreText}>
-              <Text style={styles.teamScore}>{match?.teamAScore || 0}</Text>
-              <Text style={styles.scoreSeparator}> - </Text>
-              <Text style={styles.teamScore}>{match?.teamBScore || 0}</Text>
-            </Text>
-          </View>
-
-          {/* Lado derecho: Equipo B (Nombre + Logo) */}
-          <View style={styles.teamSideRight}>
-            {/* Nombre Equipo B */}
-            <Text style={styles.teamName}>
-              {match?.opponentTeam?.name || "Oponente"}
-            </Text>
-            {/* Logo Equipo B */}
-            <View style={styles.teamLogoContainer}>
-              {match?.opponentTeam?.photo ? (
-                <Image
-                  source={{ uri: match.opponentTeam.photo }}
-                  style={styles.teamLogo}
-                />
-              ) : (
-                <View style={styles.logoPlaceholder}>
-                  <Text style={styles.logoPlaceholderText}>
-                    {(match?.opponentTeam?.name || "OP")
-                      .substring(0, 2)
-                      .toUpperCase()}
-                  </Text>
-                </View>
-              )}
-            </View>
-          </View>
-        </View>
-      </View>
-
       <ScrollView>
         {/* Tabla de puntos por períodos */}
-        <Text style={styles.sectionTitle}>Puntos por Períodos</Text>
+        <Text style={[
+          styles.sectionTitle,
+          isSmallScreen && { fontSize: 18, marginTop: 10 }
+        ]}>Puntos por Períodos</Text>
 
-        <View style={styles.periodsTable}>
+        <View style={[
+          styles.periodsTable,
+          isSmallScreen && { marginHorizontal: 5 }
+        ]}>
           <View style={styles.periodsHeader}>
             <Text style={styles.periodHeaderCell}>Período</Text>
             <Text style={styles.periodHeaderCell}>{teamName}</Text>
@@ -747,76 +666,52 @@ export default function StatsView({ route, navigation }) {
         </View>
 
         {/* Jugadores Destacados */}
-        <Text style={styles.sectionTitle}>Jugadores Destacados</Text>
+        <Text style={[
+          styles.sectionTitle,
+          isSmallScreen && { fontSize: 18, marginTop: 10 }
+        ]}>Jugadores Destacados</Text>
 
-        <View style={styles.topPerformersTable}>
+        <View style={[
+          styles.topPerformersTable,
+          isSmallScreen && { marginHorizontal: 5 }
+        ]}>
           <View style={styles.topPerformersHeader}>
             <Text style={styles.topHeaderCell}>Categoría</Text>
             <Text style={styles.topHeaderCell}>Jugador</Text>
             <Text style={styles.topHeaderCell}>Valor</Text>
           </View>
 
-          {/* Fila para máximo anotador */}
-          <View style={styles.topPerformerRow}>
-            <Text style={styles.topPerformerCategory}>Puntos</Text>
-            <Text style={styles.topPerformerPlayer}>
-              {topPerformers.points.player || "N/A"}
-            </Text>
-            <Text style={styles.topPerformerValue}>
-              {topPerformers.points.value || 0}
-            </Text>
-          </View>
-
-          {/* Fila para máximo reboteador */}
-          <View style={styles.topPerformerRow}>
-            <Text style={styles.topPerformerCategory}>Rebotes</Text>
-            <Text style={styles.topPerformerPlayer}>
-              {topPerformers.rebounds.player || "N/A"}
-            </Text>
-            <Text style={styles.topPerformerValue}>
-              {topPerformers.rebounds.value || 0}
-            </Text>
-          </View>
-
-          {/* Fila para máximo asistente */}
-          <View style={styles.topPerformerRow}>
-            <Text style={styles.topPerformerCategory}>Asistencias</Text>
-            <Text style={styles.topPerformerPlayer}>
-              {topPerformers.assists.player || "N/A"}
-            </Text>
-            <Text style={styles.topPerformerValue}>
-              {topPerformers.assists.value || 0}
-            </Text>
-          </View>
-
-          {/* Fila para máximo en robos */}
-          <View style={styles.topPerformerRow}>
-            <Text style={styles.topPerformerCategory}>Robos</Text>
-            <Text style={styles.topPerformerPlayer}>
-              {topPerformers.steals.player || "N/A"}
-            </Text>
-            <Text style={styles.topPerformerValue}>
-              {topPerformers.steals.value || 0}
-            </Text>
-          </View>
-
-          {/* Fila para máximo en tapones */}
-          <View style={styles.topPerformerRow}>
-            <Text style={styles.topPerformerCategory}>Tapones</Text>
-            <Text style={styles.topPerformerPlayer}>
-              {topPerformers.blocks.player || "N/A"}
-            </Text>
-            <Text style={styles.topPerformerValue}>
-              {topPerformers.blocks.value || 0}
-            </Text>
-          </View>
+          {/* Filas con los jugadores destacados */}
+          {Object.entries(topPerformers).map(([category, data], index) => (
+            <View key={index} style={styles.topPerformerRow}>
+              <Text style={styles.topPerformerCategory}>
+                {category === "points" ? "Puntos" :
+                 category === "rebounds" ? "Rebotes" :
+                 category === "assists" ? "Asistencias" :
+                 category === "steals" ? "Robos" :
+                 category === "blocks" ? "Tapones" : category}
+              </Text>
+              <Text style={styles.topPerformerPlayer}>
+                {data.player || "N/A"}
+              </Text>
+              <Text style={styles.topPerformerValue}>
+                {data.value || 0}
+              </Text>
+            </View>
+          ))}
         </View>
 
-        {/* Tabla de estadísticas globales */}
-        <Text style={styles.sectionTitle}>Estadísticas globales</Text>
+        {/* Tabla de estadísticas globales - esta es la parte más densa */}
+        <Text style={[
+          styles.sectionTitle,
+          isSmallScreen && { fontSize: 18, marginTop: 10 }
+        ]}>Estadísticas globales</Text>
 
         <ScrollView horizontal showsHorizontalScrollIndicator={true}>
-          <View style={styles.statsTable}>
+          <View style={[
+            styles.statsTable,
+            isSmallScreen && { width: 1200 } // Más ancho para móviles pequeños para ver toda la tabla
+          ]}>
             {/* Encabezados de la tabla */}
             <View style={styles.tableHeader}>
               <Text style={[styles.headerCell, styles.playerCell]}>
@@ -901,60 +796,86 @@ export default function StatsView({ route, navigation }) {
                       player.isStarter ? styles.starterRow : styles.benchRow,
                     ]}
                   >
-                    <Text style={[styles.tableCell, styles.playerCell]}>
+                    <Text style={[
+                      styles.tableCell, 
+                      styles.playerCell,
+                      isSmallScreen && { fontSize: 11 }
+                    ]}>
                       {player.name || "Jugador"} #{player.number || "0"}
                     </Text>
-                    <Text style={styles.tableCell}>{player.points || 0}</Text>
+                    <Text style={[styles.tableCell, isSmallScreen && { fontSize: 11 }]}>
+                      {player.points || 0}
+                    </Text>
 
                     {/* Tiros de campo */}
-                    <Text style={styles.tableCell}>
+                    <Text style={[styles.tableCell, isSmallScreen && { fontSize: 11 }]}>
                       {player.fieldGoalsMade || 0}/
                       {player.fieldGoalsAttempted || 0}
                     </Text>
-                    <Text style={styles.tableCell}>{fgPct}%</Text>
+                    <Text style={[styles.tableCell, isSmallScreen && { fontSize: 11 }]}>
+                      {fgPct}%
+                    </Text>
 
                     {/* Tiros de 2 puntos */}
-                    <Text style={styles.tableCell}>
+                    <Text style={[styles.tableCell, isSmallScreen && { fontSize: 11 }]}>
                       {player.twoPointsMade || 0}/
                       {player.twoPointsAttempted || 0}
                     </Text>
-                    <Text style={styles.tableCell}>{twoPct}%</Text>
+                    <Text style={[styles.tableCell, isSmallScreen && { fontSize: 11 }]}>
+                      {twoPct}%
+                    </Text>
 
                     {/* Tiros de 3 puntos */}
-                    <Text style={styles.tableCell}>
+                    <Text style={[styles.tableCell, isSmallScreen && { fontSize: 11 }]}>
                       {player.threePointsMade || 0}/
                       {player.threePointsAttempted || 0}
                     </Text>
-                    <Text style={styles.tableCell}>{threePct}%</Text>
+                    <Text style={[styles.tableCell, isSmallScreen && { fontSize: 11 }]}>
+                      {threePct}%
+                    </Text>
 
                     {/* Tiros libres */}
-                    <Text style={styles.tableCell}>
+                    <Text style={[styles.tableCell, isSmallScreen && { fontSize: 11 }]}>
                       {player.freeThrowsMade || 0}/
                       {player.freeThrowsAttempted || 0}
                     </Text>
-                    <Text style={styles.tableCell}>{ftPct}%</Text>
+                    <Text style={[styles.tableCell, isSmallScreen && { fontSize: 11 }]}>
+                      {ftPct}%
+                    </Text>
 
                     {/* Rebotes */}
-                    <Text style={styles.tableCell}>{player.rebounds || 0}</Text>
-                    <Text style={styles.tableCell}>
+                    <Text style={[styles.tableCell, isSmallScreen && { fontSize: 11 }]}>
+                      {player.rebounds || 0}
+                    </Text>
+                    <Text style={[styles.tableCell, isSmallScreen && { fontSize: 11 }]}>
                       {player.defRebounds || 0}
                     </Text>
-                    <Text style={styles.tableCell}>
+                    <Text style={[styles.tableCell, isSmallScreen && { fontSize: 11 }]}>
                       {player.offRebounds || 0}
                     </Text>
 
                     {/* Otras estadísticas */}
-                    <Text style={styles.tableCell}>{player.assists || 0}</Text>
-                    <Text style={styles.tableCell}>{player.steals || 0}</Text>
-                    <Text style={styles.tableCell}>{player.blocks || 0}</Text>
-                    <Text style={styles.tableCell}>
+                    <Text style={[styles.tableCell, isSmallScreen && { fontSize: 11 }]}>
+                      {player.assists || 0}
+                    </Text>
+                    <Text style={[styles.tableCell, isSmallScreen && { fontSize: 11 }]}>
+                      {player.steals || 0}
+                    </Text>
+                    <Text style={[styles.tableCell, isSmallScreen && { fontSize: 11 }]}>
+                      {player.blocks || 0}
+                    </Text>
+                    <Text style={[styles.tableCell, isSmallScreen && { fontSize: 11 }]}>
                       {player.turnovers || 0}
                     </Text>
-                    <Text style={styles.tableCell}>{player.fouls || 0}</Text>
+                    <Text style={[styles.tableCell, isSmallScreen && { fontSize: 11 }]}>
+                      {player.fouls || 0}
+                    </Text>
 
                     {/* Estadísticas avanzadas */}
-                    <Text style={styles.tableCell}>{player.pir || 0}</Text>
-                    <Text style={styles.tableCell}>
+                    <Text style={[styles.tableCell, isSmallScreen && { fontSize: 11 }]}>
+                      {player.pir || 0}
+                    </Text>
+                    <Text style={[styles.tableCell, isSmallScreen && { fontSize: 11 }]}>
                       {player.assistToTurnoverRatio || 0}
                     </Text>
                   </View>
@@ -964,6 +885,179 @@ export default function StatsView({ route, navigation }) {
           </View>
         </ScrollView>
       </ScrollView>
+    );
+  };
+
+  // Verifica si está cargando cualquiera de las consultas
+  const isLoading =
+    isMatchLoading ||
+    isPeriodsLoading ||
+    isPlayersLoading ||
+    isTeamLoading ||
+    isStatsLoading;
+
+  if (isLoading) {
+    return (
+      <ScreenContainer
+        fullWidth={isLargeScreen}
+        contentContainerStyle={styles.contentContainer}
+      >
+        <View style={styles.loadingContainer}>
+          <ActivityIndicator size="large" color="#FFA500" />
+          <Text style={styles.loadingText}>Cargando estadísticas...</Text>
+        </View>
+      </ScreenContainer>
+    );
+  }
+
+  // Verifica si hay error en la consulta principal
+  if (isMatchError) {
+    return (
+      <ScreenContainer
+        fullWidth={isLargeScreen}
+        contentContainerStyle={styles.contentContainer}
+      >
+        <View style={styles.errorContainer}>
+          <Text style={styles.errorText}>
+            {matchError?.message || "Error al cargar datos del partido"}
+          </Text>
+          <TouchableOpacity style={styles.returnButton} onPress={handleGoBack}>
+            <Text style={styles.returnButtonText}>Volver al inicio</Text>
+          </TouchableOpacity>
+        </View>
+      </ScreenContainer>
+    );
+  }
+
+  return (
+    <ScreenContainer
+      fullWidth={isLargeScreen}
+      contentContainerStyle={styles.contentContainer}
+    >
+      {/* Botón para volver */}
+      <TouchableOpacity style={styles.backButton} onPress={handleGoBack}>
+        <Ionicons name="arrow-back" size={24} color="black" />
+      </TouchableOpacity>
+
+      {/* Botón para exportar a PDF */}
+      <TouchableOpacity
+        style={[
+          styles.pdfButton,
+          isSmallScreen && { right: 10, paddingVertical: 5, paddingHorizontal: 10 }
+        ]}
+        onPress={generatePDF}
+        disabled={generatingPDF}
+      >
+        <Ionicons name="document-text-outline" size={isSmallScreen ? 20 : 24} color="black" />
+        <Text style={[
+          styles.pdfButtonText,
+          isSmallScreen && { fontSize: 12 }
+        ]}>
+          {generatingPDF ? "Generando..." : "Exportar a PDF"}
+        </Text>
+      </TouchableOpacity>
+
+      {/* Título de la pantalla */}
+      <SubpageTitle>Estadísticas del Partido</SubpageTitle>
+
+      {/* Resumen del partido - responsive */}
+      <View style={[
+        styles.matchSummary,
+        isSmallScreen && { marginTop: 10, padding: 10 }
+      ]}>
+        <View style={styles.scoreboardRow}>
+          {/* Lado izquierdo: Equipo A (Logo + Nombre) */}
+          <View style={styles.teamSide}>
+            {/* Logo Equipo A */}
+            <View style={styles.teamLogoContainer}>
+              {team?.team_photo ? (
+                <Image
+                  source={{ uri: team.team_photo }}
+                  style={[
+                    styles.teamLogo,
+                    isSmallScreen && { width: 40, height: 40, borderRadius: 20 }
+                  ]}
+                />
+              ) : (
+                <View style={[
+                  styles.logoPlaceholder,
+                  isSmallScreen && { width: 40, height: 40, borderRadius: 20 }
+                ]}>
+                  <Text style={[
+                    styles.logoPlaceholderText,
+                    isSmallScreen && { fontSize: 14 }
+                  ]}>
+                    {teamName.substring(0, 2).toUpperCase()}
+                  </Text>
+                </View>
+              )}
+            </View>
+            {/* Nombre Equipo A */}
+            <Text style={[
+              styles.teamName,
+              isSmallScreen && { fontSize: 14 }
+            ]}>{teamName}</Text>
+          </View>
+
+          {/* Centro: Puntuación */}
+          <View style={styles.scoreContainer}>
+            <Text style={styles.scoreText}>
+              <Text style={[
+                styles.teamScore,
+                isSmallScreen && { fontSize: 24 }
+              ]}>{match?.teamAScore || 0}</Text>
+              <Text style={[
+                styles.scoreSeparator,
+                isSmallScreen && { fontSize: 24 }
+              ]}> - </Text>
+              <Text style={[
+                styles.teamScore,
+                isSmallScreen && { fontSize: 24 }
+              ]}>{match?.teamBScore || 0}</Text>
+            </Text>
+          </View>
+
+          {/* Lado derecho: Equipo B (Nombre + Logo) */}
+          <View style={styles.teamSideRight}>
+            {/* Nombre Equipo B */}
+            <Text style={[
+              styles.teamName,
+              isSmallScreen && { fontSize: 14 }
+            ]}>
+              {match?.opponentTeam?.name || "Oponente"}
+            </Text>
+            {/* Logo Equipo B */}
+            <View style={styles.teamLogoContainer}>
+              {match?.opponentTeam?.photo ? (
+                <Image
+                  source={{ uri: match.opponentTeam.photo }}
+                  style={[
+                    styles.teamLogo,
+                    isSmallScreen && { width: 40, height: 40, borderRadius: 20 }
+                  ]}
+                />
+              ) : (
+                <View style={[
+                  styles.logoPlaceholder,
+                  isSmallScreen && { width: 40, height: 40, borderRadius: 20 }
+                ]}>
+                  <Text style={[
+                    styles.logoPlaceholderText,
+                    isSmallScreen && { fontSize: 14 }
+                  ]}>
+                    {(match?.opponentTeam?.name || "OP")
+                      .substring(0, 2)
+                      .toUpperCase()}
+                  </Text>
+                </View>
+              )}
+            </View>
+          </View>
+        </View>
+      </View>
+
+      {/* Contenido principal - se adapta según el tamaño */}
+      {renderResponsiveContent()}
 
       {/* Indicador de carga durante la generación del PDF */}
       {generatingPDF && (
@@ -972,15 +1066,38 @@ export default function StatsView({ route, navigation }) {
           <Text style={styles.pdfLoadingText}>Generando PDF...</Text>
         </View>
       )}
-    </View>
+    </ScreenContainer>
   );
 }
 
 const styles = StyleSheet.create({
-  container: {
+  contentContainer: {
+    alignItems: "center",
+    justifyContent: "flex-start",
+    width: "100%",
+  },
+  loadingContainer: {
     flex: 1,
-    backgroundColor: "#FFF8E1",
-    paddingTop: 40,
+    justifyContent: "center",
+    alignItems: "center",
+  },
+  loadingText: {
+    marginTop: 10,
+    fontSize: 16,
+    textAlign: "center",
+  },
+  errorContainer: {
+    flex: 1,
+    justifyContent: "center",
+    alignItems: "center",
+    padding: 20,
+  },
+  errorText: {
+    fontSize: 16,
+    color: "#D32F2F",
+    textAlign: "center",
+    marginBottom: 20,
+    paddingHorizontal: 30,
   },
   backButton: {
     position: "absolute",
@@ -1020,46 +1137,10 @@ const styles = StyleSheet.create({
     marginTop: 10,
     fontSize: 16,
   },
-  header: {
-    backgroundColor: "#FFA500",
-    paddingTop: 50,
-    paddingBottom: 15,
-    paddingHorizontal: 20,
-    flexDirection: "row",
-    alignItems: "center",
-  },
-  headerTitle: {
-    fontSize: 18,
-    fontWeight: "bold",
-    color: "white",
-  },
-  loadingText: {
-    marginTop: 10,
-    fontSize: 16,
-    textAlign: "center",
-  },
-  errorText: {
-    fontSize: 16,
-    color: "#D32F2F",
-    textAlign: "center",
-    marginBottom: 20,
-    paddingHorizontal: 30,
-  },
-  returnButton: {
-    backgroundColor: "#FFA500",
-    paddingVertical: 12,
-    paddingHorizontal: 25,
-    borderRadius: 8,
-  },
-  returnButtonText: {
-    color: "white",
-    fontWeight: "bold",
-    fontSize: 16,
-  },
   matchSummary: {
     padding: 20,
     alignItems: "center",
-    marginTop: 30,
+    marginTop: 20,
     width: "100%",
   },
   scoreboardRow: {
@@ -1126,15 +1207,6 @@ const styles = StyleSheet.create({
     fontSize: 30,
     fontWeight: "bold",
     color: "#888",
-  },
-  teamTitle: {
-    fontSize: 24,
-    fontWeight: "bold",
-    marginBottom: 10,
-  },
-  opponentText: {
-    fontSize: 18,
-    color: "#555",
   },
   sectionTitle: {
     fontSize: 20,
@@ -1282,6 +1354,17 @@ const styles = StyleSheet.create({
   },
   emptyText: {
     color: "#888",
+    fontSize: 16,
+  },
+  returnButton: {
+    backgroundColor: "#FFA500",
+    paddingVertical: 12,
+    paddingHorizontal: 25,
+    borderRadius: 8,
+  },
+  returnButtonText: {
+    color: "white",
+    fontWeight: "bold",
     fontSize: 16,
   },
 });
