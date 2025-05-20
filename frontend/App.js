@@ -706,7 +706,8 @@ export default function App() {
           />
         )}
       </View>
-      {Platform.OS === "web" && __DEV__ && <ReactQueryDevtools />}
+      {/* Comento esta línea temporalmente porque me da errores */}
+      {/* {Platform.OS === "web" && __DEV__ && <ReactQueryDevtools />} */}
     </QueryClientProvider>
   );
 }
