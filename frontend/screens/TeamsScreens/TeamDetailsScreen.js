@@ -526,7 +526,7 @@ export default function TeamDetailsScreen({ route, navigation }) {
               onPress={() =>
                 navigation.navigate("TeamMatches", {
                   teamId,
-                  userId: team?.user_id,
+                  userId: team?.userId,
                 })
               }
             >

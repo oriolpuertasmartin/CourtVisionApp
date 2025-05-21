@@ -1,20 +1,18 @@
 import React, { useState, useEffect } from "react";
 import {
   View,
-  Text,
-  TouchableOpacity,
   StyleSheet,
-  Alert,
+  TouchableOpacity,
   ActivityIndicator,
-  Image,
+  Alert,
   Dimensions,
 } from "react-native";
+import { Ionicons } from "@expo/vector-icons";
 import BoxFill from "../../components/BoxFill";
 import PrimaryButton from "../../components/PrimaryButton";
-import { Ionicons } from "@expo/vector-icons";
 import API_BASE_URL from "../../config/apiConfig";
 import { useMutation } from "@tanstack/react-query";
-import * as ImagePicker from "expo-image-picker";
+import ImageUploader from "../../components/ImageUploader";
 import SubpageTitle from "../../components/SubpageTitle";
 import ScreenContainer from "../../components/ScreenContainer";
 import { useDeviceType } from "../../components/ResponsiveUtils";
@@ -24,16 +22,15 @@ export default function OpponentTeamScreen({ route, navigation }) {
   const deviceType = useDeviceType();
 
   // Para detectar el tamaño de la pantalla y ajustar el layout
-  const [screenWidth, setScreenWidth] = useState(Dimensions.get('window').width);
+  const [screenWidth, setScreenWidth] = useState(Dimensions.get("window").width);
   const isLargeScreen = screenWidth > 768;
 
-  // Actualizar dimensiones cuando cambie el tamaño de la pantalla
   useEffect(() => {
     const updateDimensions = () => {
-      setScreenWidth(Dimensions.get('window').width);
+      setScreenWidth(Dimensions.get("window").width);
     };
 
-    const subscription = Dimensions.addEventListener('change', updateDimensions);
+    const subscription = Dimensions.addEventListener("change", updateDimensions);
     return () => subscription.remove();
   }, []);
 
@@ -66,74 +63,15 @@ export default function OpponentTeamScreen({ route, navigation }) {
       return await response.json();
     },
     onSuccess: (updatedMatch) => {
-      Alert.alert(
-        "Actualizado",
-        "Datos del partido actualizados correctamente"
-      );
+      Alert.alert("Actualizado", "Datos del partido actualizados correctamente");
       navigation.navigate("StartingPlayers", { teamId, updatedMatch });
     },
-    onError: (error) => {
+    onError: () => {
       Alert.alert("Error", "No se pudieron actualizar los datos del partido");
     },
   });
 
-  const pickImage = async () => {
-    // Pedir permisos para acceder a la galería
-    const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
-
-    if (status !== "granted") {
-      Alert.alert(
-        "Permission Denied",
-        "We need camera roll permissions to upload images."
-      );
-      return;
-    }
-
-    let result = await ImagePicker.launchImageLibraryAsync({
-      mediaTypes: ImagePicker.MediaTypeOptions.Images,
-      allowsEditing: true,
-      aspect: [1, 1],
-      quality: 0.2, // Calidad reducida para minimizar tamaño
-      base64: true,
-    });
-
-    if (!result.canceled && result.assets[0].base64) {
-      const base64Data = result.assets[0].base64;
-
-      // Verificar el tamaño de la imagen (limitar a ~800KB)
-      if (base64Data.length > 800000) {
-        Alert.alert(
-          "Image too large",
-          "Please select a smaller image or use lower quality photos (under 1MB)."
-        );
-        return;
-      }
-
-      // Extraer la extensión para el tipo MIME
-      let fileExtension = "png";
-      try {
-        const match = result.assets[0].uri.match(/\.([a-zA-Z0-9]+)$/);
-        if (match && match[1]) {
-          fileExtension = match[1].toLowerCase();
-        }
-      } catch (error) {
-        console.log("Error extracting file extension:", error);
-      }
-
-      // Crear URL base64 con formato adecuado
-      const imageUri = `data:image/${fileExtension};base64,${base64Data}`;
-
-      // Actualizar estado del formulario y la vista previa
-      setFormData({
-        ...formData,
-        photo: imageUri,
-      });
-      setImagePreview(result.assets[0].uri);
-    }
-  };
-
   const handleSubmit = () => {
-    // Validamos que al menos haya un nombre
     if (!formData.nombre.trim()) {
       Alert.alert(
         "Datos incompletos",
@@ -158,69 +96,45 @@ export default function OpponentTeamScreen({ route, navigation }) {
         <Ionicons name="arrow-back" size={24} color="black" />
       </TouchableOpacity>
 
-      {/* Usar el componente SubpageTitle */}
+      {/* Título de la página */}
       <SubpageTitle>Opponent Team</SubpageTitle>
 
       <View style={styles.content}>
-        {/* Sección para subir imagen */}
-        <View style={[
-          styles.imageSection, 
-          screenWidth < 480 ? { marginVertical: 10 } : { marginVertical: 20 }
-        ]}>
-          {imagePreview ? (
-            <Image 
-              source={{ uri: imagePreview }} 
-              style={[
-                styles.imagePreview,
-                screenWidth < 480 && { width: 100, height: 100, borderRadius: 50 }
-              ]} 
-            />
-          ) : (
-            <View style={[
-              styles.imagePlaceholder,
-              screenWidth < 480 && { width: 100, height: 100, borderRadius: 50 }
-            ]}>
-              <Ionicons 
-                name="image-outline" 
-                size={screenWidth < 480 ? 30 : 40} 
-                color="#FFA500" 
-              />
-              <Text style={styles.imagePlaceholderText}>Team Logo</Text>
-            </View>
-          )}
-          <TouchableOpacity 
-            style={[
-              styles.uploadButton,
-              screenWidth < 480 && { paddingVertical: 6, paddingHorizontal: 12 }
-            ]} 
-            onPress={pickImage}
-          >
-            <Ionicons name="cloud-upload-outline" size={20} color="white" />
-            <Text style={styles.uploadButtonText}>Upload Logo</Text>
-          </TouchableOpacity>
-        </View>
+        {/* Formulario de información del equipo oponente */}
+        <BoxFill
+          fields={[
+            { name: "nombre", placeholder: "Opponent Name *", required: true },
+            { name: "category", placeholder: "Category" },
+          ]}
+          formData={formData}
+          onChangeForm={setFormData}
+        >
+          {/* Cargador de imágenes */}
+          <ImageUploader
+            label="Team Logo"
+            imagePreview={imagePreview}
+            onImageSelected={(imageUri) =>
+              setFormData({ ...formData, photo: imageUri })
+            }
+            size={120}
+            containerStyle={{
+              width: "100%",
+              backgroundColor: "#FFF9E7",
+              borderRadius: 12,
+              padding: 10,
+              marginVertical: 10,
+              alignItems: "center",
+            }}
+          />
 
-        <View style={[
-          styles.formContainer,
-          isLargeScreen ? { width: '70%' } : 
-          screenWidth < 480 ? { width: '90%' } : { width: '80%' }
-        ]}>
-          <BoxFill
-            title="New match"
-            fields={[
-              { name: "nombre", placeholder: "Opponent Name" },
-              { name: "category", placeholder: "Category" },
-            ]}
-            formData={formData}
-            onChangeForm={setFormData}
-          >
-            <PrimaryButton
-              title={isPending ? "Guardando..." : "Start the match"}
-              onPress={handleSubmit}
-              disabled={isPending}
-            />
-          </BoxFill>
-        </View>
+          {/* Botón para guardar */}
+          <PrimaryButton
+            title={isPending ? "Saving..." : "Save Opponent"}
+            onPress={handleSubmit}
+            style={styles.saveButton}
+            disabled={isPending}
+          />
+        </BoxFill>
       </View>
 
       {isPending && (
@@ -237,25 +151,25 @@ const styles = StyleSheet.create({
     alignItems: "center",
     justifyContent: "flex-start",
     width: "100%",
+    flex: 1,
   },
   content: {
-    width: "100%", 
+    width: "100%",
     maxWidth: "100%",
     padding: 20,
     paddingBottom: 20,
-    flex: 1,
     alignItems: "center",
   },
   backButton: {
     position: "absolute",
-    top: 40, 
+    top: 40,
     left: 20,
     zIndex: 10,
     padding: 10,
   },
-  formContainer: {
-    width: "80%",
-    alignItems: "center",
+  saveButton: {
+    backgroundColor: "#FFA500",
+    marginTop: 10,
   },
   loadingOverlay: {
     position: "absolute",
@@ -266,46 +180,5 @@ const styles = StyleSheet.create({
     backgroundColor: "rgba(0,0,0,0.3)",
     justifyContent: "center",
     alignItems: "center",
-  },
-  imageSection: {
-    alignItems: "center",
-    width: "100%",
-    marginVertical: 20,
-  },
-  imagePreview: {
-    width: 120,
-    height: 120,
-    borderRadius: 60,
-    marginBottom: 10,
-    borderWidth: 2,
-    borderColor: "#FFA500",
-  },
-  imagePlaceholder: {
-    width: 120,
-    height: 120,
-    borderRadius: 60,
-    backgroundColor: "#E6E0CE",
-    justifyContent: "center",
-    alignItems: "center",
-    marginBottom: 10,
-  },
-  imagePlaceholderText: {
-    marginTop: 5,
-    color: "#FFA500",
-    fontWeight: "bold",
-  },
-  uploadButton: {
-    flexDirection: "row",
-    alignItems: "center",
-    backgroundColor: "#FFA500",
-    paddingVertical: 8,
-    paddingHorizontal: 15,
-    borderRadius: 20,
-    marginTop: 5,
-  },
-  uploadButtonText: {
-    color: "white",
-    fontWeight: "bold",
-    marginLeft: 5,
   },
 });

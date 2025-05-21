@@ -39,7 +39,7 @@ export class Team {
   matches: string[];
 
   @Prop({required: true})
-  user_id: string;
+  userId: string;
 }
 
 export const TeamSchema = SchemaFactory.createForClass(Team);

@@ -22,7 +22,7 @@ const mockTeam = {
   _id: 'teamId123',
   name: 'Test Team',
   category: 'Senior',
-  user_id: 'userId123',
+  userId: 'userId123',
   wins: 5,
   losses: 3,
   gamesPlayed: 8,
@@ -96,7 +96,7 @@ describe('TeamsService', () => {
 
       const result = await service.findByUserId(userId);
       
-      expect(model.find).toHaveBeenCalledWith({ user_id: userId });
+      expect(model.find).toHaveBeenCalledWith({ userId: userId });
       expect(result).toEqual(mockTeams);
     });
   });
@@ -134,7 +134,7 @@ describe('TeamsService', () => {
       const createTeamDto = {
         name: 'New Team',
         category: 'Junior',
-        user_id: 'userId123',
+        userId: 'userId123',
       };
       
       // Crear un mock para el nuevo equipo
