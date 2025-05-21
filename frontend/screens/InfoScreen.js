@@ -152,12 +152,6 @@ export default function InfoScreen() {
             "Valoración y métricas avanzadas"
           ]
         )}
-
-        {/* Footer */}
-        <View style={styles.footer}>
-          <Text style={styles.footerText}>© 2025 CourtVision App - Oriol Puertas</Text>
-          <Text style={styles.footerText}>Versión 1.0.0 - Todos los derechos reservados</Text>
-        </View>
       </View>
     </ScreenContainer>
   );
