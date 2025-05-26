@@ -22,6 +22,7 @@ import AsyncStorage from "@react-native-async-storage/async-storage";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { ReactQueryDevtools } from "@tanstack/react-query-devtools";
 import { Ionicons } from "@expo/vector-icons";
+import authService from "./services/authService";
 
 import WelcomeScreen from "./screens/WelcomeScreen";
 import LoginScreen from "./screens/LoginScreen";
@@ -583,7 +584,8 @@ export default function App() {
   const handleLogout = async () => {
     try {
       console.log("Cerrando sesión...");
-      await AsyncStorage.removeItem("user");
+      // Usar el servicio de autenticación para el cierre de sesión
+      await authService.logout();
       queryClient.clear();
       setUser(null);
 
@@ -612,9 +614,10 @@ export default function App() {
   useEffect(() => {
     const loadUser = async () => {
       try {
-        const storedUser = await AsyncStorage.getItem("user");
-        if (storedUser) {
-          setUser(JSON.parse(storedUser));
+        // Usar el servicio de autenticación para cargar el usuario
+        const userData = await authService.getCurrentUser();
+        if (userData) {
+          setUser(userData);
         }
       } catch (error) {
         console.error("Error al cargar el usuario:", error);
@@ -627,9 +630,12 @@ export default function App() {
 
   useEffect(() => {
     const saveUser = async () => {
+      // No es necesario guardar el usuario aquí ya que el servicio de autenticación
+      // se encarga de guardarlo al iniciar sesión.
+      // Esta lógica se mantiene por si se actualiza el usuario desde otro lugar.
       try {
         if (user) {
-          await AsyncStorage.setItem("user", JSON.stringify(user));
+          await authService.saveUserToStorage(user);
         }
       } catch (error) {
         console.error("Error al guardar el usuario:", error);

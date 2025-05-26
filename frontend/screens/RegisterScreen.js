@@ -8,8 +8,9 @@ import {
   Alert,
   ActivityIndicator,
 } from "react-native";
-import API_BASE_URL from "../config/apiConfig";
 import { useMutation } from "@tanstack/react-query";
+import { Ionicons } from "@expo/vector-icons";
+import authService from "../services/authService";
 
 export default function SignUp({ navigation }) {
   const [formData, setFormData] = useState({
@@ -19,31 +20,16 @@ export default function SignUp({ navigation }) {
     password: "",
     phone: "",
   });
+  const [showPassword, setShowPassword] = useState(false);
 
-  // Usar useMutation para el proceso de registro
+  // Usar useMutation con el authService
   const {
     mutate: registerUser,
     isPending,
     isError,
     error,
   } = useMutation({
-    mutationFn: async (userData) => {
-      const response = await fetch(`${API_BASE_URL}/users/register`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify(userData),
-      });
-
-      const data = await response.json();
-
-      if (!response.ok) {
-        throw new Error(data.message || "Error en el registro");
-      }
-
-      return data;
-    },
+    mutationFn: (userData) => authService.register(userData),
     onSuccess: (data) => {
       Alert.alert(
         "Registro exitoso",
@@ -90,7 +76,7 @@ export default function SignUp({ navigation }) {
         <View style={styles.boxinside}>
           <TextInput
             placeholder="Full name"
-            style={[styles.input, { paddingHorizontal: 15 }]}
+            style={styles.input}
             onChangeText={(text) => handleChange("name", text)}
             value={formData.name}
             autoCapitalize="words"
@@ -100,7 +86,7 @@ export default function SignUp({ navigation }) {
         <View style={styles.boxinside}>
           <TextInput
             placeholder="Username"
-            style={[styles.input, { paddingHorizontal: 15 }]}
+            style={styles.input}
             onChangeText={(text) => handleChange("username", text)}
             value={formData.username}
             autoCapitalize="none"
@@ -110,7 +96,7 @@ export default function SignUp({ navigation }) {
         <View style={styles.boxinside}>
           <TextInput
             placeholder="Email"
-            style={[styles.input, { paddingHorizontal: 15 }]}
+            style={styles.input}
             onChangeText={(text) => handleChange("email", text)}
             value={formData.email}
             keyboardType="email-address"
@@ -119,19 +105,32 @@ export default function SignUp({ navigation }) {
           />
         </View>
         <View style={styles.boxinside}>
-          <TextInput
-            placeholder="Password"
-            style={[styles.input, { paddingHorizontal: 15 }]}
-            secureTextEntry={true}
-            onChangeText={(text) => handleChange("password", text)}
-            value={formData.password}
-            editable={!isPending}
-          />
+          <View style={styles.passwordContainer}>
+            <TextInput
+              placeholder="Password"
+              style={styles.input}
+              secureTextEntry={!showPassword}
+              onChangeText={(text) => handleChange("password", text)}
+              value={formData.password}
+              editable={!isPending}
+            />
+            <TouchableOpacity
+              onPress={() => setShowPassword(!showPassword)}
+              style={styles.eyeIconButton}
+              disabled={isPending}
+            >
+              <Ionicons
+                name={showPassword ? "eye-off-outline" : "eye-outline"}
+                size={24}
+                color="#A9A9A9"
+              />
+            </TouchableOpacity>
+          </View>
         </View>
         <View style={styles.boxinside}>
           <TextInput
             placeholder="Phone"
-            style={[styles.input, { paddingHorizontal: 15 }]}
+            style={styles.input}
             onChangeText={(text) => handleChange("phone", text)}
             value={formData.phone}
             keyboardType="phone-pad"
@@ -194,12 +193,28 @@ const styles = StyleSheet.create({
     elevation: 5,
   },
   boxinside: {
-    paddingVertical: 20,
+    paddingVertical: 10,
+    paddingHorizontal: 15,
     backgroundColor: "#cccccc40",
     borderRadius: 30,
     marginVertical: 10,
     marginLeft: 15,
     marginRight: 15,
+  },
+  passwordContainer: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+    width: "100%",
+  },
+  input: {
+    color: "#A9A9A9",
+    paddingVertical: 10,
+    flex: 1,
+  },
+  eyeIconButton: {
+    padding: 8,
+    marginLeft: 10,
   },
   mainbuttonbox: {
     alignItems: "center",
@@ -214,7 +229,7 @@ const styles = StyleSheet.create({
     alignItems: "center",
   },
   buttonDisabled: {
-    backgroundColor: "#FFC966", // Un tono más claro para indicar estado deshabilitado
+    backgroundColor: "#FFC966",
     opacity: 0.7,
   },
   buttontext: {
@@ -232,8 +247,5 @@ const styles = StyleSheet.create({
     marginLeft: 5,
     fontWeight: "bold",
     color: "black",
-  },
-  input: {
-    color: "#A9A9A9",
   },
 });

@@ -8,37 +8,23 @@ import {
   Alert,
   ActivityIndicator,
 } from "react-native";
-import API_BASE_URL from "../config/apiConfig";
 import { useMutation } from "@tanstack/react-query";
+import { Ionicons } from "@expo/vector-icons";
+import authService from "../services/authService";
 
 export default function LogIn({ navigation, setUser }) {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [showPassword, setShowPassword] = useState(false);
 
-  // Usar useMutation para el proceso de inicio de sesión
+  // Usar useMutation con el authService
   const {
     mutate: loginUser,
     isPending,
     isError,
     error,
   } = useMutation({
-    mutationFn: async (credentials) => {
-      const response = await fetch(`${API_BASE_URL}/users/login`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify(credentials),
-      });
-
-      const data = await response.json();
-
-      if (!response.ok) {
-        throw new Error(data.message || "Error en el inicio de sesión");
-      }
-
-      return data;
-    },
+    mutationFn: (credentials) => authService.login(credentials),
     onSuccess: (data) => {
       setUser(data);
       Alert.alert("Inicio de sesión exitoso", "Bienvenido de nuevo.");
@@ -67,7 +53,7 @@ export default function LogIn({ navigation, setUser }) {
         <View style={styles.boxinside}>
           <TextInput
             placeholder="Email"
-            style={[styles.input, { paddingHorizontal: 15 }]}
+            style={styles.input}
             onChangeText={(text) => setEmail(text)}
             value={email}
             autoCapitalize="none"
@@ -75,13 +61,25 @@ export default function LogIn({ navigation, setUser }) {
           />
         </View>
         <View style={styles.boxinside}>
-          <TextInput
-            placeholder="Password"
-            style={[styles.input, { paddingHorizontal: 15 }]}
-            secureTextEntry={true}
-            onChangeText={(text) => setPassword(text)}
-            value={password}
-          />
+          <View style={styles.passwordContainer}>
+            <TextInput
+              placeholder="Password"
+              style={styles.input}
+              secureTextEntry={!showPassword}
+              onChangeText={(text) => setPassword(text)}
+              value={password}
+            />
+            <TouchableOpacity
+              onPress={() => setShowPassword(!showPassword)}
+              style={styles.eyeIconButton}
+            >
+              <Ionicons
+                name={showPassword ? "eye-off-outline" : "eye-outline"}
+                size={24}
+                color="#A9A9A9"
+              />
+            </TouchableOpacity>
+          </View>
         </View>
         <View style={styles.mainbuttonbox}>
           <TouchableOpacity
@@ -139,12 +137,28 @@ const styles = StyleSheet.create({
     elevation: 5,
   },
   boxinside: {
-    paddingVertical: 20,
+    paddingVertical: 10,
+    paddingHorizontal: 15,
     backgroundColor: "#cccccc40",
     borderRadius: 30,
     marginVertical: 10,
     marginLeft: 15,
     marginRight: 15,
+  },
+  passwordContainer: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+    width: "100%",
+  },
+  input: {
+    color: "#A9A9A9",
+    paddingVertical: 10,
+    flex: 1,
+  },
+  eyeIconButton: {
+    padding: 8,
+    marginLeft: 10,
   },
   mainbuttonbox: {
     alignItems: "center",
@@ -159,7 +173,7 @@ const styles = StyleSheet.create({
     alignItems: "center",
   },
   buttonDisabled: {
-    backgroundColor: "#FFC966", // Un tono más claro para indicar estado deshabilitado
+    backgroundColor: "#FFC966",
     opacity: 0.7,
   },
   buttontext: {
@@ -177,8 +191,5 @@ const styles = StyleSheet.create({
     marginLeft: 5,
     fontWeight: "bold",
     color: "black",
-  },
-  input: {
-    color: "#A9A9A9",
   },
 });
