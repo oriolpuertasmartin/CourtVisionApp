@@ -158,6 +158,7 @@ export default function ChangePasswordScreen({ navigation }) {
       <ScreenHeader 
         title="Cambiar Contraseña" 
         onBack={handleGoBack} 
+        isMainScreen={false}
       />
 
       <View style={[

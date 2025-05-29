@@ -14,8 +14,8 @@ import BoxFill from "../../components/BoxFill";
 import PrimaryButton from "../../components/PrimaryButton";
 import API_BASE_URL from "../../config/apiConfig";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import SubpageTitle from "../../components/SubpageTitle";
 import ScreenContainer from "../../components/ScreenContainer";
+import ScreenHeader from "../../components/ScreenHeader";
 import { useDeviceType } from "../../components/ResponsiveUtils";
 import ImageUploader from "../../components/ImageUploader";
 
@@ -25,7 +25,9 @@ export default function CreatePlayersScreen({ route, navigation }) {
   const deviceType = useDeviceType();
 
   // Para detectar el tamaño de la pantalla y ajustar el layout
-  const [screenWidth, setScreenWidth] = useState(Dimensions.get("window").width);
+  const [screenWidth, setScreenWidth] = useState(
+    Dimensions.get("window").width
+  );
   const isLargeScreen = screenWidth > 768;
 
   // Actualizar dimensiones cuando cambie el tamaño de la pantalla
@@ -34,7 +36,10 @@ export default function CreatePlayersScreen({ route, navigation }) {
       setScreenWidth(Dimensions.get("window").width);
     };
 
-    const subscription = Dimensions.addEventListener("change", updateDimensions);
+    const subscription = Dimensions.addEventListener(
+      "change",
+      updateDimensions
+    );
     return () => subscription.remove();
   }, []);
 
@@ -149,6 +154,10 @@ export default function CreatePlayersScreen({ route, navigation }) {
       Alert.alert("Error", `Failed to add player: ${error.message}`);
     },
   });
+
+  const handleGoBack = () => {
+    navigation.goBack();
+  };
 
   const handleAddPlayer = () => {
     if (players && players.length >= 13) {
@@ -325,16 +334,12 @@ export default function CreatePlayersScreen({ route, navigation }) {
       contentContainerStyle={styles.contentContainer}
       scrollable={false}
     >
-      <TouchableOpacity
-        style={styles.backButton}
-        onPress={() => navigation.goBack()}
-      >
-        <Ionicons name="arrow-back" size={24} color="black" />
-      </TouchableOpacity>
-
-      <SubpageTitle>
-        {team ? `Add Players to ${team.name}` : "Add Players"}
-      </SubpageTitle>
+      <ScreenHeader
+        title={team ? `Add Players to ${team.name}` : "Add Players"}
+        onBack={handleGoBack}
+        showBackButton={true}
+        isMainScreen={false}
+      />
 
       {renderPlayersList()}
 

@@ -291,8 +291,9 @@ export default function ProfileScreen({ setUser, route, navigation }) {
       contentContainerStyle={styles.contentContainer}
     >
       <ScreenHeader 
-        title="My Profile" 
+        title="My profile" 
         onBack={handleGoBack} 
+        isMainScreen={false}
       />
 
       <View style={[

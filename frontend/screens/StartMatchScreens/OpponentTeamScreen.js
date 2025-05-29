@@ -13,7 +13,7 @@ import PrimaryButton from "../../components/PrimaryButton";
 import API_BASE_URL from "../../config/apiConfig";
 import { useMutation } from "@tanstack/react-query";
 import ImageUploader from "../../components/ImageUploader";
-import SubpageTitle from "../../components/SubpageTitle";
+import ScreenHeader from "../../components/ScreenHeader";
 import ScreenContainer from "../../components/ScreenContainer";
 import { useDeviceType } from "../../components/ResponsiveUtils";
 
@@ -22,7 +22,9 @@ export default function OpponentTeamScreen({ route, navigation }) {
   const deviceType = useDeviceType();
 
   // Para detectar el tamaño de la pantalla y ajustar el layout
-  const [screenWidth, setScreenWidth] = useState(Dimensions.get("window").width);
+  const [screenWidth, setScreenWidth] = useState(
+    Dimensions.get("window").width
+  );
   const isLargeScreen = screenWidth > 768;
 
   useEffect(() => {
@@ -30,7 +32,10 @@ export default function OpponentTeamScreen({ route, navigation }) {
       setScreenWidth(Dimensions.get("window").width);
     };
 
-    const subscription = Dimensions.addEventListener("change", updateDimensions);
+    const subscription = Dimensions.addEventListener(
+      "change",
+      updateDimensions
+    );
     return () => subscription.remove();
   }, []);
 
@@ -63,13 +68,20 @@ export default function OpponentTeamScreen({ route, navigation }) {
       return await response.json();
     },
     onSuccess: (updatedMatch) => {
-      Alert.alert("Actualizado", "Datos del partido actualizados correctamente");
+      Alert.alert(
+        "Actualizado",
+        "Datos del partido actualizados correctamente"
+      );
       navigation.navigate("StartingPlayers", { teamId, updatedMatch });
     },
     onError: () => {
       Alert.alert("Error", "No se pudieron actualizar los datos del partido");
     },
   });
+
+  const handleGoBack = () => {
+    navigation.goBack();
+  };
 
   const handleSubmit = () => {
     if (!formData.nombre.trim()) {
@@ -88,16 +100,12 @@ export default function OpponentTeamScreen({ route, navigation }) {
       fullWidth={isLargeScreen}
       contentContainerStyle={styles.contentContainer}
     >
-      {/* Botón para volver */}
-      <TouchableOpacity
-        style={styles.backButton}
-        onPress={() => navigation.goBack()}
-      >
-        <Ionicons name="arrow-back" size={24} color="black" />
-      </TouchableOpacity>
-
-      {/* Título de la página */}
-      <SubpageTitle>Opponent Team</SubpageTitle>
+      <ScreenHeader
+        title="Opponent team"
+        onBack={handleGoBack}
+        showBackButton={true}
+        isMainScreen={false}
+      />
 
       <View style={styles.content}>
         {/* Formulario de información del equipo oponente */}

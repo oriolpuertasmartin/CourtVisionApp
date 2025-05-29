@@ -9,15 +9,13 @@ import {
   Dimensions,
   ScrollView,
 } from "react-native";
-import { Ionicons } from "@expo/vector-icons";
 import PlayerButton from "../../components/PlayerButton";
 import StatsButtons from "../../components/StatsButtons";
 import Scoreboard from "../../components/ScoreBoard";
-import PrimaryButton from "../../components/PrimaryButton";
 import API_BASE_URL from "../../config/apiConfig";
-import SubpageTitle from "../../components/SubpageTitle";
 import ScreenContainer from "../../components/ScreenContainer";
 import { useDeviceType } from "../../components/ResponsiveUtils";
+import ScreenHeader from "../../components/ScreenHeader";
 
 export default function StatsScreen({ route, navigation }) {
   const { selectedPlayers, matchId, teamId } = route.params;
@@ -516,21 +514,7 @@ export default function StatsScreen({ route, navigation }) {
   };
 
   const handleGoBack = () => {
-    Alert.alert(
-      "¿Estás seguro?",
-      "Si sales ahora, perderás los datos del partido.",
-      [
-        {
-          text: "Cancelar",
-          style: "cancel"
-        },
-        {
-          text: "Salir",
-          style: "destructive",
-          onPress: () => navigation.goBack()
-        }
-      ]
-    );
+    navigation.goBack();
   };
 
   // Renderizar el contenido diferente según el tamaño de pantalla
@@ -803,16 +787,12 @@ export default function StatsScreen({ route, navigation }) {
       contentContainerStyle={styles.contentContainer}
       scrollable={false}
     >
-      {/* Botón para volver */}
-      <TouchableOpacity
-        style={styles.backButton}
-        onPress={handleGoBack}
-      >
-        <Ionicons name="arrow-back" size={24} color="black" />
-      </TouchableOpacity>
-      
-      {/* Usar SubpageTitle en lugar del título regular */}
-      <SubpageTitle>Game Stats</SubpageTitle>
+      <ScreenHeader
+        title="Game Stats"
+        onBack={handleGoBack}
+        showBackButton={true}
+        isMainScreen={false}
+      />
 
       {/* Contenido principal adaptativo */}
       {renderGameContent()}

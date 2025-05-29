@@ -18,8 +18,8 @@ import API_BASE_URL from "../../config/apiConfig";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import ConfirmModal from "../../components/ConfirmModal";
 import * as ImagePicker from "expo-image-picker";
-import SubpageTitle from "../../components/SubpageTitle";
 import ScreenContainer from "../../components/ScreenContainer";
+import ScreenHeader from "../../components/ScreenHeader";
 import { useDeviceType } from "../../components/ResponsiveUtils";
 
 export default function TeamPlayersScreen({ route, navigation }) {
@@ -28,16 +28,21 @@ export default function TeamPlayersScreen({ route, navigation }) {
   const deviceType = useDeviceType();
 
   // Para detectar el tamaño de la pantalla y ajustar el layout
-  const [screenWidth, setScreenWidth] = useState(Dimensions.get('window').width);
+  const [screenWidth, setScreenWidth] = useState(
+    Dimensions.get("window").width
+  );
   const isLargeScreen = screenWidth > 768;
 
   // Actualizar dimensiones cuando cambie el tamaño de la pantalla
   useEffect(() => {
     const updateDimensions = () => {
-      setScreenWidth(Dimensions.get('window').width);
+      setScreenWidth(Dimensions.get("window").width);
     };
 
-    const subscription = Dimensions.addEventListener('change', updateDimensions);
+    const subscription = Dimensions.addEventListener(
+      "change",
+      updateDimensions
+    );
     return () => subscription.remove();
   }, []);
 
@@ -99,6 +104,10 @@ export default function TeamPlayersScreen({ route, navigation }) {
 
   const handleAddPlayer = () => {
     navigation.navigate("CreatePlayer", { teamId });
+  };
+
+  const handleGoBack = () => {
+    navigation.goBack();
   };
 
   // Mutación para eliminar un jugador
@@ -486,18 +495,12 @@ export default function TeamPlayersScreen({ route, navigation }) {
       fullWidth={isLargeScreen}
       contentContainerStyle={styles.contentContainer}
     >
-      {/* Botón para volver */}
-      <TouchableOpacity
-        style={styles.backButton}
-        onPress={() => navigation.goBack()}
-      >
-        <Ionicons name="arrow-back" size={24} color="black" />
-      </TouchableOpacity>
-
-      {/* Usar SubpageTitle en lugar de Text */}
-      <SubpageTitle>
-        {team ? `${team.name} Players` : "Team Players"}
-      </SubpageTitle>
+      <ScreenHeader
+        title={team ? `${team.name} players` : "team players"}
+        onBack={handleGoBack}
+        showBackButton={true}
+        isMainScreen={false}
+      />
 
       <View style={styles.content}>
         {players.length === 0 ? (
@@ -514,7 +517,9 @@ export default function TeamPlayersScreen({ route, navigation }) {
             keyExtractor={(item) => item._id}
             contentContainerStyle={[
               styles.listContainer,
-              isLargeScreen ? { paddingHorizontal: 200 } : { paddingHorizontal: 20 }
+              isLargeScreen
+                ? { paddingHorizontal: 200 }
+                : { paddingHorizontal: 20 },
             ]}
           />
         )}
@@ -557,7 +562,7 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: "white",
-    paddingTop: 80, 
+    paddingTop: 80,
   },
   loadingContainer: {
     flex: 1,
@@ -590,13 +595,13 @@ const styles = StyleSheet.create({
   },
   backButton: {
     position: "absolute",
-    top: 40, 
+    top: 40,
     left: 20,
     zIndex: 10,
     padding: 10,
   },
   listContainer: {
-    paddingBottom: 90, 
+    paddingBottom: 90,
   },
   playerCard: {
     flexDirection: "row",
@@ -610,19 +615,19 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.1,
     shadowRadius: 2,
     elevation: 2,
-    position: "relative", 
+    position: "relative",
   },
   deleteButton: {
     position: "absolute",
     top: 10,
     right: 10,
     zIndex: 10,
-    padding: 10, 
+    padding: 10,
   },
   editButton: {
     position: "absolute",
     top: 10,
-    right: 50, 
+    right: 50,
     zIndex: 10,
     padding: 10,
   },
@@ -704,7 +709,7 @@ const styles = StyleSheet.create({
     borderRadius: 40,
     marginRight: 15,
     borderWidth: 2,
-    borderColor: "#FFA500",
+    borderColor: "#E6E0CE",
   },
   nameNumberContainer: {
     flexDirection: "row",

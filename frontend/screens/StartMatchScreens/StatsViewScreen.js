@@ -15,7 +15,7 @@ import { Ionicons } from "@expo/vector-icons";
 import API_BASE_URL from "../../config/apiConfig";
 import { useQuery } from "@tanstack/react-query";
 import ScreenContainer from "../../components/ScreenContainer";
-import SubpageTitle from "../../components/SubpageTitle";
+import ScreenHeader from "../../components/ScreenHeader";
 import { useDeviceType } from "../../components/ResponsiveUtils";
 
 export default function StatsView({ route, navigation }) {
@@ -32,17 +32,22 @@ export default function StatsView({ route, navigation }) {
   const deviceType = useDeviceType();
 
   // Para detectar el tamaño de la pantalla y ajustar el layout
-  const [screenWidth, setScreenWidth] = useState(Dimensions.get('window').width);
+  const [screenWidth, setScreenWidth] = useState(
+    Dimensions.get("window").width
+  );
   const isLargeScreen = screenWidth > 768;
   const isSmallScreen = screenWidth < 480;
 
   // Actualizar dimensiones cuando cambie el tamaño de la pantalla
   useEffect(() => {
     const updateDimensions = () => {
-      setScreenWidth(Dimensions.get('window').width);
+      setScreenWidth(Dimensions.get("window").width);
     };
 
-    const subscription = Dimensions.addEventListener('change', updateDimensions);
+    const subscription = Dimensions.addEventListener(
+      "change",
+      updateDimensions
+    );
     return () => subscription.remove();
   }, []);
 
@@ -246,7 +251,18 @@ export default function StatsView({ route, navigation }) {
 
   // Simple función para volver a la pantalla principal
   const handleGoBack = () => {
-    navigation.navigate("Main", { screen: "Home" });
+    // Reset la navegación a la pantalla StartMatchScreen
+    navigation.reset({
+      index: 0,
+      routes: [
+        {
+          name: "Main",
+          params: {
+            screen: "Start a Match",
+          },
+        },
+      ],
+    });
   };
 
   // Función para generar y exportar a PDF
@@ -621,15 +637,21 @@ export default function StatsView({ route, navigation }) {
     return (
       <ScrollView>
         {/* Tabla de puntos por períodos */}
-        <Text style={[
-          styles.sectionTitle,
-          isSmallScreen && { fontSize: 18, marginTop: 10 }
-        ]}>Puntos por Períodos</Text>
+        <Text
+          style={[
+            styles.sectionTitle,
+            isSmallScreen && { fontSize: 18, marginTop: 10 },
+          ]}
+        >
+          Puntos por Períodos
+        </Text>
 
-        <View style={[
-          styles.periodsTable,
-          isSmallScreen && { marginHorizontal: 5 }
-        ]}>
+        <View
+          style={[
+            styles.periodsTable,
+            isSmallScreen && { marginHorizontal: 5 },
+          ]}
+        >
           <View style={styles.periodsHeader}>
             <Text style={styles.periodHeaderCell}>Período</Text>
             <Text style={styles.periodHeaderCell}>{teamName}</Text>
@@ -666,15 +688,21 @@ export default function StatsView({ route, navigation }) {
         </View>
 
         {/* Jugadores Destacados */}
-        <Text style={[
-          styles.sectionTitle,
-          isSmallScreen && { fontSize: 18, marginTop: 10 }
-        ]}>Jugadores Destacados</Text>
+        <Text
+          style={[
+            styles.sectionTitle,
+            isSmallScreen && { fontSize: 18, marginTop: 10 },
+          ]}
+        >
+          Jugadores Destacados
+        </Text>
 
-        <View style={[
-          styles.topPerformersTable,
-          isSmallScreen && { marginHorizontal: 5 }
-        ]}>
+        <View
+          style={[
+            styles.topPerformersTable,
+            isSmallScreen && { marginHorizontal: 5 },
+          ]}
+        >
           <View style={styles.topPerformersHeader}>
             <Text style={styles.topHeaderCell}>Categoría</Text>
             <Text style={styles.topHeaderCell}>Jugador</Text>
@@ -685,33 +713,43 @@ export default function StatsView({ route, navigation }) {
           {Object.entries(topPerformers).map(([category, data], index) => (
             <View key={index} style={styles.topPerformerRow}>
               <Text style={styles.topPerformerCategory}>
-                {category === "points" ? "Puntos" :
-                 category === "rebounds" ? "Rebotes" :
-                 category === "assists" ? "Asistencias" :
-                 category === "steals" ? "Robos" :
-                 category === "blocks" ? "Tapones" : category}
+                {category === "points"
+                  ? "Puntos"
+                  : category === "rebounds"
+                  ? "Rebotes"
+                  : category === "assists"
+                  ? "Asistencias"
+                  : category === "steals"
+                  ? "Robos"
+                  : category === "blocks"
+                  ? "Tapones"
+                  : category}
               </Text>
               <Text style={styles.topPerformerPlayer}>
                 {data.player || "N/A"}
               </Text>
-              <Text style={styles.topPerformerValue}>
-                {data.value || 0}
-              </Text>
+              <Text style={styles.topPerformerValue}>{data.value || 0}</Text>
             </View>
           ))}
         </View>
 
         {/* Tabla de estadísticas globales - esta es la parte más densa */}
-        <Text style={[
-          styles.sectionTitle,
-          isSmallScreen && { fontSize: 18, marginTop: 10 }
-        ]}>Estadísticas globales</Text>
+        <Text
+          style={[
+            styles.sectionTitle,
+            isSmallScreen && { fontSize: 18, marginTop: 10 },
+          ]}
+        >
+          Estadísticas globales
+        </Text>
 
         <ScrollView horizontal showsHorizontalScrollIndicator={true}>
-          <View style={[
-            styles.statsTable,
-            isSmallScreen && { width: 1200 } // Más ancho para móviles pequeños para ver toda la tabla
-          ]}>
+          <View
+            style={[
+              styles.statsTable,
+              isSmallScreen && { width: 1200 }, // Más ancho para móviles pequeños para ver toda la tabla
+            ]}
+          >
             {/* Encabezados de la tabla */}
             <View style={styles.tableHeader}>
               <Text style={[styles.headerCell, styles.playerCell]}>
@@ -796,86 +834,183 @@ export default function StatsView({ route, navigation }) {
                       player.isStarter ? styles.starterRow : styles.benchRow,
                     ]}
                   >
-                    <Text style={[
-                      styles.tableCell, 
-                      styles.playerCell,
-                      isSmallScreen && { fontSize: 11 }
-                    ]}>
+                    <Text
+                      style={[
+                        styles.tableCell,
+                        styles.playerCell,
+                        isSmallScreen && { fontSize: 11 },
+                      ]}
+                    >
                       {player.name || "Jugador"} #{player.number || "0"}
                     </Text>
-                    <Text style={[styles.tableCell, isSmallScreen && { fontSize: 11 }]}>
+                    <Text
+                      style={[
+                        styles.tableCell,
+                        isSmallScreen && { fontSize: 11 },
+                      ]}
+                    >
                       {player.points || 0}
                     </Text>
 
                     {/* Tiros de campo */}
-                    <Text style={[styles.tableCell, isSmallScreen && { fontSize: 11 }]}>
+                    <Text
+                      style={[
+                        styles.tableCell,
+                        isSmallScreen && { fontSize: 11 },
+                      ]}
+                    >
                       {player.fieldGoalsMade || 0}/
                       {player.fieldGoalsAttempted || 0}
                     </Text>
-                    <Text style={[styles.tableCell, isSmallScreen && { fontSize: 11 }]}>
+                    <Text
+                      style={[
+                        styles.tableCell,
+                        isSmallScreen && { fontSize: 11 },
+                      ]}
+                    >
                       {fgPct}%
                     </Text>
 
                     {/* Tiros de 2 puntos */}
-                    <Text style={[styles.tableCell, isSmallScreen && { fontSize: 11 }]}>
+                    <Text
+                      style={[
+                        styles.tableCell,
+                        isSmallScreen && { fontSize: 11 },
+                      ]}
+                    >
                       {player.twoPointsMade || 0}/
                       {player.twoPointsAttempted || 0}
                     </Text>
-                    <Text style={[styles.tableCell, isSmallScreen && { fontSize: 11 }]}>
+                    <Text
+                      style={[
+                        styles.tableCell,
+                        isSmallScreen && { fontSize: 11 },
+                      ]}
+                    >
                       {twoPct}%
                     </Text>
 
                     {/* Tiros de 3 puntos */}
-                    <Text style={[styles.tableCell, isSmallScreen && { fontSize: 11 }]}>
+                    <Text
+                      style={[
+                        styles.tableCell,
+                        isSmallScreen && { fontSize: 11 },
+                      ]}
+                    >
                       {player.threePointsMade || 0}/
                       {player.threePointsAttempted || 0}
                     </Text>
-                    <Text style={[styles.tableCell, isSmallScreen && { fontSize: 11 }]}>
+                    <Text
+                      style={[
+                        styles.tableCell,
+                        isSmallScreen && { fontSize: 11 },
+                      ]}
+                    >
                       {threePct}%
                     </Text>
 
                     {/* Tiros libres */}
-                    <Text style={[styles.tableCell, isSmallScreen && { fontSize: 11 }]}>
+                    <Text
+                      style={[
+                        styles.tableCell,
+                        isSmallScreen && { fontSize: 11 },
+                      ]}
+                    >
                       {player.freeThrowsMade || 0}/
                       {player.freeThrowsAttempted || 0}
                     </Text>
-                    <Text style={[styles.tableCell, isSmallScreen && { fontSize: 11 }]}>
+                    <Text
+                      style={[
+                        styles.tableCell,
+                        isSmallScreen && { fontSize: 11 },
+                      ]}
+                    >
                       {ftPct}%
                     </Text>
 
                     {/* Rebotes */}
-                    <Text style={[styles.tableCell, isSmallScreen && { fontSize: 11 }]}>
+                    <Text
+                      style={[
+                        styles.tableCell,
+                        isSmallScreen && { fontSize: 11 },
+                      ]}
+                    >
                       {player.rebounds || 0}
                     </Text>
-                    <Text style={[styles.tableCell, isSmallScreen && { fontSize: 11 }]}>
+                    <Text
+                      style={[
+                        styles.tableCell,
+                        isSmallScreen && { fontSize: 11 },
+                      ]}
+                    >
                       {player.defRebounds || 0}
                     </Text>
-                    <Text style={[styles.tableCell, isSmallScreen && { fontSize: 11 }]}>
+                    <Text
+                      style={[
+                        styles.tableCell,
+                        isSmallScreen && { fontSize: 11 },
+                      ]}
+                    >
                       {player.offRebounds || 0}
                     </Text>
 
                     {/* Otras estadísticas */}
-                    <Text style={[styles.tableCell, isSmallScreen && { fontSize: 11 }]}>
+                    <Text
+                      style={[
+                        styles.tableCell,
+                        isSmallScreen && { fontSize: 11 },
+                      ]}
+                    >
                       {player.assists || 0}
                     </Text>
-                    <Text style={[styles.tableCell, isSmallScreen && { fontSize: 11 }]}>
+                    <Text
+                      style={[
+                        styles.tableCell,
+                        isSmallScreen && { fontSize: 11 },
+                      ]}
+                    >
                       {player.steals || 0}
                     </Text>
-                    <Text style={[styles.tableCell, isSmallScreen && { fontSize: 11 }]}>
+                    <Text
+                      style={[
+                        styles.tableCell,
+                        isSmallScreen && { fontSize: 11 },
+                      ]}
+                    >
                       {player.blocks || 0}
                     </Text>
-                    <Text style={[styles.tableCell, isSmallScreen && { fontSize: 11 }]}>
+                    <Text
+                      style={[
+                        styles.tableCell,
+                        isSmallScreen && { fontSize: 11 },
+                      ]}
+                    >
                       {player.turnovers || 0}
                     </Text>
-                    <Text style={[styles.tableCell, isSmallScreen && { fontSize: 11 }]}>
+                    <Text
+                      style={[
+                        styles.tableCell,
+                        isSmallScreen && { fontSize: 11 },
+                      ]}
+                    >
                       {player.fouls || 0}
                     </Text>
 
                     {/* Estadísticas avanzadas */}
-                    <Text style={[styles.tableCell, isSmallScreen && { fontSize: 11 }]}>
+                    <Text
+                      style={[
+                        styles.tableCell,
+                        isSmallScreen && { fontSize: 11 },
+                      ]}
+                    >
                       {player.pir || 0}
                     </Text>
-                    <Text style={[styles.tableCell, isSmallScreen && { fontSize: 11 }]}>
+                    <Text
+                      style={[
+                        styles.tableCell,
+                        isSmallScreen && { fontSize: 11 },
+                      ]}
+                    >
                       {player.assistToTurnoverRatio || 0}
                     </Text>
                   </View>
@@ -934,37 +1069,48 @@ export default function StatsView({ route, navigation }) {
       fullWidth={isLargeScreen}
       contentContainerStyle={styles.contentContainer}
     >
-      {/* Botón para volver */}
-      <TouchableOpacity style={styles.backButton} onPress={handleGoBack}>
-        <Ionicons name="arrow-back" size={24} color="black" />
+      {/* Reemplazo del botón de flecha por un botón "Finish" para volver a la pantalla inicial */}
+      <TouchableOpacity style={styles.finishButton} onPress={handleGoBack}>
+        <Text style={styles.finishButtonText}>Finish</Text>
       </TouchableOpacity>
 
       {/* Botón para exportar a PDF */}
       <TouchableOpacity
         style={[
           styles.pdfButton,
-          isSmallScreen && { right: 10, paddingVertical: 5, paddingHorizontal: 10 }
+          isSmallScreen && {
+            right: 10,
+            paddingVertical: 5,
+            paddingHorizontal: 10,
+          },
         ]}
         onPress={generatePDF}
         disabled={generatingPDF}
       >
-        <Ionicons name="document-text-outline" size={isSmallScreen ? 20 : 24} color="black" />
-        <Text style={[
-          styles.pdfButtonText,
-          isSmallScreen && { fontSize: 12 }
-        ]}>
-          {generatingPDF ? "Generando..." : "Exportar a PDF"}
+        <Ionicons
+          name="document-text-outline"
+          size={isSmallScreen ? 20 : 24}
+          color="black"
+        />
+        <Text style={[styles.pdfButtonText, isSmallScreen && { fontSize: 12 }]}>
+          {generatingPDF ? "Generando..." : "Export to pdf"}
         </Text>
       </TouchableOpacity>
 
-      {/* Título de la pantalla */}
-      <SubpageTitle>Estadísticas del Partido</SubpageTitle>
+      <ScreenHeader
+        title="Game summary"
+        onBack={handleGoBack}
+        showBackButton={false}
+        isMainScreen={false}
+      />
 
       {/* Resumen del partido - responsive */}
-      <View style={[
-        styles.matchSummary,
-        isSmallScreen && { marginTop: 10, padding: 10 }
-      ]}>
+      <View
+        style={[
+          styles.matchSummary,
+          isSmallScreen && { marginTop: 10, padding: 10 },
+        ]}
+      >
         <View style={styles.scoreboardRow}>
           {/* Lado izquierdo: Equipo A (Logo + Nombre) */}
           <View style={styles.teamSide}>
@@ -975,55 +1121,70 @@ export default function StatsView({ route, navigation }) {
                   source={{ uri: team.team_photo }}
                   style={[
                     styles.teamLogo,
-                    isSmallScreen && { width: 40, height: 40, borderRadius: 20 }
+                    isSmallScreen && {
+                      width: 40,
+                      height: 40,
+                      borderRadius: 20,
+                    },
                   ]}
                 />
               ) : (
-                <View style={[
-                  styles.logoPlaceholder,
-                  isSmallScreen && { width: 40, height: 40, borderRadius: 20 }
-                ]}>
-                  <Text style={[
-                    styles.logoPlaceholderText,
-                    isSmallScreen && { fontSize: 14 }
-                  ]}>
+                <View
+                  style={[
+                    styles.logoPlaceholder,
+                    isSmallScreen && {
+                      width: 40,
+                      height: 40,
+                      borderRadius: 20,
+                    },
+                  ]}
+                >
+                  <Text
+                    style={[
+                      styles.logoPlaceholderText,
+                      isSmallScreen && { fontSize: 14 },
+                    ]}
+                  >
                     {teamName.substring(0, 2).toUpperCase()}
                   </Text>
                 </View>
               )}
             </View>
             {/* Nombre Equipo A */}
-            <Text style={[
-              styles.teamName,
-              isSmallScreen && { fontSize: 14 }
-            ]}>{teamName}</Text>
+            <Text style={[styles.teamName, isSmallScreen && { fontSize: 14 }]}>
+              {teamName}
+            </Text>
           </View>
 
           {/* Centro: Puntuación */}
           <View style={styles.scoreContainer}>
             <Text style={styles.scoreText}>
-              <Text style={[
-                styles.teamScore,
-                isSmallScreen && { fontSize: 24 }
-              ]}>{match?.teamAScore || 0}</Text>
-              <Text style={[
-                styles.scoreSeparator,
-                isSmallScreen && { fontSize: 24 }
-              ]}> - </Text>
-              <Text style={[
-                styles.teamScore,
-                isSmallScreen && { fontSize: 24 }
-              ]}>{match?.teamBScore || 0}</Text>
+              <Text
+                style={[styles.teamScore, isSmallScreen && { fontSize: 24 }]}
+              >
+                {match?.teamAScore || 0}
+              </Text>
+              <Text
+                style={[
+                  styles.scoreSeparator,
+                  isSmallScreen && { fontSize: 24 },
+                ]}
+              >
+                {" "}
+                -{" "}
+              </Text>
+              <Text
+                style={[styles.teamScore, isSmallScreen && { fontSize: 24 }]}
+              >
+                {match?.teamBScore || 0}
+              </Text>
             </Text>
           </View>
 
           {/* Lado derecho: Equipo B (Nombre + Logo) */}
           <View style={styles.teamSideRight}>
             {/* Nombre Equipo B */}
-            <Text style={[
-              styles.teamName,
-              isSmallScreen && { fontSize: 14 }
-            ]}>
+            <Text style={[styles.teamName, isSmallScreen && { fontSize: 14 }]}>
               {match?.opponentTeam?.name || "Oponente"}
             </Text>
             {/* Logo Equipo B */}
@@ -1033,18 +1194,30 @@ export default function StatsView({ route, navigation }) {
                   source={{ uri: match.opponentTeam.photo }}
                   style={[
                     styles.teamLogo,
-                    isSmallScreen && { width: 40, height: 40, borderRadius: 20 }
+                    isSmallScreen && {
+                      width: 40,
+                      height: 40,
+                      borderRadius: 20,
+                    },
                   ]}
                 />
               ) : (
-                <View style={[
-                  styles.logoPlaceholder,
-                  isSmallScreen && { width: 40, height: 40, borderRadius: 20 }
-                ]}>
-                  <Text style={[
-                    styles.logoPlaceholderText,
-                    isSmallScreen && { fontSize: 14 }
-                  ]}>
+                <View
+                  style={[
+                    styles.logoPlaceholder,
+                    isSmallScreen && {
+                      width: 40,
+                      height: 40,
+                      borderRadius: 20,
+                    },
+                  ]}
+                >
+                  <Text
+                    style={[
+                      styles.logoPlaceholderText,
+                      isSmallScreen && { fontSize: 14 },
+                    ]}
+                  >
                     {(match?.opponentTeam?.name || "OP")
                       .substring(0, 2)
                       .toUpperCase()}
@@ -1105,6 +1278,22 @@ const styles = StyleSheet.create({
     left: 20,
     zIndex: 10,
     padding: 10,
+  },
+  finishButton: {
+    position: "absolute",
+    top: 40,
+    left: 20,
+    zIndex: 10,
+    padding: 10,
+    backgroundColor: "#28A745",
+    borderRadius: 8,
+    flexDirection: "row",
+    alignItems: "center",
+  },
+  finishButtonText: {
+    color: "white",
+    fontWeight: "bold",
+    fontSize: 16,
   },
   pdfButton: {
     position: "absolute",

@@ -14,9 +14,9 @@ import BoxSelector from "../../components/BoxSelector";
 import PrimaryButton from "../../components/PrimaryButton";
 import API_BASE_URL from "../../config/apiConfig";
 import { useQuery, useMutation } from "@tanstack/react-query";
-import SubpageTitle from "../../components/SubpageTitle";
 import ScreenContainer from "../../components/ScreenContainer";
 import { useDeviceType } from "../../components/ResponsiveUtils";
+import ScreenHeader from "../../components/ScreenHeader";
 
 export default function StartingPlayers({ route, navigation }) {
   const { teamId: routeTeamId, updatedMatch } = route.params;
@@ -25,16 +25,21 @@ export default function StartingPlayers({ route, navigation }) {
   const deviceType = useDeviceType();
 
   // Para detectar el tamaño de la pantalla y ajustar el layout
-  const [screenWidth, setScreenWidth] = useState(Dimensions.get('window').width);
+  const [screenWidth, setScreenWidth] = useState(
+    Dimensions.get("window").width
+  );
   const isLargeScreen = screenWidth > 768;
 
   // Actualizar dimensiones cuando cambie el tamaño de la pantalla
   useEffect(() => {
     const updateDimensions = () => {
-      setScreenWidth(Dimensions.get('window').width);
+      setScreenWidth(Dimensions.get("window").width);
     };
 
-    const subscription = Dimensions.addEventListener('change', updateDimensions);
+    const subscription = Dimensions.addEventListener(
+      "change",
+      updateDimensions
+    );
     return () => subscription.remove();
   }, []);
 
@@ -159,11 +164,15 @@ export default function StartingPlayers({ route, navigation }) {
     }
   };
 
+  const handleGoBack = () => {
+    navigation.goBack();
+  };
+
   // Función para renderizar cada jugador con su foto/número y posición
   const renderPlayerItem = (player) => {
     const isSelected = selectedPlayers.includes(player._id);
     const isSmallScreen = screenWidth < 480;
-    
+
     return (
       <TouchableOpacity
         style={[styles.itemButton]}
@@ -176,37 +185,50 @@ export default function StartingPlayers({ route, navigation }) {
           ]}
         >
           {player.player_photo ? (
-            <Image 
-              source={{ uri: player.player_photo }} 
+            <Image
+              source={{ uri: player.player_photo }}
               style={[
                 styles.playerPhoto,
-                isSmallScreen && { width: 60, height: 60, borderRadius: 30, marginRight: 15 }
-              ]} 
+                isSmallScreen && {
+                  width: 60,
+                  height: 60,
+                  borderRadius: 30,
+                  marginRight: 15,
+                },
+              ]}
             />
           ) : (
-            <View style={[
-              styles.playerNumberCircle,
-              isSmallScreen && { width: 50, height: 50, borderRadius: 25, marginRight: 15, marginLeft: 10 }
-            ]}>
-              <Text style={[
-                styles.playerNumberText,
-                isSmallScreen && { fontSize: 18 }
-              ]}>
+            <View
+              style={[
+                styles.playerNumberCircle,
+                isSmallScreen && {
+                  width: 50,
+                  height: 50,
+                  borderRadius: 25,
+                  marginRight: 15,
+                  marginLeft: 10,
+                },
+              ]}
+            >
+              <Text
+                style={[
+                  styles.playerNumberText,
+                  isSmallScreen && { fontSize: 18 },
+                ]}
+              >
                 {player.number || "0"}
               </Text>
             </View>
           )}
           <View style={styles.playerInfoContainer}>
-            <Text style={[
-              styles.playerName,
-              isSmallScreen && { fontSize: 18 }
-            ]}>
+            <Text
+              style={[styles.playerName, isSmallScreen && { fontSize: 18 }]}
+            >
               {player.name}
             </Text>
-            <Text style={[
-              styles.playerPosition,
-              isSmallScreen && { fontSize: 14 }
-            ]}>
+            <Text
+              style={[styles.playerPosition, isSmallScreen && { fontSize: 14 }]}
+            >
               {player.position || "Sin posición"}
             </Text>
           </View>
@@ -239,7 +261,10 @@ export default function StartingPlayers({ route, navigation }) {
           <Text style={styles.errorText}>
             {error?.message || "Error al cargar jugadores"}
           </Text>
-          <TouchableOpacity style={styles.retryButton} onPress={() => refetch()}>
+          <TouchableOpacity
+            style={styles.retryButton}
+            onPress={() => refetch()}
+          >
             <Text style={styles.retryButtonText}>Reintentar</Text>
           </TouchableOpacity>
         </View>
@@ -252,27 +277,30 @@ export default function StartingPlayers({ route, navigation }) {
       fullWidth={isLargeScreen}
       contentContainerStyle={styles.contentContainer}
     >
-      {/* Botón para volver */}
-      <TouchableOpacity
-        style={styles.backButton}
-        onPress={() => navigation.goBack()}
-      >
-        <Ionicons name="arrow-back" size={24} color="black" />
-      </TouchableOpacity>
-
-      {/* Usar el componente SubpageTitle */}
-      <SubpageTitle>Select Starting Players</SubpageTitle>
+      <ScreenHeader
+        title="Select the 5 starting players"
+        onBack={handleGoBack}
+        showBackButton={true}
+        isMainScreen={false}
+      />
 
       <View style={styles.content}>
         {/* Contador de jugadores seleccionados */}
-        <Text style={styles.selectionCounter}>{selectedPlayers.length}/5 players selected</Text>
-        
-        <View style={[
-          styles.boxSelectorContainer,
-          isLargeScreen ? { width: "70%" } : 
-          screenWidth < 480 ? { width: "95%" } : { width: "85%" },
-          isLargeScreen ? { height: "65%" } : { height: "55%" }
-        ]}>
+        <Text style={styles.selectionCounter}>
+          {selectedPlayers.length}/5 players selected
+        </Text>
+
+        <View
+          style={[
+            styles.boxSelectorContainer,
+            isLargeScreen
+              ? { width: "70%" }
+              : screenWidth < 480
+              ? { width: "95%" }
+              : { width: "85%" },
+            isLargeScreen ? { height: "65%" } : { height: "55%" },
+          ]}
+        >
           <BoxSelector
             items={players}
             onSelect={handleSelectPlayer}
@@ -285,8 +313,11 @@ export default function StartingPlayers({ route, navigation }) {
               style={[
                 styles.startButton,
                 selectedPlayers.length !== 5 && styles.disabledButton,
-                isLargeScreen ? { width: '30%' } : 
-                screenWidth < 480 ? { width: '60%' } : { width: '40%' }
+                isLargeScreen
+                  ? { width: "30%" }
+                  : screenWidth < 480
+                  ? { width: "60%" }
+                  : { width: "40%" },
               ]}
               textStyle={styles.startButtonText}
               disabled={selectedPlayers.length !== 5 || isPending}
@@ -359,7 +390,7 @@ const styles = StyleSheet.create({
   },
   backButton: {
     position: "absolute",
-    top: 40, 
+    top: 40,
     left: 20,
     zIndex: 10,
     padding: 10,
@@ -435,7 +466,7 @@ const styles = StyleSheet.create({
     backgroundColor: "#FFA500",
     paddingHorizontal: 60,
     paddingVertical: 15,
-    width: '30%',
+    width: "30%",
   },
   startButtonText: {
     color: "white",

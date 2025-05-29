@@ -18,6 +18,7 @@ import API_BASE_URL from "../../config/apiConfig";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import * as ImagePicker from "expo-image-picker";
 import ScreenContainer from "../../components/ScreenContainer";
+import ScreenHeader from "../../components/ScreenHeader";
 import { useDeviceType } from "../../components/ResponsiveUtils";
 
 export default function TeamDetailsScreen({ route, navigation }) {
@@ -26,16 +27,21 @@ export default function TeamDetailsScreen({ route, navigation }) {
   const deviceType = useDeviceType();
 
   // Para detectar el tamaño de la pantalla y ajustar el layout
-  const [screenWidth, setScreenWidth] = useState(Dimensions.get('window').width);
+  const [screenWidth, setScreenWidth] = useState(
+    Dimensions.get("window").width
+  );
   const isLargeScreen = screenWidth > 768;
 
   // Actualizar dimensiones cuando cambie el tamaño de la pantalla
   useEffect(() => {
     const updateDimensions = () => {
-      setScreenWidth(Dimensions.get('window').width);
+      setScreenWidth(Dimensions.get("window").width);
     };
 
-    const subscription = Dimensions.addEventListener('change', updateDimensions);
+    const subscription = Dimensions.addEventListener(
+      "change",
+      updateDimensions
+    );
     return () => subscription.remove();
   }, []);
 
@@ -295,6 +301,10 @@ export default function TeamDetailsScreen({ route, navigation }) {
     });
   };
 
+  const handleGoBack = () => {
+    navigation.goBack();
+  };
+
   // Verificar estado de carga y error
   const isLoading = isTeamLoading || isPlayersLoading || isMatchesLoading;
   const isError = isTeamError || isPlayersError || isMatchesError;
@@ -343,13 +353,11 @@ export default function TeamDetailsScreen({ route, navigation }) {
       fullWidth={isLargeScreen}
       contentContainerStyle={styles.contentContainer}
     >
-      {/* Botón para volver */}
-      <TouchableOpacity
-        style={styles.backButton}
-        onPress={() => navigation.goBack()}
-      >
-        <Ionicons name="arrow-back" size={24} color="black" />
-      </TouchableOpacity>
+      <ScreenHeader
+        onBack={handleGoBack}
+        showBackButton={true}
+        isMainScreen={false}
+      />
 
       <View style={styles.content}>
         {/* Cabecera del equipo */}

@@ -14,8 +14,8 @@ import BoxSelector from "../../components/BoxSelector";
 import { useOrientation } from "../../components/OrientationHandler";
 import API_BASE_URL from "../../config/apiConfig";
 import { useQuery } from "@tanstack/react-query";
-import SubpageTitle from "../../components/SubpageTitle";
 import ScreenContainer from "../../components/ScreenContainer";
+import ScreenHeader from "../../components/ScreenHeader";
 import { useDeviceType } from "../../components/ResponsiveUtils";
 
 export default function TeamMatchesScreen({ route, navigation }) {
@@ -23,16 +23,21 @@ export default function TeamMatchesScreen({ route, navigation }) {
   const deviceType = useDeviceType();
 
   // Para detectar el tamaño de la pantalla y ajustar el layout
-  const [screenWidth, setScreenWidth] = useState(Dimensions.get('window').width);
+  const [screenWidth, setScreenWidth] = useState(
+    Dimensions.get("window").width
+  );
   const isLargeScreen = screenWidth > 768;
 
   // Actualizar dimensiones cuando cambie el tamaño de la pantalla
   useEffect(() => {
     const updateDimensions = () => {
-      setScreenWidth(Dimensions.get('window').width);
+      setScreenWidth(Dimensions.get("window").width);
     };
 
-    const subscription = Dimensions.addEventListener('change', updateDimensions);
+    const subscription = Dimensions.addEventListener(
+      "change",
+      updateDimensions
+    );
     return () => subscription.remove();
   }, []);
 
@@ -110,6 +115,10 @@ export default function TeamMatchesScreen({ route, navigation }) {
     navigation.navigate("StatsView", { matchId: match._id });
   };
 
+  const handleGoBack = () => {
+    navigation.goBack();
+  };
+
   // Determinar estado de carga y error general
   const isLoading = isTeamLoading || isMatchesLoading;
   const isError = isTeamError || isMatchesError;
@@ -155,18 +164,12 @@ export default function TeamMatchesScreen({ route, navigation }) {
       fullWidth={isLargeScreen}
       contentContainerStyle={styles.contentContainer}
     >
-      {/* Botón para volver */}
-      <TouchableOpacity
-        style={styles.backButton}
-        onPress={() => navigation.goBack()}
-      >
-        <Ionicons name="arrow-back" size={24} color="black" />
-      </TouchableOpacity>
-
-      {/* Usar SubpageTitle en lugar de Text */}
-      <SubpageTitle>
-        {team ? `${team.name} Matches` : "Team Matches"}
-      </SubpageTitle>
+      <ScreenHeader
+        title={team ? `${team.name} matches` : "team matches"}
+        onBack={handleGoBack}
+        showBackButton={true}
+        isMainScreen={false}
+      />
 
       <View style={styles.content}>
         <BoxSelector
@@ -194,7 +197,7 @@ const styles = StyleSheet.create({
   },
   backButton: {
     position: "absolute",
-    top: 40, 
+    top: 40,
     left: 20,
     zIndex: 10,
     padding: 10,

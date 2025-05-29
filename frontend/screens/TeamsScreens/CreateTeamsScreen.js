@@ -12,8 +12,8 @@ import BoxFill from "../../components/BoxFill";
 import PrimaryButton from "../../components/PrimaryButton";
 import API_BASE_URL from "../../config/apiConfig";
 import { useMutation } from "@tanstack/react-query";
-import SubpageTitle from "../../components/SubpageTitle";
 import ScreenContainer from "../../components/ScreenContainer";
+import ScreenHeader from "../../components/ScreenHeader";
 import { useDeviceType } from "../../components/ResponsiveUtils";
 import ImageUploader from "../../components/ImageUploader";
 
@@ -78,28 +78,32 @@ export default function CreateTeamScreen({ route, navigation }) {
     },
   });
 
+  const handleGoBack = () => {
+    navigation.goBack();
+  };
+
   const handleSubmit = () => {
-  // Validar campos obligatorios
-  if (!formData.name || !formData.category) {
-    Alert.alert(
-      "Error",
-      "Please fill in the required fields: Name and Category"
-    );
-    return;
-  }
+    // Validar campos obligatorios
+    if (!formData.name || !formData.category) {
+      Alert.alert(
+        "Error",
+        "Please fill in the required fields: Name and Category"
+      );
+      return;
+    }
 
-  // Log para verificar los datos enviados
-  console.log("Datos enviados al servidor:", {
-    ...formData,
-    userId: userId,
-  });
+    // Log para verificar los datos enviados
+    console.log("Datos enviados al servidor:", {
+      ...formData,
+      userId: userId,
+    });
 
-  // Ejecutar la mutación
-  createTeam({
-    ...formData,
-    userId: userId,
-  });
-};
+    // Ejecutar la mutación
+    createTeam({
+      ...formData,
+      userId: userId,
+    });
+  };
 
   return (
     <ScreenContainer
@@ -107,16 +111,12 @@ export default function CreateTeamScreen({ route, navigation }) {
       contentContainerStyle={styles.contentContainer}
       scrollable={true}
     >
-      {/* Botón para volver */}
-      <TouchableOpacity
-        style={styles.backButton}
-        onPress={() => navigation.goBack()}
-      >
-        <Ionicons name="arrow-back" size={24} color="black" />
-      </TouchableOpacity>
-
-      {/* Título de la página */}
-      <SubpageTitle>Create New Team</SubpageTitle>
+      <ScreenHeader
+        title="Create a new team"
+        onBack={handleGoBack}
+        showBackButton={true}
+        isMainScreen={false}
+      />
 
       <View style={styles.content}>
         {/* Formulario de información del equipo */}
@@ -148,7 +148,9 @@ export default function CreateTeamScreen({ route, navigation }) {
 
           {/* Botón para crear el equipo */}
           <PrimaryButton
-            title={isPending ? "Creating..." : "Create the team and add players"}
+            title={
+              isPending ? "Creating..." : "Create the team and add players"
+            }
             onPress={handleSubmit}
             style={styles.createButton}
             disabled={isPending}
