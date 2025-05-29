@@ -11,24 +11,32 @@ import {
 import { useNavigation } from "@react-navigation/native";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { Ionicons } from "@expo/vector-icons";
-import { useDeviceType, useScreenDimensions } from "../../components/ResponsiveUtils";
+import {
+  useDeviceType,
+  useScreenDimensions,
+} from "../../components/ResponsiveUtils";
 import ScreenContainer from "../../components/ScreenContainer";
-import HeaderTitle from "../../components/HeaderTitle"; 
+import ScreenHeader from "../../components/ScreenHeader";
 
 export default function SettingsScreen({ handleLogout }) {
   const navigation = useNavigation();
   const deviceType = useDeviceType();
   const { width } = useScreenDimensions();
-  const [screenWidth, setScreenWidth] = useState(Dimensions.get('window').width);
+  const [screenWidth, setScreenWidth] = useState(
+    Dimensions.get("window").width
+  );
   const isLargeScreen = screenWidth > 768;
 
   // Update screen dimensions on window resize (important for web)
   useEffect(() => {
     const updateDimensions = () => {
-      setScreenWidth(Dimensions.get('window').width);
+      setScreenWidth(Dimensions.get("window").width);
     };
 
-    const subscription = Dimensions.addEventListener('change', updateDimensions);
+    const subscription = Dimensions.addEventListener(
+      "change",
+      updateDimensions
+    );
     return () => {
       subscription.remove();
     };
@@ -36,19 +44,15 @@ export default function SettingsScreen({ handleLogout }) {
 
   // Esta función maneja el cierre de sesión localmente
   const confirmLogout = () => {
-    if (Platform.OS === 'web') {
-      if (window.confirm('¿Estás seguro que deseas cerrar sesión?')) {
+    if (Platform.OS === "web") {
+      if (window.confirm("¿Estás seguro que deseas cerrar sesión?")) {
         handleLogout();
       }
     } else {
-      Alert.alert(
-        "Cerrar sesión",
-        "¿Estás seguro que deseas cerrar sesión?",
-        [
-          { text: "Cancelar", style: "cancel" },
-          { text: "Cerrar sesión", style: "destructive", onPress: handleLogout }
-        ]
-      );
+      Alert.alert("Cerrar sesión", "¿Estás seguro que deseas cerrar sesión?", [
+        { text: "Cancelar", style: "cancel" },
+        { text: "Cerrar sesión", style: "destructive", onPress: handleLogout },
+      ]);
     }
   };
 
@@ -57,8 +61,8 @@ export default function SettingsScreen({ handleLogout }) {
     try {
       await AsyncStorage.removeItem("user");
       console.log("Usuario eliminado del almacenamiento local");
-      
-      if (Platform.OS === 'web' && window) {
+
+      if (Platform.OS === "web" && window) {
         window.location.href = "/";
       } else {
         navigation.reset({
@@ -83,47 +87,46 @@ export default function SettingsScreen({ handleLogout }) {
   };
 
   const SettingItem = ({ icon, title, subtitle, onPress, color = "#333" }) => {
-    const isDesktop = deviceType === 'desktop';
-    
+    const isDesktop = deviceType === "desktop";
+
     return (
-      <TouchableOpacity 
-        style={[
-          styles.settingItem,
-          isDesktop && styles.settingItemDesktop
-        ]} 
+      <TouchableOpacity
+        style={[styles.settingItem, isDesktop && styles.settingItemDesktop]}
         onPress={onPress}
       >
-        <View style={[
-          styles.iconContainer, 
-          { backgroundColor: color + "20" },
-          isDesktop && styles.iconContainerDesktop
-        ]}>
-          <Ionicons 
-            name={icon} 
-            size={isDesktop ? 28 : 24} 
-            color={color} 
-          />
+        <View
+          style={[
+            styles.iconContainer,
+            { backgroundColor: color + "20" },
+            isDesktop && styles.iconContainerDesktop,
+          ]}
+        >
+          <Ionicons name={icon} size={isDesktop ? 28 : 24} color={color} />
         </View>
         <View style={styles.settingTextContainer}>
-          <Text style={[
-            styles.settingTitle,
-            isDesktop && styles.settingTitleDesktop
-          ]}>
+          <Text
+            style={[
+              styles.settingTitle,
+              isDesktop && styles.settingTitleDesktop,
+            ]}
+          >
             {title}
           </Text>
           {subtitle && (
-            <Text style={[
-              styles.settingSubtitle,
-              isDesktop && styles.settingSubtitleDesktop
-            ]}>
+            <Text
+              style={[
+                styles.settingSubtitle,
+                isDesktop && styles.settingSubtitleDesktop,
+              ]}
+            >
               {subtitle}
             </Text>
           )}
         </View>
-        <Ionicons 
-          name="chevron-forward" 
-          size={isDesktop ? 28 : 24} 
-          color="#999" 
+        <Ionicons
+          name="chevron-forward"
+          size={isDesktop ? 28 : 24}
+          color="#999"
         />
       </TouchableOpacity>
     );
@@ -134,13 +137,19 @@ export default function SettingsScreen({ handleLogout }) {
       fullWidth={isLargeScreen}
       contentContainerStyle={styles.contentContainer}
     >
-      <HeaderTitle>Configuración</HeaderTitle>
+      <ScreenHeader
+        title="Configuration"
+        showBackButton={false}
+        isMainScreen={true}
+      />
 
       <View style={styles.content}>
-        <Text style={[
-          styles.sectionTitle,
-          deviceType === 'desktop' && styles.sectionTitleDesktop
-        ]}>
+        <Text
+          style={[
+            styles.sectionTitle,
+            deviceType === "desktop" && styles.sectionTitleDesktop,
+          ]}
+        >
           Cuenta
         </Text>
 
@@ -171,10 +180,12 @@ export default function SettingsScreen({ handleLogout }) {
 
         <View style={styles.separator} />
 
-        <Text style={[
-          styles.sectionTitle,
-          deviceType === 'desktop' && styles.sectionTitleDesktop
-        ]}>
+        <Text
+          style={[
+            styles.sectionTitle,
+            deviceType === "desktop" && styles.sectionTitleDesktop,
+          ]}
+        >
           Aplicación
         </Text>
 
@@ -189,9 +200,8 @@ export default function SettingsScreen({ handleLogout }) {
         {/* Para depuración - Solo visible en desarrollo */}
         {__DEV__ && (
           <Text style={styles.debugText}>
-            Plataforma: {Platform.OS} | 
-            Tipo: {deviceType} | 
-            Ancho: {screenWidth}px
+            Plataforma: {Platform.OS} | Tipo: {deviceType} | Ancho:{" "}
+            {screenWidth}px
           </Text>
         )}
       </View>

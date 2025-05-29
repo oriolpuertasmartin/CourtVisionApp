@@ -9,7 +9,7 @@ import {
 } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import ScreenContainer from "../components/ScreenContainer";
-import HeaderTitle from "../components/HeaderTitle";
+import ScreenHeader from "../../components/ScreenHeader";
 
 export default function InfoScreen() {
   const [orientation, setOrientation] = useState(
@@ -53,8 +53,11 @@ export default function InfoScreen() {
       fullWidth={isLargeScreen}
       contentContainerStyle={styles.contentContainer}
     >
-      {/* Título usando el componente HeaderTitle */}
-      <HeaderTitle>Information</HeaderTitle>
+      <ScreenHeader
+        title="Information"
+        showBackButton={false}
+        isMainScreen={true}
+      />
 
       <View style={styles.content}>
         {/* Cada sección */}

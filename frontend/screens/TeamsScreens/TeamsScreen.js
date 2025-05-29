@@ -16,7 +16,7 @@ import API_BASE_URL from "../../config/apiConfig";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { Ionicons } from "@expo/vector-icons";
 import ConfirmModal from "../../components/ConfirmModal";
-import HeaderTitle from "../../components/HeaderTitle";
+import ScreenHeader from "../../components/ScreenHeader";
 import ScreenContainer from "../../components/ScreenContainer";
 import { useDeviceType } from "../../components/ResponsiveUtils";
 
@@ -331,9 +331,12 @@ export default function TeamsScreen({ navigation, route }) {
       fullWidth={isLargeScreen}
       contentContainerStyle={styles.contentContainer}
     >
-      {/* Usar el componente HeaderTitle */}
-      <HeaderTitle>My teams</HeaderTitle>
-
+      <ScreenHeader
+        title="My Teams"
+        showBackButton={false}
+        isMainScreen={true}
+      />
+    
       {isLoading ? renderLoading() : isError ? renderError() : renderTeamsList()}
 
       {/* Modal de confirmación personalizado */}

@@ -8,27 +8,32 @@ import {
   ActivityIndicator,
   Image,
   Dimensions,
-  Platform
+  Platform,
 } from "react-native";
 import BoxSelector from "../../components/BoxSelector";
 import API_BASE_URL from "../../config/apiConfig";
 import { useQuery, useMutation } from "@tanstack/react-query";
-import HeaderTitle from "../../components/HeaderTitle";
+import ScreenHeader from "../../components/ScreenHeader";
 import ScreenContainer from "../../components/ScreenContainer";
 import { useDeviceType } from "../../components/ResponsiveUtils";
 
 export default function StartMatchScreen({ user, navigation }) {
   const deviceType = useDeviceType();
-  const [screenWidth, setScreenWidth] = useState(Dimensions.get('window').width);
+  const [screenWidth, setScreenWidth] = useState(
+    Dimensions.get("window").width
+  );
   const isLargeScreen = screenWidth > 768;
 
   // Actualizar dimensiones cuando cambie el tamaño de la pantalla
   useEffect(() => {
     const updateDimensions = () => {
-      setScreenWidth(Dimensions.get('window').width);
+      setScreenWidth(Dimensions.get("window").width);
     };
 
-    const subscription = Dimensions.addEventListener('change', updateDimensions);
+    const subscription = Dimensions.addEventListener(
+      "change",
+      updateDimensions
+    );
     return () => subscription.remove();
   }, []);
 
@@ -86,56 +91,55 @@ export default function StartMatchScreen({ user, navigation }) {
 
   // Función para renderizar cada equipo con su logo/foto y categoría
   const renderTeamItem = (team, isSelected) => {
-    const isDesktop = deviceType === 'desktop';
-    
+    const isDesktop = deviceType === "desktop";
+
     return (
       // Envuelve todo en TouchableOpacity para que siga siendo un botón
       <TouchableOpacity
-        style={[
-          styles.itemButton,
-          isDesktop && styles.itemButtonDesktop
-        ]}
+        style={[styles.itemButton, isDesktop && styles.itemButtonDesktop]}
         onPress={() => handleSelectTeam(team)}
       >
         <View
           style={[
             styles.teamItemContainer,
             isSelected ? styles.selectedTeamItem : null,
-            isDesktop && styles.teamItemContainerDesktop
+            isDesktop && styles.teamItemContainerDesktop,
           ]}
         >
           {team.team_photo ? (
-            <Image 
-              source={{ uri: team.team_photo }} 
-              style={[
-                styles.teamLogo,
-                isDesktop && styles.teamLogoDesktop
-              ]} 
+            <Image
+              source={{ uri: team.team_photo }}
+              style={[styles.teamLogo, isDesktop && styles.teamLogoDesktop]}
             />
           ) : (
-            <View style={[
-              styles.teamLogoPlaceholder,
-              isDesktop && styles.teamLogoPlaceholderDesktop
-            ]}>
-              <Text style={[
-                styles.teamLogoPlaceholderText,
-                isDesktop && { fontSize: 24 }
-              ]}>
+            <View
+              style={[
+                styles.teamLogoPlaceholder,
+                isDesktop && styles.teamLogoPlaceholderDesktop,
+              ]}
+            >
+              <Text
+                style={[
+                  styles.teamLogoPlaceholderText,
+                  isDesktop && { fontSize: 24 },
+                ]}
+              >
                 {team.name.substring(0, 2).toUpperCase()}
               </Text>
             </View>
           )}
           <View style={styles.teamInfoContainer}>
-            <Text style={[
-              styles.teamName,
-              isDesktop && styles.teamNameDesktop
-            ]}>
+            <Text
+              style={[styles.teamName, isDesktop && styles.teamNameDesktop]}
+            >
               {team.name}
             </Text>
-            <Text style={[
-              styles.teamCategory,
-              isDesktop && styles.teamCategoryDesktop
-            ]}>
+            <Text
+              style={[
+                styles.teamCategory,
+                isDesktop && styles.teamCategoryDesktop,
+              ]}
+            >
               {team.category || "Sin categoría"}
             </Text>
           </View>
@@ -150,7 +154,11 @@ export default function StartMatchScreen({ user, navigation }) {
         fullWidth={isLargeScreen}
         contentContainerStyle={styles.contentContainer}
       >
-        <HeaderTitle>Select your team</HeaderTitle>
+        <ScreenHeader
+          title="Select your Team"
+          showBackButton={false}
+          isMainScreen={true}
+        />
         <View style={styles.loadingContainer}>
           <ActivityIndicator size="large" color="#FFA500" />
           <Text style={styles.loadingText}>Cargando equipos...</Text>
@@ -165,12 +173,19 @@ export default function StartMatchScreen({ user, navigation }) {
         fullWidth={isLargeScreen}
         contentContainerStyle={styles.contentContainer}
       >
-        <HeaderTitle>Select your team</HeaderTitle>
+        <ScreenHeader
+          title="Select your Team"
+          showBackButton={false}
+          isMainScreen={true}
+        />
         <View style={styles.errorContainer}>
           <Text style={styles.errorText}>
             {error?.message || "Error al cargar equipos"}
           </Text>
-          <TouchableOpacity style={styles.retryButton} onPress={() => refetch()}>
+          <TouchableOpacity
+            style={styles.retryButton}
+            onPress={() => refetch()}
+          >
             <Text style={styles.retryButtonText}>Reintentar</Text>
           </TouchableOpacity>
         </View>
@@ -183,8 +198,12 @@ export default function StartMatchScreen({ user, navigation }) {
       fullWidth={isLargeScreen}
       contentContainerStyle={styles.contentContainer}
     >
-      <HeaderTitle>Select your team</HeaderTitle>
-      
+      <ScreenHeader
+        title="Select your Team"
+        showBackButton={false}
+        isMainScreen={true}
+      />
+
       <View style={styles.content}>
         <View style={styles.boxSelectorContainer}>
           <BoxSelector
@@ -196,14 +215,16 @@ export default function StartMatchScreen({ user, navigation }) {
             <TouchableOpacity
               style={[
                 styles.createButton,
-                deviceType === 'desktop' && styles.createButtonDesktop
+                deviceType === "desktop" && styles.createButtonDesktop,
               ]}
               onPress={() => navigation.navigate("Teams")}
             >
-              <Text style={[
-                styles.createButtonText,
-                deviceType === 'desktop' && styles.createButtonTextDesktop
-              ]}>
+              <Text
+                style={[
+                  styles.createButtonText,
+                  deviceType === "desktop" && styles.createButtonTextDesktop,
+                ]}
+              >
                 Create a new team
               </Text>
             </TouchableOpacity>
@@ -271,7 +292,7 @@ const styles = StyleSheet.create({
     backgroundColor: "#EB840B",
     paddingVertical: 20,
     borderRadius: 20,
-    width: "90%", 
+    width: "90%",
     alignItems: "center",
     marginTop: 10,
     alignSelf: "center",

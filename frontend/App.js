@@ -876,4 +876,12 @@ const styles = StyleSheet.create({
     marginTop: 20,
     color: "#333",
   },
+  // Estilos relacionados con la navegación que podemos mantener
+  navigatorContainer: {
+    flex: 1,
+  },
+  screenContainer: {
+    flex: 1,
+    position: 'relative',
+  },
 });
