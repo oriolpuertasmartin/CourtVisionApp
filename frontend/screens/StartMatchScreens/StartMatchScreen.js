@@ -155,7 +155,7 @@ export default function StartMatchScreen({ user, navigation }) {
         contentContainerStyle={styles.contentContainer}
       >
         <ScreenHeader
-          title="Select your Team"
+          title="Select your team"
           showBackButton={false}
           isMainScreen={true}
         />

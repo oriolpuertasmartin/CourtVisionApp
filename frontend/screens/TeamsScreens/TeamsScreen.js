@@ -332,7 +332,7 @@ export default function TeamsScreen({ navigation, route }) {
       contentContainerStyle={styles.contentContainer}
     >
       <ScreenHeader
-        title="My Teams"
+        title="My teams"
         showBackButton={false}
         isMainScreen={true}
       />

@@ -9,7 +9,7 @@ import {
 } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import ScreenContainer from "../components/ScreenContainer";
-import ScreenHeader from "../../components/ScreenHeader";
+import ScreenHeader from "../components/ScreenHeader";
 
 export default function InfoScreen() {
   const [orientation, setOrientation] = useState(
