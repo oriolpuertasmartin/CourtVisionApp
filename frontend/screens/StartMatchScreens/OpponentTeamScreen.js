@@ -69,20 +69,20 @@ export default function OpponentTeamScreen({ route, navigation }) {
       });
 
       if (!response.ok) {
-        throw new Error("Error al actualizar el partido");
+        throw new Error("Error updating match");
       }
 
       return await response.json();
     },
     onSuccess: (updatedMatch) => {
       Alert.alert(
-        "Actualizado",
-        "Datos del partido actualizados correctamente"
+        "Updated",
+        "Match data updated successfully"
       );
       navigation.navigate("StartingPlayers", { teamId, updatedMatch });
     },
     onError: () => {
-      Alert.alert("Error", "No se pudieron actualizar los datos del partido");
+      Alert.alert("Error", "Could not update match data");
     },
   });
 
@@ -93,8 +93,8 @@ export default function OpponentTeamScreen({ route, navigation }) {
   const handleSubmit = () => {
     if (!formData.nombre.trim()) {
       Alert.alert(
-        "Datos incompletos",
-        "Por favor ingresa al menos el nombre del equipo oponente"
+        "Incomplete Data",
+        "Please enter at least the opponent team name"
       );
       return;
     }

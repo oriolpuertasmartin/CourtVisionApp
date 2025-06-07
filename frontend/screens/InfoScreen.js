@@ -60,99 +60,99 @@ export default function InfoScreen() {
       />
 
       <View style={styles.content}>
-        {/* Cada sección */}
+        {/* Each section */}
         {renderSection(
           "about",
-          "Acerca de CourtVision",
+          "About CourtVision",
           "information-circle-outline",
           expandedSections.about,
           toggleSection,
           [
-            "CourtVision 1.0.0 es una app para gestión de equipos de baloncesto, con estadísticas en tiempo real.",
-            "Diseñada para entrenadores y analistas, permite registrar y analizar el rendimiento.",
+            "CourtVision 1.0.0 is an app for basketball team management, with real-time statistics.",
+            "Designed for coaches and analysts, it allows recording and analyzing performance.",
           ],
           [
-            "Gestión de equipos y jugadores",
-            "Registro de partidos en vivo",
-            "Análisis de estadísticas detallado",
-            "Exportación de reportes PDF",
-            "Optimizado para móvil y tablet",
+            "Team and player management",
+            "Live game recording",
+            "Detailed statistical analysis",
+            "PDF report export",
+            "Optimized for mobile and tablet",
           ]
         )}
 
         {renderSection(
           "teams",
-          "Creación de Equipos",
+          "Team Creation",
           "people-outline",
           expandedSections.teams,
           toggleSection,
           [
-            "Crea y administra múltiples equipos, cada uno con su plantilla y estadísticas.",
-            "Pasos para crear un nuevo equipo:"
+            "Create and manage multiple teams, each with its roster and statistics.",
+            "Steps to create a new team:"
           ],
           [
-            "Accede a 'Teams' en el menú principal",
-            "Pulsa 'Create a new team'",
-            "Completa nombre y categoría",
-            "Sube un logo opcional",
-            "Guarda el equipo y añade jugadores"
+            "Go to 'Teams' in the main menu",
+            "Tap 'Create a new team'",
+            "Complete name and category",
+            "Upload an optional logo",
+            "Save the team and add players"
           ]
         )}
 
         {renderSection(
           "players",
-          "Gestión de Jugadores",
+          "Player Management",
           "person-outline",
           expandedSections.players,
           toggleSection,
           [
-            "Cada equipo tiene su plantilla de jugadores con perfiles detallados.",
-            "Pasos para añadir jugadores:"
+            "Each team has its roster of players with detailed profiles.",
+            "Steps to add players:"
           ],
           [
-            "Selecciona un equipo y entra en 'Players'",
-            "Pulsa 'Add New Player'",
-            "Completa nombre, número y posición",
-            "Añade altura, peso y edad opcionalmente",
-            "Sube foto del jugador si deseas"
+            "Select a team and enter 'Players'",
+            "Tap 'Add New Player'",
+            "Complete name, number and position",
+            "Add height, weight and age optionally",
+            "Upload player photo if desired"
           ]
         )}
 
         {renderSection(
           "matches",
-          "Registro de Partidos",
+          "Game Recording",
           "basketball-outline",
           expandedSections.matches,
           toggleSection,
           [
-            "Registra partidos completos con estadísticas en tiempo real.",
-            "Pasos para iniciar un partido:"
+            "Record complete games with real-time statistics.",
+            "Steps to start a game:"
           ],
           [
-            "Accede a 'Start a Match'",
-            "Selecciona el equipo",
-            "Configura rival opcionalmente",
-            "Elige titulares",
-            "Registra acciones en vivo"
+            "Go to 'Start a Match'",
+            "Select the team",
+            "Configure opponent optionally",
+            "Choose starters",
+            "Record actions live"
           ]
         )}
 
         {renderSection(
           "stats",
-          "Análisis de Estadísticas",
+          "Statistical Analysis",
           "stats-chart-outline",
           expandedSections.stats,
           toggleSection,
           [
-            "Al terminar un partido, obtienes un análisis completo de rendimiento.",
-            "Estadísticas principales:"
+            "When finishing a game, you get a complete performance analysis.",
+            "Main statistics:"
           ],
           [
-            "Puntuaciones por cuarto y final",
-            "Rendimiento individual",
-            "Porcentajes de tiro",
-            "Rebotes, asistencias, robos",
-            "Valoración y métricas avanzadas"
+            "Quarter and final scores",
+            "Individual performance",
+            "Shooting percentages",
+            "Rebounds, assists, steals",
+            "Valuation and advanced metrics"
           ]
         )}
       </View>
@@ -174,7 +174,7 @@ function renderSection(key, title, iconName, expanded, toggleSection, paragraphs
         />
       </TouchableOpacity>
 
-      {/* Renderizar el contenido SOLO cuando expanded es true */}
+      {/* Render content ONLY when expanded is true */}
       {expanded && (
         <View style={styles.sectionContent}>
           {paragraphs.map((p, index) => (

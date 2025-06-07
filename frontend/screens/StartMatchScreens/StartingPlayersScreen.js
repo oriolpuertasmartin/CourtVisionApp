@@ -57,12 +57,12 @@ export default function StartingPlayers({ route, navigation }) {
     queryKey: ["players", "team", teamId],
     queryFn: async () => {
       if (!teamId) {
-        throw new Error("No se proporcionó un teamId válido");
+        throw new Error("No valid teamId provided");
       }
 
       const response = await fetch(`${API_BASE_URL}/players/team/${teamId}`);
       if (!response.ok) {
-        throw new Error(`Error al obtener los jugadores: ${response.status}`);
+        throw new Error(`Error getting players: ${response.status}`);
       }
 
       return await response.json();
@@ -84,7 +84,7 @@ export default function StartingPlayers({ route, navigation }) {
       );
 
       if (!updateResponse.ok) {
-        throw new Error("Error al guardar los jugadores titulares");
+        throw new Error("Error saving starting players");
       }
 
       const updatedMatchData = await updateResponse.json();
@@ -94,7 +94,7 @@ export default function StartingPlayers({ route, navigation }) {
         `${API_BASE_URL}/players/team/${teamId}`
       );
       if (!playersResponse.ok) {
-        throw new Error("Error al obtener los jugadores del equipo");
+        throw new Error("Error getting team players");
       }
 
       const allPlayers = await playersResponse.json();
@@ -111,7 +111,7 @@ export default function StartingPlayers({ route, navigation }) {
       });
 
       if (!statsResponse.ok) {
-        throw new Error("Error al inicializar las estadísticas");
+        throw new Error("Error initializing statistics");
       }
 
       // Paso 4: Inicializar estadísticas del oponente
@@ -125,13 +125,13 @@ export default function StartingPlayers({ route, navigation }) {
       });
 
       if (!opponentStatsResponse.ok) {
-        throw new Error("Error al inicializar las estadísticas del oponente");
+        throw new Error("Error initializing opponent statistics");
       }
 
       return updatedMatchData;
     },
     onSuccess: (data) => {
-      Alert.alert("Éxito", "Jugadores titulares guardados correctamente");
+      Alert.alert("Success", "Starting players saved successfully");
       navigation.navigate("StatsScreen", {
         selectedPlayers,
         matchId: updatedMatch._id,
@@ -141,7 +141,7 @@ export default function StartingPlayers({ route, navigation }) {
     onError: (error) => {
       Alert.alert(
         "Error",
-        `No se pudieron guardar los jugadores titulares: ${error.message}`
+        `Could not save starting players: ${error.message}`
       );
     },
   });
@@ -152,7 +152,7 @@ export default function StartingPlayers({ route, navigation }) {
     } else if (selectedPlayers.length < 5) {
       setSelectedPlayers([...selectedPlayers, player._id]);
     } else {
-      Alert.alert("Límite alcanzado", "Solo puedes seleccionar 5 jugadores.");
+      Alert.alert("Limit reached", "You can only select 5 players.");
     }
   };
 
@@ -161,8 +161,8 @@ export default function StartingPlayers({ route, navigation }) {
       startMatch();
     } else {
       Alert.alert(
-        "Selección incompleta",
-        "Por favor selecciona 5 jugadores para comenzar."
+        "Incomplete selection",
+        "Please select 5 players to start."
       );
     }
   };
@@ -310,7 +310,7 @@ export default function StartingPlayers({ route, navigation }) {
                 }
               ]}
             >
-              {player.position || "Sin posición"}
+              {player.position || "No position"}
             </Text>
           </View>
         </View>
@@ -338,7 +338,7 @@ export default function StartingPlayers({ route, navigation }) {
               marginTop: scale(15)
             }
           ]}>
-            Cargando jugadores...
+            Loading players...
           </Text>
         </View>
       </ScreenContainer>
@@ -364,7 +364,7 @@ export default function StartingPlayers({ route, navigation }) {
               marginBottom: scale(20)
             }
           ]}>
-            {error?.message || "Error al cargar jugadores"}
+            {error?.message || "Error loading players"}
           </Text>
           <TouchableOpacity
             style={[
@@ -388,7 +388,7 @@ export default function StartingPlayers({ route, navigation }) {
                 })
               }
             ]}>
-              Reintentar
+              Retry
             </Text>
           </TouchableOpacity>
         </View>
@@ -417,14 +417,14 @@ export default function StartingPlayers({ route, navigation }) {
 
   // Obtener el texto del botón apropiado para el tamaño de la pantalla
   const getButtonText = () => {
-    if (isPending) return "Guardando...";
+    if (isPending) return "Saving...";
     
     // Para pantallas muy pequeñas, usar un texto más corto
-    if (isVerySmallScreen) return "Iniciar";
-    if (isSmallScreen) return "Iniciar partido";
+    if (isVerySmallScreen) return "Start";
+    if (isSmallScreen) return "Start Match";
     
     // Para pantallas más grandes, usar el texto completo
-    return "Comenzar partido";
+    return "Start the match";
   };
 
   return (
@@ -472,7 +472,7 @@ export default function StartingPlayers({ route, navigation }) {
           <BoxSelector
             items={players}
             onSelect={handleSelectPlayer}
-            emptyMessage="No hay jugadores disponibles. Crea jugadores primero."
+            emptyMessage="No players available. Create players first."
             customRenderItem={renderPlayerItem}
           >
             {/* Reemplazo del PrimaryButton por un TouchableOpacity estilizado como en TeamsScreen */}
@@ -591,7 +591,6 @@ const styles = StyleSheet.create({
   playerPosition: {
     color: "#777",
   },
-  // Nuevos estilos que reemplazan los del botón de inicio
   createButton: {
     backgroundColor: "#EB840B",
     paddingVertical: 20,

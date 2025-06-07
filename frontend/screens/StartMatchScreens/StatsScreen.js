@@ -136,13 +136,13 @@ export default function StatsScreen({ route, navigation }) {
     async function fetchPlayers() {
       try {
         if (!teamId) {
-          Alert.alert("Error", "No se proporcionó un teamId válido.");
+          Alert.alert("Error", "No valid teamId provided.");
           return;
         }
 
         const response = await fetch(`${API_BASE_URL}/players/team/${teamId}`);
         if (!response.ok)
-          throw new Error("Error al obtener los jugadores del equipo.");
+          throw new Error("Error getting team players.");
         const data = await response.json();
 
         if (
@@ -161,7 +161,7 @@ export default function StatsScreen({ route, navigation }) {
         }
       } catch (error) {
         console.error("Error fetching players:", error);
-        Alert.alert("Error", "No se pudieron cargar los jugadores.");
+        Alert.alert("Error", "Could not load players.");
       }
     }
 
@@ -260,7 +260,7 @@ export default function StatsScreen({ route, navigation }) {
         console.log("Estadísticas inicializadas correctamente");
       } catch (error) {
         console.error("Error:", error);
-        Alert.alert("Error", "No se pudieron cargar los datos necesarios.");
+        Alert.alert("Error", "Could not load required data.");
       } finally {
         setLoading(false);
       }
@@ -277,8 +277,8 @@ export default function StatsScreen({ route, navigation }) {
   const handleStatUpdate = async (stat) => {
     if (!selectedPlayerId) {
       Alert.alert(
-        "Jugador no seleccionado",
-        "Por favor selecciona un jugador primero."
+        "Player not selected",
+        "Please select a player first."
       );
       return;
     }
@@ -296,7 +296,7 @@ export default function StatsScreen({ route, navigation }) {
 
       if (!playerStats || !playerStats.statsId) {
         throw new Error(
-          "No se encontró el documento de estadísticas para el jugador seleccionado."
+          "Stats document not found for the selected player."
         );
       }
 
@@ -410,7 +410,7 @@ export default function StatsScreen({ route, navigation }) {
       );
 
       if (!response.ok) {
-        throw new Error("Error al actualizar las estadísticas del jugador.");
+        throw new Error("Error updating player statistics.");
       }
 
       // Procesar respuesta y actualizar la interfaz
@@ -436,7 +436,7 @@ export default function StatsScreen({ route, navigation }) {
       console.log("Estadísticas actualizadas correctamente");
     } catch (error) {
       console.error("Error al actualizar las estadísticas:", error);
-      Alert.alert("Error", "No se pudieron actualizar las estadísticas.");
+      Alert.alert("Error", "Could not update statistics.");
     }
   };
 
@@ -458,7 +458,7 @@ export default function StatsScreen({ route, navigation }) {
       });
 
       if (!response.ok) {
-        throw new Error("Error al finalizar el partido");
+        throw new Error("Error finishing the match");
       }
 
       // Update team stats based on game result
@@ -485,8 +485,8 @@ export default function StatsScreen({ route, navigation }) {
           const updatedTeam = await teamStatsResponse.json();
           console.log("Respuesta actualización equipo:", updatedTeam);
           Alert.alert(
-            "Equipo actualizado",
-            `Victorias: ${updatedTeam.wins}, Derrotas: ${updatedTeam.losses}`
+            "Team updated",
+            `Wins: ${updatedTeam.wins}, Losses: ${updatedTeam.losses}`
           );
         }
       }
@@ -509,7 +509,7 @@ export default function StatsScreen({ route, navigation }) {
       });
     } catch (error) {
       console.error("Error al finalizar el partido:", error);
-      Alert.alert("Error", "No se pudo finalizar el partido correctamente.");
+      Alert.alert("Error", "Could not finish the match correctly.");
     }
   };
 
@@ -775,7 +775,7 @@ export default function StatsScreen({ route, navigation }) {
       >
         <View style={styles.loadingContainer}>
           <ActivityIndicator size="large" color="#FFA500" />
-          <Text style={styles.loadingText}>Cargando datos...</Text>
+          <Text style={styles.loadingText}>Loading data...</Text>
         </View>
       </ScreenContainer>
     );

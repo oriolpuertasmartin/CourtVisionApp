@@ -32,13 +32,13 @@ export default function SignUp({ navigation }) {
     mutationFn: (userData) => authService.register(userData),
     onSuccess: (data) => {
       Alert.alert(
-        "Registro exitoso",
-        "Tu cuenta ha sido creada correctamente."
+        "Registration successful",
+        "Your account has been created successfully."
       );
       navigation.navigate("Login");
     },
     onError: (error) => {
-      Alert.alert("Error en el registro", error.message);
+      Alert.alert("Registration error", error.message);
     },
   });
 
@@ -54,14 +54,14 @@ export default function SignUp({ navigation }) {
     const { name, username, email, password, phone } = formData;
 
     if (!name || !username || !email || !password || !phone) {
-      Alert.alert("Error", "Por favor, completa todos los campos.");
+      Alert.alert("Error", "Please complete all fields.");
       return;
     }
 
     // Validación básica de email
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     if (!emailRegex.test(email)) {
-      Alert.alert("Error", "Por favor, introduce un email válido.");
+      Alert.alert("Error", "Please enter a valid email address.");
       return;
     }
 

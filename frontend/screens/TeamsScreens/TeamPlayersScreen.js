@@ -76,7 +76,7 @@ export default function TeamPlayersScreen({ route, navigation }) {
     queryFn: async () => {
       const response = await fetch(`${API_BASE_URL}/teams/${teamId}`);
       if (!response.ok) {
-        throw new Error(`Error al cargar el equipo: ${response.status}`);
+        throw new Error(`Error loading team: ${response.status}`);
       }
       return await response.json();
     },
@@ -95,7 +95,7 @@ export default function TeamPlayersScreen({ route, navigation }) {
     queryFn: async () => {
       const response = await fetch(`${API_BASE_URL}/players/team/${teamId}`);
       if (!response.ok) {
-        throw new Error(`Error al cargar los jugadores: ${response.status}`);
+        throw new Error(`Error loading players: ${response.status}`);
       }
       return await response.json();
     },
@@ -128,7 +128,7 @@ export default function TeamPlayersScreen({ route, navigation }) {
         if (!response.ok) {
           const errorData = await response.text();
           throw new Error(
-            `Error al eliminar el jugador: ${response.status} ${errorData}`
+            `Error deleting player: ${response.status} ${errorData}`
           );
         }
 
@@ -149,7 +149,7 @@ export default function TeamPlayersScreen({ route, navigation }) {
       console.error("Error en mutación:", error);
       setModalVisible(false);
       setPlayerToDelete(null);
-      Alert.alert("Error", `No se pudo eliminar el jugador: ${error.message}`);
+      Alert.alert("Error", `Could not delete player: ${error.message}`);
     },
   });
 
@@ -171,7 +171,7 @@ export default function TeamPlayersScreen({ route, navigation }) {
       if (!response.ok) {
         const errorData = await response.text();
         throw new Error(
-          `Error al actualizar el jugador: ${response.status} ${errorData}`
+          `Error updating player: ${response.status} ${errorData}`
         );
       }
 
@@ -183,13 +183,13 @@ export default function TeamPlayersScreen({ route, navigation }) {
       setIsEditing(false);
       setPlayerToEdit(null);
       setImagePreview(null);
-      Alert.alert("Éxito", "Jugador actualizado correctamente");
+      Alert.alert("Success", "Player updated successfully");
     },
     onError: (error) => {
       console.error("Error en mutación:", error);
       Alert.alert(
         "Error",
-        `No se pudo actualizar el jugador: ${error.message}`
+        `Could not update player: ${error.message}`
       );
     },
   });
@@ -239,7 +239,7 @@ export default function TeamPlayersScreen({ route, navigation }) {
       !editablePlayer.number ||
       !editablePlayer.position
     ) {
-      Alert.alert("Error", "Nombre, número y posición son campos obligatorios");
+      Alert.alert("Error", "Name, number and position are required fields");
       return;
     }
 
@@ -335,7 +335,7 @@ export default function TeamPlayersScreen({ route, navigation }) {
               onChangeText={(text) =>
                 setEditablePlayer((prev) => ({ ...prev, name: text }))
               }
-              placeholder="Nombre"
+              placeholder="Name"
             />
             <TextInput
               style={styles.playerEditInput}
@@ -343,7 +343,7 @@ export default function TeamPlayersScreen({ route, navigation }) {
               onChangeText={(text) =>
                 setEditablePlayer((prev) => ({ ...prev, number: text }))
               }
-              placeholder="Número"
+              placeholder="Number"
               keyboardType="numeric"
             />
             <TextInput
@@ -352,7 +352,7 @@ export default function TeamPlayersScreen({ route, navigation }) {
               onChangeText={(text) =>
                 setEditablePlayer((prev) => ({ ...prev, position: text }))
               }
-              placeholder="Posición"
+              placeholder="Position"
             />
             <View style={styles.playerEditRow}>
               <TextInput
@@ -361,7 +361,7 @@ export default function TeamPlayersScreen({ route, navigation }) {
                 onChangeText={(text) =>
                   setEditablePlayer((prev) => ({ ...prev, height: text }))
                 }
-                placeholder="Altura"
+                placeholder="Height"
                 keyboardType="numeric"
               />
               <TextInput
@@ -370,7 +370,7 @@ export default function TeamPlayersScreen({ route, navigation }) {
                 onChangeText={(text) =>
                   setEditablePlayer((prev) => ({ ...prev, weight: text }))
                 }
-                placeholder="Peso"
+                placeholder="Weight"
                 keyboardType="numeric"
               />
             </View>
@@ -386,7 +386,7 @@ export default function TeamPlayersScreen({ route, navigation }) {
                 ) : (
                   <>
                     <Ionicons name="save-outline" size={20} color="white" />
-                    <Text style={styles.editButtonText}>Guardar</Text>
+                    <Text style={styles.editButtonText}>Save</Text>
                   </>
                 )}
               </TouchableOpacity>
@@ -396,7 +396,7 @@ export default function TeamPlayersScreen({ route, navigation }) {
                 disabled={isUpdating}
               >
                 <Ionicons name="close-outline" size={20} color="white" />
-                <Text style={styles.editButtonText}>Cancelar</Text>
+                <Text style={styles.editButtonText}>Cancel</Text>
               </TouchableOpacity>
             </View>
           </View>
@@ -463,7 +463,7 @@ export default function TeamPlayersScreen({ route, navigation }) {
       >
         <View style={styles.loadingContainer}>
           <ActivityIndicator size="large" color="#FFA500" />
-          <Text style={styles.loadingText}>Cargando jugadores...</Text>
+          <Text style={styles.loadingText}>Loading players...</Text>
         </View>
       </ScreenContainer>
     );
@@ -477,13 +477,13 @@ export default function TeamPlayersScreen({ route, navigation }) {
       >
         <View style={styles.loadingContainer}>
           <Text style={styles.errorText}>
-            {errorMessage || "Error al cargar datos"}
+            {errorMessage || "Error loading data"}
           </Text>
           <TouchableOpacity
             style={styles.retryButton}
             onPress={() => refetchPlayers()}
           >
-            <Text style={styles.retryButtonText}>Reintentar</Text>
+            <Text style={styles.retryButtonText}>Retry</Text>
           </TouchableOpacity>
         </View>
       </ScreenContainer>
@@ -534,8 +534,8 @@ export default function TeamPlayersScreen({ route, navigation }) {
       {/* Modal de confirmación */}
       <ConfirmModal
         visible={modalVisible}
-        title="Confirmar eliminación"
-        message="¿Estás seguro que deseas eliminar este jugador? Esta acción no se puede deshacer."
+        title="Confirm deletion"
+        message="Are you sure you want to delete this player? This action cannot be undone."
         onConfirm={confirmDelete}
         onCancel={() => {
           setModalVisible(false);

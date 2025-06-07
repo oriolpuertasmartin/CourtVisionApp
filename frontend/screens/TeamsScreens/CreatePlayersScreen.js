@@ -162,9 +162,9 @@ export default function CreatePlayersScreen({ route, navigation }) {
   const handleAddPlayer = () => {
     if (players && players.length >= 13) {
       Alert.alert(
-        "Límite de jugadores alcanzado",
-        "No puedes añadir más de 13 jugadores a un equipo.",
-        [{ text: "Entendido", style: "default" }]
+        "Player limit reached",
+        "You cannot add more than 13 players to a team.",
+        [{ text: "Understood", style: "default" }]
       );
       return;
     }
@@ -188,8 +188,8 @@ export default function CreatePlayersScreen({ route, navigation }) {
 
     if (existingPlayerWithNumber) {
       Alert.alert(
-        "Número duplicado",
-        `Ya existe un jugador con el número ${formData.number}. Por favor, usa otro número.`
+        "Duplicate number",
+        `A player with number ${formData.number} already exists. Please use another number.`
       );
       return;
     }
@@ -289,8 +289,8 @@ export default function CreatePlayersScreen({ route, navigation }) {
 
       <Text style={styles.helperText}>
         {players.length < 13
-          ? `Puedes añadir ${13 - players.length} jugadores más`
-          : "Límite de jugadores alcanzado (13/13)"}
+          ? `You can add ${13 - players.length} more players`
+          : "Player limit reached (13/13)"}
       </Text>
 
       <PrimaryButton

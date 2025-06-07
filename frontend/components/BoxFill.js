@@ -48,11 +48,11 @@ const BoxFill = ({
         phone: 20,
         smallPhone: 15
       }),
-      horizontal: conditionalScale(8, {
-        desktop: 15,
-        tablet: 12,
-        phone: 10,
-        smallPhone: 8
+      horizontal: conditionalScale(15, {
+        desktop: 25,
+        tablet: 20,
+        phone: 18,
+        smallPhone: 15
       })
     };
   };

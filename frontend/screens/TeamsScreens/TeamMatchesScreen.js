@@ -55,7 +55,7 @@ export default function TeamMatchesScreen({ route, navigation }) {
     queryFn: async () => {
       const response = await fetch(`${API_BASE_URL}/teams/${teamId}`);
       if (!response.ok) {
-        throw new Error(`Error al cargar el equipo: ${response.status}`);
+        throw new Error(`Error loading team: ${response.status}`);
       }
       return await response.json();
     },
@@ -74,7 +74,7 @@ export default function TeamMatchesScreen({ route, navigation }) {
     queryFn: async () => {
       const response = await fetch(`${API_BASE_URL}/matches`);
       if (!response.ok) {
-        throw new Error(`Error al cargar los partidos: ${response.status}`);
+        throw new Error(`Error loading matches: ${response.status}`);
       }
       return await response.json();
     },
@@ -96,7 +96,7 @@ export default function TeamMatchesScreen({ route, navigation }) {
     // Formatear los partidos para el BoxSelector
     return teamMatches.map((match) => {
       const matchDate = new Date(match.date).toLocaleDateString();
-      const status = match.status === "completed" ? "Final" : "En progreso";
+      const status = match.status === "completed" ? "Final" : "In progress";
 
       return {
         _id: match._id,
@@ -132,7 +132,7 @@ export default function TeamMatchesScreen({ route, navigation }) {
       >
         <View style={styles.loadingContainer}>
           <ActivityIndicator size="large" color="#FFA500" />
-          <Text style={styles.loadingText}>Cargando partidos...</Text>
+          <Text style={styles.loadingText}>Loading matches...</Text>
         </View>
       </ScreenContainer>
     );
@@ -146,13 +146,13 @@ export default function TeamMatchesScreen({ route, navigation }) {
       >
         <View style={styles.errorContainer}>
           <Text style={styles.errorText}>
-            {errorMessage || "Error al cargar los partidos"}
+            {errorMessage || "Error loading matches"}
           </Text>
           <TouchableOpacity
             style={styles.retryButton}
             onPress={() => refetchMatches()}
           >
-            <Text style={styles.retryButtonText}>Reintentar</Text>
+            <Text style={styles.retryButtonText}>Retry</Text>
           </TouchableOpacity>
         </View>
       </ScreenContainer>

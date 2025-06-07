@@ -27,18 +27,18 @@ export default function LogIn({ navigation, setUser }) {
     mutationFn: (credentials) => authService.login(credentials),
     onSuccess: (data) => {
       setUser(data);
-      Alert.alert("Inicio de sesión exitoso", "Bienvenido de nuevo.");
+      Alert.alert("Login successful", "Welcome back.");
       navigation.navigate("Main");
     },
     onError: (error) => {
-      Alert.alert("Error en el inicio de sesión", error.message);
+      Alert.alert("Login error", error.message);
     },
   });
 
   const handleLogin = () => {
     // Validación de campos
     if (!email || !password) {
-      Alert.alert("Error", "Por favor, completa todos los campos.");
+      Alert.alert("Error", "Please complete all fields.");
       return;
     }
 
@@ -48,7 +48,7 @@ export default function LogIn({ navigation, setUser }) {
 
   return (
     <View style={styles.screen}>
-      <Text style={styles.principalText}>Iniciar Sesión</Text>
+      <Text style={styles.principalText}>Log In</Text>
       <View style={styles.box}>
         <View style={styles.boxinside}>
           <TextInput
@@ -95,7 +95,7 @@ export default function LogIn({ navigation, setUser }) {
           </TouchableOpacity>
         </View>
         <View style={styles.bottomtext}>
-          <Text>¿No tienes una cuenta?</Text>
+          <Text>Don't have an account?</Text>
           <TouchableOpacity
             onPress={() => navigation.navigate("Register")}
             disabled={isPending}

@@ -40,15 +40,15 @@ export default function ChangePasswordScreen({ navigation }) {
         if (userString) {
           const user = JSON.parse(userString);
           setUserId(user._id);
-          console.log("ID de usuario cargado:", user._id);
+          console.log("User ID loaded:", user._id);
         } else {
-          console.warn("No se encontró información del usuario");
-          Alert.alert("Error", "No se encontró información del usuario");
+          console.warn("User information not found");
+          Alert.alert("Error", "User information not found");
           navigation.goBack();
         }
       } catch (error) {
         console.error("Error loading user from AsyncStorage:", error);
-        Alert.alert("Error", "Error al cargar la información del usuario");
+        Alert.alert("Error", "Error loading user information");
         navigation.goBack();
       }
     };
@@ -63,7 +63,7 @@ export default function ChangePasswordScreen({ navigation }) {
         throw new Error("User ID is required");
       }
 
-      console.log("Enviando solicitud de cambio de contraseña:", {
+      console.log("Sending password change request:", {
         userId,
         currentPassword: data.currentPassword,
         newPassword: data.newPassword,
@@ -84,25 +84,25 @@ export default function ChangePasswordScreen({ navigation }) {
       );
 
       // Log de la respuesta
-      console.log("Respuesta del servidor:", response.status);
+      console.log("Server response:", response.status);
 
       if (!response.ok) {
         const errorData = await response.json();
-        console.error("Error del servidor:", errorData);
+        console.error("Server error:", errorData);
         throw new Error(errorData.message || "Failed to change password");
       }
 
       return await response.json();
     },
     onSuccess: (data) => {
-      console.log("Contraseña cambiada exitosamente:", data);
-      Alert.alert("Éxito", "Tu contraseña ha sido cambiada correctamente.", [
+      console.log("Password changed successfully:", data);
+      Alert.alert("Success", "Your password has been changed successfully.", [
         { text: "OK", onPress: () => navigation.goBack() },
       ]);
     },
     onError: (error) => {
-      console.error("Error al cambiar la contraseña:", error);
-      Alert.alert("Error", error.message || "No se pudo cambiar la contraseña");
+      console.error("Error changing password:", error);
+      Alert.alert("Error", error.message || "Could not change password");
     },
   });
 
@@ -117,7 +117,7 @@ export default function ChangePasswordScreen({ navigation }) {
       !passwordData.newPassword ||
       !passwordData.confirmPassword
     ) {
-      Alert.alert("Error", "Todos los campos son obligatorios");
+      Alert.alert("Error", "All fields are required");
       return;
     }
 
@@ -125,14 +125,14 @@ export default function ChangePasswordScreen({ navigation }) {
     if (passwordData.newPassword.length < 6) {
       Alert.alert(
         "Error",
-        "La nueva contraseña debe tener al menos 6 caracteres"
+        "New password must be at least 6 characters long"
       );
       return;
     }
 
     // Validar que las contraseñas nuevas coincidan
     if (passwordData.newPassword !== passwordData.confirmPassword) {
-      Alert.alert("Error", "Las contraseñas nuevas no coinciden");
+      Alert.alert("Error", "New passwords do not match");
       return;
     }
 
@@ -156,7 +156,7 @@ export default function ChangePasswordScreen({ navigation }) {
       contentContainerStyle={styles.contentContainer}
     >
       <ScreenHeader 
-        title="Cambiar Contraseña" 
+        title="Change Password" 
         onBack={handleGoBack} 
         isMainScreen={false}
       />
@@ -167,7 +167,7 @@ export default function ChangePasswordScreen({ navigation }) {
       ]}>
         {/* Campo para la contraseña actual */}
         <View style={styles.inputSection}>
-          <Text style={styles.inputLabel}>Contraseña Actual</Text>
+          <Text style={styles.inputLabel}>Current Password</Text>
           <View style={styles.passwordContainer}>
             <TextInput
               style={styles.input}
@@ -178,7 +178,7 @@ export default function ChangePasswordScreen({ navigation }) {
                   currentPassword: text,
                 }))
               }
-              placeholder="Ingresa tu contraseña actual"
+              placeholder="Enter your current password"
               secureTextEntry={!showCurrentPassword}
               editable={!isPending}
             />
@@ -197,7 +197,7 @@ export default function ChangePasswordScreen({ navigation }) {
 
         {/* Campo para la nueva contraseña */}
         <View style={styles.inputSection}>
-          <Text style={styles.inputLabel}>Nueva Contraseña</Text>
+          <Text style={styles.inputLabel}>New Password</Text>
           <View style={styles.passwordContainer}>
             <TextInput
               style={styles.input}
@@ -205,7 +205,7 @@ export default function ChangePasswordScreen({ navigation }) {
               onChangeText={(text) =>
                 setPasswordData((prev) => ({ ...prev, newPassword: text }))
               }
-              placeholder="Ingresa tu nueva contraseña"
+              placeholder="Enter your new password"
               secureTextEntry={!showNewPassword}
               editable={!isPending}
             />
@@ -220,12 +220,12 @@ export default function ChangePasswordScreen({ navigation }) {
               />
             </TouchableOpacity>
           </View>
-          <Text style={styles.passwordHint}>Mínimo 6 caracteres</Text>
+          <Text style={styles.passwordHint}>Minimum 6 characters</Text>
         </View>
 
         {/* Campo para confirmar la nueva contraseña */}
         <View style={styles.inputSection}>
-          <Text style={styles.inputLabel}>Confirmar Nueva Contraseña</Text>
+          <Text style={styles.inputLabel}>Confirm New Password</Text>
           <View style={styles.passwordContainer}>
             <TextInput
               style={styles.input}
@@ -236,7 +236,7 @@ export default function ChangePasswordScreen({ navigation }) {
                   confirmPassword: text,
                 }))
               }
-              placeholder="Confirma tu nueva contraseña"
+              placeholder="Confirm your new password"
               secureTextEntry={!showConfirmPassword}
               editable={!isPending}
             />
@@ -267,7 +267,7 @@ export default function ChangePasswordScreen({ navigation }) {
           ) : (
             <>
               <Ionicons name="lock-closed-outline" size={20} color="white" />
-              <Text style={styles.buttonText}>Cambiar Contraseña</Text>
+              <Text style={styles.buttonText}>Change Password</Text>
             </>
           )}
         </TouchableOpacity>

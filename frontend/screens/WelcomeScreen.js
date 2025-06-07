@@ -29,9 +29,9 @@ export default function WelcomeScreen() {
         />
       </View>
 
-      <Text style={styles.principalText}>Bienvenido a CourtVision</Text>
+      <Text style={styles.principalText}>Welcome to CourtVision</Text>
       <Text style={styles.subtitleText}>
-        Análisis estadístico de baloncesto
+        Basketball Statistical Analysis
       </Text>
 
       <View
@@ -46,7 +46,7 @@ export default function WelcomeScreen() {
             style={styles.buttonbox}
             onPress={() => navigation.navigate("Login")}
           >
-            <Text style={styles.buttontext}>Iniciar Sesión</Text>
+            <Text style={styles.buttontext}>Login</Text>
           </TouchableOpacity>
         </View>
         <View style={styles.mainbuttonbox}>
@@ -54,7 +54,7 @@ export default function WelcomeScreen() {
             style={[styles.buttonbox, styles.registerButton]}
             onPress={() => navigation.navigate("Register")}
           >
-            <Text style={styles.buttontext}>Registrarse</Text>
+            <Text style={styles.buttontext}>Register</Text>
           </TouchableOpacity>
         </View>
       </View>
@@ -62,7 +62,7 @@ export default function WelcomeScreen() {
       <View style={styles.footer}>
         <Text style={styles.footerText}>© 2025 CourtVision App</Text>
         <Text style={styles.footerText}>Developed by Oriol Puertas</Text>
-        <Text style={styles.versionText}>Versión 1.0.0 - Todos los derechos reservados</Text>
+        <Text style={styles.versionText}>Version 1.0.0 - All rights reserved</Text>
       </View>
     </View>
   );

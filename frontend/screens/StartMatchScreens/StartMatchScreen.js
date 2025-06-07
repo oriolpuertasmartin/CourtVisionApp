@@ -48,11 +48,11 @@ export default function StartMatchScreen({ user, navigation }) {
     queryKey: ["teams", user?._id],
     queryFn: async () => {
       if (!user || !user._id) {
-        throw new Error("No se encontró el userId");
+        throw new Error("User ID not found");
       }
       const response = await fetch(`${API_BASE_URL}/teams/user/${user._id}`);
       if (!response.ok) {
-        throw new Error(`Error al obtener equipos: ${response.status}`);
+        throw new Error(`Error getting teams: ${response.status}`);
       }
       return await response.json();
     },
@@ -69,7 +69,7 @@ export default function StartMatchScreen({ user, navigation }) {
       });
 
       if (!response.ok) {
-        throw new Error("Error al crear el match");
+        throw new Error("Error creating the match");
       }
 
       return await response.json();
@@ -81,7 +81,7 @@ export default function StartMatchScreen({ user, navigation }) {
       });
     },
     onError: (error) => {
-      Alert.alert("Error", "No se pudo crear el partido.");
+      Alert.alert("Error", "Could not create the match.");
     },
   });
 
@@ -140,7 +140,7 @@ export default function StartMatchScreen({ user, navigation }) {
                 isDesktop && styles.teamCategoryDesktop,
               ]}
             >
-              {team.category || "Sin categoría"}
+              {team.category || "No category"}
             </Text>
           </View>
         </View>
@@ -161,7 +161,7 @@ export default function StartMatchScreen({ user, navigation }) {
         />
         <View style={styles.loadingContainer}>
           <ActivityIndicator size="large" color="#FFA500" />
-          <Text style={styles.loadingText}>Cargando equipos...</Text>
+          <Text style={styles.loadingText}>Loading teams...</Text>
         </View>
       </ScreenContainer>
     );
@@ -180,13 +180,13 @@ export default function StartMatchScreen({ user, navigation }) {
         />
         <View style={styles.errorContainer}>
           <Text style={styles.errorText}>
-            {error?.message || "Error al cargar equipos"}
+            {error?.message || "Error loading teams"}
           </Text>
           <TouchableOpacity
             style={styles.retryButton}
             onPress={() => refetch()}
           >
-            <Text style={styles.retryButtonText}>Reintentar</Text>
+            <Text style={styles.retryButtonText}>Retry</Text>
           </TouchableOpacity>
         </View>
       </ScreenContainer>

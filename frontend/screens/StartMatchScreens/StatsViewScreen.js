@@ -20,7 +20,7 @@ import { useDeviceType } from "../../components/ResponsiveUtils";
 
 export default function StatsView({ route, navigation }) {
   const { matchId } = route.params;
-  const [teamName, setTeamName] = useState("Mi Equipo");
+  const [teamName, setTeamName] = useState("My Team");
   const [topPerformers, setTopPerformers] = useState({
     points: { player: null, value: 0 },
     rebounds: { player: null, value: 0 },
@@ -62,7 +62,7 @@ export default function StatsView({ route, navigation }) {
     queryFn: async () => {
       const response = await fetch(`${API_BASE_URL}/matches/${matchId}`);
       if (!response.ok) {
-        throw new Error(`Error al cargar el partido: ${response.status}`);
+        throw new Error(`Error loading match: ${response.status}`);
       }
       return await response.json();
     },
@@ -83,7 +83,7 @@ export default function StatsView({ route, navigation }) {
         `${API_BASE_URL}/matches/${matchId}/periods`
       );
       if (!response.ok) {
-        throw new Error(`Error al cargar los períodos: ${response.status}`);
+        throw new Error(`Error loading periods: ${response.status}`);
       }
       return await response.json();
     },
@@ -99,7 +99,7 @@ export default function StatsView({ route, navigation }) {
         `${API_BASE_URL}/players/team/${match.teamId}`
       );
       if (!response.ok) {
-        throw new Error(`Error al cargar jugadores: ${response.status}`);
+        throw new Error(`Error loading players: ${response.status}`);
       }
       return await response.json();
     },
@@ -112,12 +112,12 @@ export default function StatsView({ route, navigation }) {
     queryFn: async () => {
       const response = await fetch(`${API_BASE_URL}/teams/${match.teamId}`);
       if (!response.ok) {
-        throw new Error(`Error al cargar el equipo: ${response.status}`);
+        throw new Error(`Error loading team: ${response.status}`);
       }
 
       const teamData = await response.json();
       // Actualizamos el nombre del equipo
-      setTeamName(teamData.name || "Mi Equipo");
+      setTeamName(teamData.name || "My Team");
       return teamData;
     },
     enabled: !!match?.teamId,
@@ -143,7 +143,7 @@ export default function StatsView({ route, navigation }) {
       );
 
       if (!response.ok) {
-        throw new Error(`Error al cargar estadísticas: ${response.status}`);
+        throw new Error(`Error loading statistics: ${response.status}`);
       }
 
       return await response.json();
@@ -282,9 +282,9 @@ export default function StatsView({ route, navigation }) {
 
       const matchDate = match?.date
         ? new Date(match.date).toLocaleDateString()
-        : "Sin fecha";
-      const fileName = `Estadisticas_${teamName.replace(/ /g, "_")}_vs_${(
-        match?.opponentTeam?.name || "Oponente"
+        : "No date";
+      const fileName = `Statistics_${teamName.replace(/ /g, "_")}_vs_${(
+        match?.opponentTeam?.name || "Opponent"
       ).replace(/ /g, "_")}_${new Date().toISOString().slice(0, 10)}`;
 
       // HTML para el documento
@@ -312,16 +312,16 @@ export default function StatsView({ route, navigation }) {
               setGeneratingPDF(false);
             }, 1000);
           } catch (error) {
-            console.error("Error al imprimir:", error);
+            console.error("Error printing:", error);
             setGeneratingPDF(false);
-            Alert.alert("Error", "No se pudo generar el PDF: " + error.message);
+            Alert.alert("Error", "Could not generate PDF: " + error.message);
           }
         }, 500);
       };
     } catch (error) {
-      console.error("Error al generar PDF en la web:", error);
+      console.error("Error generating PDF in web:", error);
       setGeneratingPDF(false);
-      Alert.alert("Error", "No se pudo generar el PDF: " + error.message);
+      Alert.alert("Error", "Could not generate PDF: " + error.message);
     }
   };
 
@@ -337,14 +337,14 @@ export default function StatsView({ route, navigation }) {
       // Fecha del partido formateada
       const matchDate = match?.date
         ? new Date(match.date).toLocaleDateString()
-        : "Sin fecha";
+        : "No date";
 
       // Generar HTML para el PDF
       const htmlContent = generateHTMLContent(matchDate);
 
       // Crear nombre de archivo basado en los equipos y la fecha
-      const fileName = `Estadisticas_${teamName.replace(/ /g, "_")}_vs_${(
-        match?.opponentTeam?.name || "Oponente"
+      const fileName = `Statistics_${teamName.replace(/ /g, "_")}_vs_${(
+        match?.opponentTeam?.name || "Opponent"
       ).replace(/ /g, "_")}_${new Date().toISOString().slice(0, 10)}`;
 
       // Opciones para generar el PDF
@@ -360,21 +360,21 @@ export default function StatsView({ route, navigation }) {
 
       // Compartir el archivo PDF
       if (file && file.filePath) {
-        console.log("PDF generado:", file.filePath);
+        console.log("PDF generated:", file.filePath);
 
         if (Platform.OS === "ios") {
           // En iOS, usamos la API de compartir
           await Sharing.shareAsync(file.filePath);
         } else {
           // En Android, mostramos la ruta y un mensaje
-          Alert.alert("PDF Generado", `PDF guardado en: ${file.filePath}`, [
+          Alert.alert("PDF Generated", `PDF saved at: ${file.filePath}`, [
             { text: "OK" },
           ]);
         }
       }
     } catch (error) {
-      console.error("Error al generar PDF en móvil:", error);
-      Alert.alert("Error", "No se pudo generar el PDF: " + error.message);
+      console.error("Error generating PDF on mobile:", error);
+      Alert.alert("Error", "Could not generate PDF: " + error.message);
     } finally {
       setGeneratingPDF(false);
     }
@@ -387,7 +387,7 @@ export default function StatsView({ route, navigation }) {
       <html>
       <head>
         <meta charset="utf-8">
-        <title>Estadísticas de Partido</title>
+        <title>Match Statistics</title>
         <style>
           body {
             font-family: Arial, sans-serif;
@@ -461,22 +461,22 @@ export default function StatsView({ route, navigation }) {
       </head>
       <body>
         <div class="header">
-          <div class="title">Resumen del Partido</div>
+          <div class="title">Match Summary</div>
           <div class="subtitle">${matchDate}</div>
           <div class="subtitle">${teamName} vs ${
-      match?.opponentTeam?.name || "Oponente"
+      match?.opponentTeam?.name || "Opponent"
     }</div>
           <div class="score">${match?.teamAScore || 0} - ${
       match?.teamBScore || 0
     }</div>
         </div>
 
-        <h2>Puntos por Períodos</h2>
+        <h2>Points by Period</h2>
         <table>
           <tr>
-            <th>Período</th>
+            <th>Period</th>
             <th>${teamName}</th>
-            <th>${match?.opponentTeam?.name || "Oponente"}</th>
+            <th>${match?.opponentTeam?.name || "Opponent"}</th>
           </tr>
           ${periodsHistory
             .map(
@@ -496,63 +496,63 @@ export default function StatsView({ route, navigation }) {
           </tr>
         </table>
 
-        <h2>Jugadores Destacados</h2>
+        <h2>Top Performers</h2>
         <table>
           <tr>
-            <th>Categoría</th>
-            <th>Jugador</th>
-            <th>Valor</th>
+            <th>Category</th>
+            <th>Player</th>
+            <th>Value</th>
           </tr>
           <tr>
-            <td>Puntos</td>
+            <td>Points</td>
             <td>${topPerformers.points.player || "N/A"}</td>
             <td>${topPerformers.points.value || 0}</td>
           </tr>
           <tr>
-            <td>Rebotes</td>
+            <td>Rebounds</td>
             <td>${topPerformers.rebounds.player || "N/A"}</td>
             <td>${topPerformers.rebounds.value || 0}</td>
           </tr>
           <tr>
-            <td>Asistencias</td>
+            <td>Assists</td>
             <td>${topPerformers.assists.player || "N/A"}</td>
             <td>${topPerformers.assists.value || 0}</td>
           </tr>
           <tr>
-            <td>Robos</td>
+            <td>Steals</td>
             <td>${topPerformers.steals.player || "N/A"}</td>
             <td>${topPerformers.steals.value || 0}</td>
           </tr>
           <tr>
-            <td>Tapones</td>
+            <td>Blocks</td>
             <td>${topPerformers.blocks.player || "N/A"}</td>
             <td>${topPerformers.blocks.value || 0}</td>
           </tr>
         </table>
 
-        <h2>Estadísticas Globales</h2>
+        <h2>Team Statistics</h2>
         <table>
           <tr>
-            <th>Jugador</th>
+            <th>Player</th>
             <th>PTS</th>
-            <th>TC</th>
-            <th>%TC</th>
+            <th>FG</th>
+            <th>%FG</th>
             <th>2P</th>
             <th>%2P</th>
             <th>3P</th>
             <th>%3P</th>
-            <th>TL</th>
-            <th>%TL</th>
+            <th>FT</th>
+            <th>%FT</th>
             <th>REB</th>
             <th>DREB</th>
             <th>OREB</th>
             <th>AST</th>
-            <th>ROB</th>
-            <th>TAP</th>
-            <th>PER</th>
-            <th>FLT</th>
+            <th>STL</th>
+            <th>BLK</th>
+            <th>TO</th>
+            <th>PF</th>
             <th>PIR</th>
-            <th>A/P</th>
+            <th>A/T</th>
           </tr>
           ${playerStats
             .map((player) => {
@@ -588,7 +588,7 @@ export default function StatsView({ route, navigation }) {
 
               return `
               <tr class="${player.isStarter ? "starter-row" : "bench-row"}">
-                <td class="player-name">${player.name || "Jugador"} #${
+                <td class="player-name">${player.name || "Player"} #${
                 player.number || "0"
               }</td>
                 <td>${player.points || 0}</td>
@@ -625,7 +625,7 @@ export default function StatsView({ route, navigation }) {
         </table>
 
         <div class="footer">
-          Generado por CourtVisionApp - ${new Date().toLocaleDateString()}
+          Generated by CourtVisionApp - ${new Date().toLocaleDateString()}
         </div>
       </body>
       </html>
@@ -643,7 +643,7 @@ export default function StatsView({ route, navigation }) {
             isSmallScreen && { fontSize: 18, marginTop: 10 },
           ]}
         >
-          Puntos por Períodos
+          Points by Period
         </Text>
 
         <View
@@ -653,17 +653,17 @@ export default function StatsView({ route, navigation }) {
           ]}
         >
           <View style={styles.periodsHeader}>
-            <Text style={styles.periodHeaderCell}>Período</Text>
+            <Text style={styles.periodHeaderCell}>Period</Text>
             <Text style={styles.periodHeaderCell}>{teamName}</Text>
             <Text style={styles.periodHeaderCell}>
-              {match?.opponentTeam?.name || "Oponente"}
+              {match?.opponentTeam?.name || "Opponent"}
             </Text>
           </View>
 
           {periodsHistory.length === 0 ? (
             <View style={styles.emptyState}>
               <Text style={styles.emptyText}>
-                No hay datos de períodos disponibles
+                No period data available
               </Text>
             </View>
           ) : (
@@ -694,7 +694,7 @@ export default function StatsView({ route, navigation }) {
             isSmallScreen && { fontSize: 18, marginTop: 10 },
           ]}
         >
-          Jugadores Destacados
+          Top Performers
         </Text>
 
         <View
@@ -704,9 +704,9 @@ export default function StatsView({ route, navigation }) {
           ]}
         >
           <View style={styles.topPerformersHeader}>
-            <Text style={styles.topHeaderCell}>Categoría</Text>
-            <Text style={styles.topHeaderCell}>Jugador</Text>
-            <Text style={styles.topHeaderCell}>Valor</Text>
+            <Text style={styles.topHeaderCell}>Category</Text>
+            <Text style={styles.topHeaderCell}>Player</Text>
+            <Text style={styles.topHeaderCell}>Value</Text>
           </View>
 
           {/* Filas con los jugadores destacados */}
@@ -714,15 +714,15 @@ export default function StatsView({ route, navigation }) {
             <View key={index} style={styles.topPerformerRow}>
               <Text style={styles.topPerformerCategory}>
                 {category === "points"
-                  ? "Puntos"
+                  ? "Points"
                   : category === "rebounds"
-                  ? "Rebotes"
+                  ? "Rebounds"
                   : category === "assists"
-                  ? "Asistencias"
+                  ? "Assists"
                   : category === "steals"
-                  ? "Robos"
+                  ? "Steals"
                   : category === "blocks"
-                  ? "Tapones"
+                  ? "Blocks"
                   : category}
               </Text>
               <Text style={styles.topPerformerPlayer}>
@@ -740,7 +740,7 @@ export default function StatsView({ route, navigation }) {
             isSmallScreen && { fontSize: 18, marginTop: 10 },
           ]}
         >
-          Estadísticas globales
+          Team Statistics
         </Text>
 
         <ScrollView horizontal showsHorizontalScrollIndicator={true}>
@@ -753,19 +753,19 @@ export default function StatsView({ route, navigation }) {
             {/* Encabezados de la tabla */}
             <View style={styles.tableHeader}>
               <Text style={[styles.headerCell, styles.playerCell]}>
-                Jugador
+                Player
               </Text>
               <Text style={styles.headerCell}>PTS</Text>
 
               {/* Tiros divididos por tipo */}
-              <Text style={styles.headerCell}>TC</Text>
-              <Text style={styles.headerCell}>%TC</Text>
+              <Text style={styles.headerCell}>FG</Text>
+              <Text style={styles.headerCell}>%FG</Text>
               <Text style={styles.headerCell}>2P</Text>
               <Text style={styles.headerCell}>%2P</Text>
               <Text style={styles.headerCell}>3P</Text>
               <Text style={styles.headerCell}>%3P</Text>
-              <Text style={styles.headerCell}>TL</Text>
-              <Text style={styles.headerCell}>%TL</Text>
+              <Text style={styles.headerCell}>FT</Text>
+              <Text style={styles.headerCell}>%FT</Text>
 
               {/* Rebotes */}
               <Text style={styles.headerCell}>REB</Text>
@@ -774,21 +774,21 @@ export default function StatsView({ route, navigation }) {
 
               {/* Otras estadísticas */}
               <Text style={styles.headerCell}>AST</Text>
-              <Text style={styles.headerCell}>ROB</Text>
-              <Text style={styles.headerCell}>TAP</Text>
-              <Text style={styles.headerCell}>PER</Text>
-              <Text style={styles.headerCell}>FLT</Text>
+              <Text style={styles.headerCell}>STL</Text>
+              <Text style={styles.headerCell}>BLK</Text>
+              <Text style={styles.headerCell}>TO</Text>
+              <Text style={styles.headerCell}>PF</Text>
 
               {/* Estadísticas avanzadas */}
               <Text style={styles.headerCell}>PIR</Text>
-              <Text style={styles.headerCell}>A/P</Text>
+              <Text style={styles.headerCell}>A/T</Text>
             </View>
 
             {/* Si no hay datos, mostrar mensaje */}
             {playerStats.length === 0 ? (
               <View style={styles.emptyState}>
                 <Text style={styles.emptyText}>
-                  No hay estadísticas disponibles
+                  No statistics available
                 </Text>
               </View>
             ) : (
@@ -841,7 +841,7 @@ export default function StatsView({ route, navigation }) {
                         isSmallScreen && { fontSize: 11 },
                       ]}
                     >
-                      {player.name || "Jugador"} #{player.number || "0"}
+                      {player.name || "Player"} #{player.number || "0"}
                     </Text>
                     <Text
                       style={[
@@ -1039,7 +1039,7 @@ export default function StatsView({ route, navigation }) {
       >
         <View style={styles.loadingContainer}>
           <ActivityIndicator size="large" color="#FFA500" />
-          <Text style={styles.loadingText}>Cargando estadísticas...</Text>
+          <Text style={styles.loadingText}>Loading statistics...</Text>
         </View>
       </ScreenContainer>
     );
@@ -1054,10 +1054,10 @@ export default function StatsView({ route, navigation }) {
       >
         <View style={styles.errorContainer}>
           <Text style={styles.errorText}>
-            {matchError?.message || "Error al cargar datos del partido"}
+            {matchError?.message || "Error loading match data"}
           </Text>
           <TouchableOpacity style={styles.returnButton} onPress={handleGoBack}>
-            <Text style={styles.returnButtonText}>Volver al inicio</Text>
+            <Text style={styles.returnButtonText}>Return home</Text>
           </TouchableOpacity>
         </View>
       </ScreenContainer>
@@ -1093,12 +1093,12 @@ export default function StatsView({ route, navigation }) {
           color="black"
         />
         <Text style={[styles.pdfButtonText, isSmallScreen && { fontSize: 12 }]}>
-          {generatingPDF ? "Generando..." : "Export to pdf"}
+          {generatingPDF ? "Generating..." : "Export to PDF"}
         </Text>
       </TouchableOpacity>
 
       <ScreenHeader
-        title="Game summary"
+        title="Game Summary"
         onBack={handleGoBack}
         showBackButton={false}
         isMainScreen={false}
@@ -1185,7 +1185,7 @@ export default function StatsView({ route, navigation }) {
           <View style={styles.teamSideRight}>
             {/* Nombre Equipo B */}
             <Text style={[styles.teamName, isSmallScreen && { fontSize: 14 }]}>
-              {match?.opponentTeam?.name || "Oponente"}
+              {match?.opponentTeam?.name || "Opponent"}
             </Text>
             {/* Logo Equipo B */}
             <View style={styles.teamLogoContainer}>
@@ -1236,7 +1236,7 @@ export default function StatsView({ route, navigation }) {
       {generatingPDF && (
         <View style={styles.pdfLoading}>
           <ActivityIndicator size="large" color="#FFA500" />
-          <Text style={styles.pdfLoadingText}>Generando PDF...</Text>
+          <Text style={styles.pdfLoadingText}>Generating PDF...</Text>
         </View>
       )}
     </ScreenContainer>

@@ -96,7 +96,7 @@ export default function TeamsScreen({ navigation, route }) {
           const errorData = await response.text();
           console.error("Error al eliminar:", errorData);
           throw new Error(
-            `Error al eliminar el equipo: ${response.status} ${errorData}`
+            `Error deleting team: ${response.status} ${errorData}`
           );
         }
 
@@ -121,9 +121,9 @@ export default function TeamsScreen({ navigation, route }) {
       setTeamToDelete(null);
       // Puedes usar una alerta básica aquí ya que se maneja después del modal
       if (Platform.OS === "web") {
-        window.alert(`Error: No se pudo eliminar el equipo: ${error.message}`);
+        window.alert(`Error: Could not delete team: ${error.message}`);
       } else {
-        Alert.alert("Error", `No se pudo eliminar el equipo: ${error.message}`);
+        Alert.alert("Error", `Could not delete team: ${error.message}`);
       }
     },
   });
@@ -162,7 +162,7 @@ export default function TeamsScreen({ navigation, route }) {
     if (!user || !user._id) {
       Alert.alert(
         "Error",
-        "No se pudo identificar al usuario. Por favor, inicia sesión de nuevo."
+        "Could not identify the user. Please log in again."
       );
       return;
     }
@@ -225,7 +225,7 @@ export default function TeamsScreen({ navigation, route }) {
               styles.teamCategory,
               isDesktop && styles.teamCategoryDesktop
             ]}>
-              {team.category || "Sin categoría"}
+              {team.category || "No category"}
             </Text>
           </View>
         </View>
@@ -277,7 +277,7 @@ export default function TeamsScreen({ navigation, route }) {
   const renderLoading = () => (
     <View style={styles.loadingContainer}>
       <ActivityIndicator size="large" color="#FFA500" />
-      <Text style={styles.loadingText}>Cargando equipos...</Text>
+      <Text style={styles.loadingText}>Loading teams...</Text>
     </View>
   );
 
@@ -286,13 +286,13 @@ export default function TeamsScreen({ navigation, route }) {
     <View style={styles.errorContainer}>
       <Text style={styles.errorText}>
         {queryError?.message ||
-          "No se pudieron cargar los equipos. Por favor, intenta de nuevo."}
+          "Could not load teams. Please try again."}
       </Text>
       <TouchableOpacity
         style={styles.retryButton}
         onPress={() => refetch()}
       >
-        <Text style={styles.retryButtonText}>Reintentar</Text>
+        <Text style={styles.retryButtonText}>Retry</Text>
       </TouchableOpacity>
     </View>
   );
@@ -342,8 +342,8 @@ export default function TeamsScreen({ navigation, route }) {
       {/* Modal de confirmación personalizado */}
       <ConfirmModal
         visible={modalVisible}
-        title="Confirmar eliminación"
-        message="¿Estás seguro que deseas eliminar este equipo? Esta acción no se puede deshacer."
+        title="Confirm deletion"
+        message="Are you sure you want to delete this team? This action cannot be undone."
         onConfirm={confirmDelete}
         onCancel={() => {
           setModalVisible(false);

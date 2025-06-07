@@ -45,13 +45,13 @@ export default function SettingsScreen({ handleLogout }) {
   // Esta función maneja el cierre de sesión localmente
   const confirmLogout = () => {
     if (Platform.OS === "web") {
-      if (window.confirm("¿Estás seguro que deseas cerrar sesión?")) {
+      if (window.confirm("Are you sure you want to log out?")) {
         handleLogout();
       }
     } else {
-      Alert.alert("Cerrar sesión", "¿Estás seguro que deseas cerrar sesión?", [
-        { text: "Cancelar", style: "cancel" },
-        { text: "Cerrar sesión", style: "destructive", onPress: handleLogout },
+      Alert.alert("Log out", "Are you sure you want to log out?", [
+        { text: "Cancel", style: "cancel" },
+        { text: "Log out", style: "destructive", onPress: handleLogout },
       ]);
     }
   };
@@ -72,7 +72,7 @@ export default function SettingsScreen({ handleLogout }) {
       }
     } catch (error) {
       console.error("Error al cerrar sesión manualmente:", error);
-      Alert.alert("Error", "No se pudo cerrar sesión. Intente de nuevo.");
+      Alert.alert("Error", "Could not log out. Please try again.");
     }
   };
 
@@ -150,21 +150,21 @@ export default function SettingsScreen({ handleLogout }) {
             deviceType === "desktop" && styles.sectionTitleDesktop,
           ]}
         >
-          Cuenta
+          Account
         </Text>
 
         <SettingItem
           icon="person-outline"
-          title="Mi Perfil"
-          subtitle="Editar nombre, foto, y información personal"
+          title="My Profile"
+          subtitle="Edit name, photo, and personal information"
           onPress={goToProfile}
           color="#FFA500"
         />
 
         <SettingItem
           icon="lock-closed-outline"
-          title="Cambiar Contraseña"
-          subtitle="Actualizar tu contraseña de acceso"
+          title="Change Password"
+          subtitle="Update your access password"
           onPress={goToChangePassword}
           color="#4A90E2"
         />
@@ -172,8 +172,8 @@ export default function SettingsScreen({ handleLogout }) {
         {/* Botón de cerrar sesión movido a la sección de cuenta */}
         <SettingItem
           icon="log-out-outline"
-          title="Cerrar sesión"
-          subtitle="Terminar la sesión actual en este dispositivo"
+          title="Log out"
+          subtitle="End current session on this device"
           onPress={confirmLogout}
           color="#D9534F" // Mantener el color rojo para indicar acción peligrosa
         />
@@ -186,13 +186,13 @@ export default function SettingsScreen({ handleLogout }) {
             deviceType === "desktop" && styles.sectionTitleDesktop,
           ]}
         >
-          Aplicación
+          Application
         </Text>
 
         <SettingItem
           icon="information-circle-outline"
-          title="Acerca de"
-          subtitle="Versión 1.0.0"
+          title="About"
+          subtitle="Version 1.0.0"
           onPress={() => navigation.navigate("Info")}
           color="#5AC8FA"
         />
@@ -200,7 +200,7 @@ export default function SettingsScreen({ handleLogout }) {
         {/* Para depuración - Solo visible en desarrollo */}
         {__DEV__ && (
           <Text style={styles.debugText}>
-            Plataforma: {Platform.OS} | Tipo: {deviceType} | Ancho:{" "}
+            Platform: {Platform.OS} | Type: {deviceType} | Width:{" "}
             {screenWidth}px
           </Text>
         )}
