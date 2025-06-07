@@ -17,6 +17,7 @@ import { useQuery, useMutation } from "@tanstack/react-query";
 import ScreenContainer from "../../components/ScreenContainer";
 import { useDeviceType } from "../../components/ResponsiveUtils";
 import ScreenHeader from "../../components/ScreenHeader";
+import { scale, conditionalScale, getDeviceType } from "../../utils/responsive";
 
 export default function StartingPlayers({ route, navigation }) {
   const { teamId: routeTeamId, updatedMatch } = route.params;
@@ -29,6 +30,8 @@ export default function StartingPlayers({ route, navigation }) {
     Dimensions.get("window").width
   );
   const isLargeScreen = screenWidth > 768;
+  const isSmallScreen = screenWidth < 480;
+  const isVerySmallScreen = screenWidth < 360;
 
   // Actualizar dimensiones cuando cambie el tamaño de la pantalla
   useEffect(() => {
@@ -171,17 +174,66 @@ export default function StartingPlayers({ route, navigation }) {
   // Función para renderizar cada jugador con su foto/número y posición
   const renderPlayerItem = (player) => {
     const isSelected = selectedPlayers.includes(player._id);
-    const isSmallScreen = screenWidth < 480;
+    
+    // Calcular tamaños de forma proporcional
+    const photoSize = conditionalScale(60, {
+      desktop: 80,
+      tablet: 70, 
+      phone: 60,
+      smallPhone: 50
+    });
+    
+    const numberCircleSize = conditionalScale(50, {
+      desktop: 60, 
+      tablet: 55,
+      phone: 50,
+      smallPhone: 40
+    });
+    
+    const photoMargin = conditionalScale(15, {
+      desktop: 30,
+      tablet: 25,
+      phone: 20, 
+      smallPhone: 15
+    });
+    
+    const numberMarginLeft = conditionalScale(10, {
+      desktop: 20,
+      tablet: 15,
+      phone: 10,
+      smallPhone: 5
+    });
 
     return (
       <TouchableOpacity
-        style={[styles.itemButton]}
+        style={[
+          styles.itemButton,
+          isSelected && styles.selectedPlayerItem, // Aplicamos el estilo de selección al botón completo
+          {
+            paddingVertical: scale(8),
+            borderRadius: scale(8)
+          }
+        ]}
         onPress={() => handleSelectPlayer(player)}
       >
         <View
           style={[
             styles.playerItemContainer,
-            isSelected ? styles.selectedPlayerItem : null,
+            // Ya no aplicamos aquí el estilo de selección
+            {
+              paddingVertical: conditionalScale(8, {
+                desktop: 12,
+                tablet: 10,
+                phone: 8,
+                smallPhone: 6
+              }),
+              paddingHorizontal: conditionalScale(10, {
+                desktop: 15,
+                tablet: 12,
+                phone: 10,
+                smallPhone: 8
+              })
+            }
           ]}
         >
           {player.player_photo ? (
@@ -189,31 +241,39 @@ export default function StartingPlayers({ route, navigation }) {
               source={{ uri: player.player_photo }}
               style={[
                 styles.playerPhoto,
-                isSmallScreen && {
-                  width: 60,
-                  height: 60,
-                  borderRadius: 30,
-                  marginRight: 15,
-                },
+                {
+                  width: photoSize,
+                  height: photoSize,
+                  borderRadius: photoSize / 2,
+                  marginRight: photoMargin,
+                  marginLeft: numberMarginLeft
+                }
               ]}
             />
           ) : (
             <View
               style={[
                 styles.playerNumberCircle,
-                isSmallScreen && {
-                  width: 50,
-                  height: 50,
-                  borderRadius: 25,
-                  marginRight: 15,
-                  marginLeft: 10,
-                },
+                {
+                  width: numberCircleSize,
+                  height: numberCircleSize,
+                  borderRadius: numberCircleSize / 2,
+                  marginRight: photoMargin,
+                  marginLeft: numberMarginLeft
+                }
               ]}
             >
               <Text
                 style={[
                   styles.playerNumberText,
-                  isSmallScreen && { fontSize: 18 },
+                  {
+                    fontSize: conditionalScale(16, {
+                      desktop: 22,
+                      tablet: 20,
+                      phone: 18,
+                      smallPhone: 16
+                    })
+                  }
                 ]}
               >
                 {player.number || "0"}
@@ -222,12 +282,33 @@ export default function StartingPlayers({ route, navigation }) {
           )}
           <View style={styles.playerInfoContainer}>
             <Text
-              style={[styles.playerName, isSmallScreen && { fontSize: 18 }]}
+              style={[
+                styles.playerName,
+                {
+                  fontSize: conditionalScale(16, {
+                    desktop: 22,
+                    tablet: 20,
+                    phone: 18,
+                    smallPhone: 16
+                  }),
+                  marginBottom: scale(3)
+                }
+              ]}
             >
               {player.name}
             </Text>
             <Text
-              style={[styles.playerPosition, isSmallScreen && { fontSize: 14 }]}
+              style={[
+                styles.playerPosition,
+                {
+                  fontSize: conditionalScale(14, {
+                    desktop: 17,
+                    tablet: 16,
+                    phone: 15,
+                    smallPhone: 14
+                  })
+                }
+              ]}
             >
               {player.position || "Sin posición"}
             </Text>
@@ -245,7 +326,20 @@ export default function StartingPlayers({ route, navigation }) {
       >
         <View style={styles.loadingContainer}>
           <ActivityIndicator size="large" color="#FFA500" />
-          <Text style={styles.loadingText}>Cargando jugadores...</Text>
+          <Text style={[
+            styles.loadingText,
+            {
+              fontSize: conditionalScale(14, {
+                desktop: 18,
+                tablet: 16,
+                phone: 14,
+                smallPhone: 13
+              }),
+              marginTop: scale(15)
+            }
+          ]}>
+            Cargando jugadores...
+          </Text>
         </View>
       </ScreenContainer>
     );
@@ -258,19 +352,80 @@ export default function StartingPlayers({ route, navigation }) {
         contentContainerStyle={styles.contentContainer}
       >
         <View style={styles.errorContainer}>
-          <Text style={styles.errorText}>
+          <Text style={[
+            styles.errorText,
+            {
+              fontSize: conditionalScale(14, {
+                desktop: 18,
+                tablet: 16,
+                phone: 14,
+                smallPhone: 12
+              }),
+              marginBottom: scale(20)
+            }
+          ]}>
             {error?.message || "Error al cargar jugadores"}
           </Text>
           <TouchableOpacity
-            style={styles.retryButton}
+            style={[
+              styles.retryButton,
+              {
+                paddingVertical: scale(12),
+                paddingHorizontal: scale(25),
+                borderRadius: scale(8)
+              }
+            ]}
             onPress={() => refetch()}
           >
-            <Text style={styles.retryButtonText}>Reintentar</Text>
+            <Text style={[
+              styles.retryButtonText,
+              {
+                fontSize: conditionalScale(14, {
+                  desktop: 18,
+                  tablet: 16,
+                  phone: 14,
+                  smallPhone: 12
+                })
+              }
+            ]}>
+              Reintentar
+            </Text>
           </TouchableOpacity>
         </View>
       </ScreenContainer>
     );
   }
+
+  // Calcular dimensiones responsivas para el contenedor principal
+  const getBoxWidth = () => {
+    return conditionalScale('95%', {
+      desktop: '70%',
+      tablet: '80%',
+      phone: '90%',
+      smallPhone: '95%'
+    });
+  };
+
+  const getBoxHeight = () => {
+    return conditionalScale('55%', {
+      desktop: '65%',
+      tablet: '60%',
+      phone: '55%',
+      smallPhone: '55%'
+    });
+  };
+
+  // Obtener el texto del botón apropiado para el tamaño de la pantalla
+  const getButtonText = () => {
+    if (isPending) return "Guardando...";
+    
+    // Para pantallas muy pequeñas, usar un texto más corto
+    if (isVerySmallScreen) return "Iniciar";
+    if (isSmallScreen) return "Iniciar partido";
+    
+    // Para pantallas más grandes, usar el texto completo
+    return "Comenzar partido";
+  };
 
   return (
     <ScreenContainer
@@ -284,21 +439,34 @@ export default function StartingPlayers({ route, navigation }) {
         isMainScreen={false}
       />
 
-      <View style={styles.content}>
+      <View style={[
+        styles.content,
+        {
+          padding: scale(20),
+          paddingBottom: scale(20)
+        }
+      ]}>
         {/* Contador de jugadores seleccionados */}
-        <Text style={styles.selectionCounter}>
+        <Text style={[
+          styles.selectionCounter,
+          {
+            fontSize: conditionalScale(16, {
+              desktop: 22,
+              tablet: 20,
+              phone: 18,
+              smallPhone: 16
+            }),
+            marginBottom: scale(15)
+          }
+        ]}>
           {selectedPlayers.length}/5 players selected
         </Text>
 
         <View
           style={[
             styles.boxSelectorContainer,
-            isLargeScreen
-              ? { width: "70%" }
-              : screenWidth < 480
-              ? { width: "95%" }
-              : { width: "85%" },
-            isLargeScreen ? { height: "65%" } : { height: "55%" },
+            { width: getBoxWidth() },
+            { height: getBoxHeight() }
           ]}
         >
           <BoxSelector
@@ -307,21 +475,23 @@ export default function StartingPlayers({ route, navigation }) {
             emptyMessage="No hay jugadores disponibles. Crea jugadores primero."
             customRenderItem={renderPlayerItem}
           >
-            <PrimaryButton
-              title={isPending ? "Guardando..." : "Comenzar partido"}
-              onPress={handleStart}
+            {/* Reemplazo del PrimaryButton por un TouchableOpacity estilizado como en TeamsScreen */}
+            <TouchableOpacity
               style={[
-                styles.startButton,
+                styles.createButton,
                 selectedPlayers.length !== 5 && styles.disabledButton,
-                isLargeScreen
-                  ? { width: "30%" }
-                  : screenWidth < 480
-                  ? { width: "60%" }
-                  : { width: "40%" },
+                deviceType === 'desktop' && styles.createButtonDesktop
               ]}
-              textStyle={styles.startButtonText}
+              onPress={handleStart}
               disabled={selectedPlayers.length !== 5 || isPending}
-            />
+            >
+              <Text style={[
+                styles.createButtonText,
+                deviceType === 'desktop' && styles.createButtonTextDesktop
+              ]}>
+                {getButtonText()}
+              </Text>
+            </TouchableOpacity>
           </BoxSelector>
         </View>
       </View>
@@ -344,15 +514,11 @@ const styles = StyleSheet.create({
   content: {
     width: "100%",
     maxWidth: "100%",
-    padding: 20,
-    paddingBottom: 20,
     flex: 1,
     alignItems: "center",
   },
   selectionCounter: {
-    fontSize: 20,
     color: "#666",
-    marginBottom: 15,
     fontWeight: "500",
   },
   loadingContainer: {
@@ -361,8 +527,6 @@ const styles = StyleSheet.create({
     alignItems: "center",
   },
   loadingText: {
-    fontSize: 16,
-    marginTop: 15,
     color: "#666",
   },
   errorContainer: {
@@ -372,32 +536,17 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   errorText: {
-    fontSize: 16,
     color: "#D32F2F",
     textAlign: "center",
-    marginBottom: 20,
   },
   retryButton: {
     backgroundColor: "#FFA500",
-    paddingVertical: 12,
-    paddingHorizontal: 25,
-    borderRadius: 8,
   },
   retryButtonText: {
     color: "white",
     fontWeight: "bold",
-    fontSize: 16,
-  },
-  backButton: {
-    position: "absolute",
-    top: 40,
-    left: 20,
-    zIndex: 10,
-    padding: 10,
   },
   boxSelectorContainer: {
-    width: "85%",
-    height: "60%",
     marginBottom: 10,
     alignItems: "center",
     justifyContent: "center",
@@ -405,43 +554,30 @@ const styles = StyleSheet.create({
   },
   itemButton: {
     backgroundColor: "white",
-    paddingVertical: 10,
-    borderRadius: 8,
     width: "100%",
+    marginBottom: 8, // Agregamos un margen inferior para separar los elementos
+    borderRadius: 8, // Aseguramos que el botón tenga bordes redondeados
+  },
+  selectedPlayerItem: {
+    backgroundColor: "#FFF8E1", // Color de fondo para el elemento seleccionado
+    borderWidth: 2,
+    borderColor: "#FFA500", // Borde naranja para el elemento seleccionado
   },
   playerItemContainer: {
     flexDirection: "row",
     alignItems: "center",
-    paddingVertical: 12,
-    paddingHorizontal: 15,
     width: "100%",
   },
-  selectedPlayerItem: {
-    backgroundColor: "#FFF8E1",
-    borderWidth: 2,
-    borderColor: "#FFA500",
-  },
   playerPhoto: {
-    width: 80,
-    height: 80,
-    borderRadius: 40,
-    marginRight: 30,
-    marginLeft: 10,
     borderWidth: 1,
     borderColor: "#E6E0CE",
   },
   playerNumberCircle: {
-    width: 60,
-    height: 60,
-    borderRadius: 30,
     backgroundColor: "#FFA500",
     justifyContent: "center",
     alignItems: "center",
-    marginRight: 30,
-    marginLeft: 20,
   },
   playerNumberText: {
-    fontSize: 22,
     fontWeight: "bold",
     color: "white",
   },
@@ -450,28 +586,33 @@ const styles = StyleSheet.create({
     justifyContent: "center",
   },
   playerName: {
-    fontSize: 22,
     fontWeight: "bold",
-    marginBottom: 3,
   },
   playerPosition: {
-    fontSize: 17,
     color: "#777",
   },
-  selectedPlayer: {
-    backgroundColor: "orange",
+  // Nuevos estilos que reemplazan los del botón de inicio
+  createButton: {
+    backgroundColor: "#EB840B",
+    paddingVertical: 20,
+    borderRadius: 20,
+    width: "90%", 
+    alignItems: "center",
+    marginTop: 10,
+    alignSelf: "center",
   },
-  startButton: {
-    marginTop: 20,
-    backgroundColor: "#FFA500",
-    paddingHorizontal: 60,
-    paddingVertical: 15,
-    width: "30%",
+  createButtonDesktop: {
+    width: 500,
+    paddingVertical: 24,
   },
-  startButtonText: {
-    color: "white",
+  createButtonText: {
+    textAlign: "center",
+    fontSize: 20,
     fontWeight: "bold",
-    fontSize: 18,
+    color: "white",
+  },
+  createButtonTextDesktop: {
+    fontSize: 22,
   },
   disabledButton: {
     backgroundColor: "#ccc",

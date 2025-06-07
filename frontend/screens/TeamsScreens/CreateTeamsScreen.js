@@ -16,6 +16,7 @@ import ScreenContainer from "../../components/ScreenContainer";
 import ScreenHeader from "../../components/ScreenHeader";
 import { useDeviceType } from "../../components/ResponsiveUtils";
 import ImageUploader from "../../components/ImageUploader";
+import { scale, conditionalScale } from "../../utils/responsive";
 
 export default function CreateTeamScreen({ route, navigation }) {
   const { userId } = route.params;
@@ -32,12 +33,18 @@ export default function CreateTeamScreen({ route, navigation }) {
   const [screenWidth, setScreenWidth] = useState(
     Dimensions.get("window").width
   );
+  const [screenHeight, setScreenHeight] = useState(
+    Dimensions.get("window").height
+  );
   const isLargeScreen = screenWidth > 768;
+  const isSmallScreen = screenWidth < 480;
 
   // Actualizar dimensiones cuando cambie el tamaño de la pantalla
   useEffect(() => {
     const updateDimensions = () => {
-      setScreenWidth(Dimensions.get("window").width);
+      const dimensions = Dimensions.get("window");
+      setScreenWidth(dimensions.width);
+      setScreenHeight(dimensions.height);
     };
 
     const subscription = Dimensions.addEventListener(
@@ -105,20 +112,46 @@ export default function CreateTeamScreen({ route, navigation }) {
     });
   };
 
+  // Ajustar tamaños según el dispositivo
+  const getImageSize = () => {
+    if (isSmallScreen) return 80;
+    if (!isLargeScreen) return 100;
+    return 120;
+  };
+
   return (
     <ScreenContainer
-      fullWidth={isLargeScreen}
-      contentContainerStyle={styles.contentContainer}
       scrollable={true}
+      fullWidth={isLargeScreen}
+      contentContainerStyle={[
+        styles.contentContainer,
+        isSmallScreen && { 
+          paddingBottom: scale(80),
+          paddingTop: 0, // Eliminamos padding superior para dispositivos pequeños
+          marginTop: 0, // Eliminar margen superior adicional
+        }
+      ]}
+      noTopPadding={isSmallScreen} // Añadimos esta prop para pantallas pequeñas
     >
       <ScreenHeader
         title="Create a new team"
         onBack={handleGoBack}
         showBackButton={true}
         isMainScreen={false}
+        // Ajuste más cerca al borde superior para pantallas pequeñas
+        customStyle={isSmallScreen ? { top: scale(15) } : {}}
       />
 
-      <View style={styles.content}>
+      <View style={[
+        styles.content,
+        isSmallScreen && { 
+          padding: scale(10),
+          // Acercar más el BoxFill al título
+          marginTop: scale(-20),
+          // Eliminar espacio adicional
+          paddingTop: 0,
+        }
+      ]}>
         {/* Formulario de información del equipo */}
         <BoxFill
           fields={[
@@ -127,6 +160,7 @@ export default function CreateTeamScreen({ route, navigation }) {
           ]}
           formData={formData}
           onChangeForm={setFormData}
+          containerStyle={isSmallScreen ? styles.boxFillContainerSmall : styles.boxFillContainer}
         >
           {/* Cargador de imágenes */}
           <ImageUploader
@@ -135,13 +169,13 @@ export default function CreateTeamScreen({ route, navigation }) {
             onImageSelected={(imageUri) =>
               setFormData({ ...formData, team_photo: imageUri })
             }
-            size={120}
+            size={getImageSize()}
             containerStyle={{
               width: "100%",
               backgroundColor: "#FFF9E7",
-              borderRadius: 12,
-              padding: 10,
-              marginVertical: 10,
+              borderRadius: scale(12),
+              padding: isSmallScreen ? scale(5) : scale(10),
+              marginVertical: isSmallScreen ? scale(5) : scale(10),
               alignItems: "center",
             }}
           />
@@ -152,7 +186,10 @@ export default function CreateTeamScreen({ route, navigation }) {
               isPending ? "Creating..." : "Create the team and add players"
             }
             onPress={handleSubmit}
-            style={styles.createButton}
+            style={[
+              styles.createButton,
+              isSmallScreen && { marginTop: scale(5), paddingVertical: scale(8) }
+            ]}
             disabled={isPending}
           />
         </BoxFill>
@@ -172,13 +209,13 @@ const styles = StyleSheet.create({
     alignItems: "center",
     justifyContent: "flex-start",
     width: "100%",
-    flex: 1,
+    paddingBottom: 20,
   },
   content: {
     width: "100%",
     maxWidth: "100%",
-    padding: 20,
-    paddingBottom: 20,
+    padding: scale(15),
+    paddingBottom: scale(20),
     alignItems: "center",
   },
   backButton: {
@@ -190,7 +227,15 @@ const styles = StyleSheet.create({
   },
   createButton: {
     backgroundColor: "#FFA500",
-    marginTop: 10,
+    marginTop: scale(10),
+  },
+  boxFillContainer: {
+    marginVertical: scale(20),
+  },
+  boxFillContainerSmall: {
+    marginVertical: scale(2), // Reducido para pantallas pequeñas
+    marginTop: 0,
+    paddingTop: 0, // Asegurarnos de que no hay padding superior
   },
   loadingOverlay: {
     position: "absolute",

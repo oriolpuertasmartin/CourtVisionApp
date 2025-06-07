@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { View, Text, TouchableOpacity, StyleSheet, ScrollView, Dimensions } from 'react-native';
 import { useDeviceType } from './ResponsiveUtils';
+import { scale, conditionalScale, getDeviceType } from '../utils/responsive';
 
 export default function BoxSelector({ title, items, onSelect, children, renderItemButtons, emptyMessage, customRenderItem }) {
   const deviceType = useDeviceType();
@@ -18,31 +19,32 @@ export default function BoxSelector({ title, items, onSelect, children, renderIt
 
   // Determinar el margen superior según tamaño de pantalla
   const getMarginTop = () => {
-    if (screenWidth < 480) return 10; // Menos margen en móviles pequeños
-    if (screenWidth < 768) return 15; // Margen medio para móviles grandes
-    return 20; // Margen normal para tablets y desktop
+    return conditionalScale(10, {
+      desktop: 20,
+      tablet: 15,
+      phone: 12,
+      smallPhone: 10
+    });
   };
 
   // Determinar la altura máxima del contenedor según la pantalla
   const getMaxHeight = () => {
-    if (screenWidth < 480) return 450; // Altura para móviles pequeños
-    if (screenWidth < 768) return 550; // Altura para móviles grandes
-    if (screenWidth < 1024) return 650; // Altura para tablets
-    return 750; // Altura para desktop
-  };
-  
-  // Determinar el padding vertical según la pantalla
-  const getPaddingVertical = () => {
-    if (screenWidth < 480) return 8; // Menos espacio en móviles pequeños
-    if (screenWidth < 768) return 10; // Espacio medio en móviles grandes
-    return 12; // Espacio normal en tablets y desktop
+    return conditionalScale(450, {
+      desktop: 750,
+      tablet: 650, 
+      phone: 550,
+      smallPhone: 450
+    });
   };
 
-  // Determinar el padding horizontal según la pantalla
-  const getPaddingHorizontal = () => {
-    if (screenWidth < 480) return 8; // Menos espacio en móviles pequeños
-    if (screenWidth < 768) return 10; // Espacio medio en móviles grandes
-    return 12; // Espacio normal en tablets y desktop
+  // Calcular el espaciado entre elementos de forma proporcional
+  const getItemSpacing = () => {
+    return conditionalScale(8, {
+      desktop: 10,
+      tablet: 9,
+      phone: 8,
+      smallPhone: 6
+    });
   };
 
   return (
@@ -53,7 +55,15 @@ export default function BoxSelector({ title, items, onSelect, children, renderIt
       {title && (
         <Text style={[
           styles.title,
-          screenWidth < 480 && { fontSize: 20, marginBottom: 15 }
+          {
+            fontSize: conditionalScale(20, {
+              desktop: 24,
+              tablet: 22,
+              phone: 20,
+              smallPhone: 18
+            }),
+            marginBottom: scale(15)
+          }
         ]}>
           {title}
         </Text>
@@ -64,19 +74,35 @@ export default function BoxSelector({ title, items, onSelect, children, renderIt
         { maxHeight: getMaxHeight() }
       ]}>
         <ScrollView 
-          contentContainerStyle={styles.scrollContainer} 
+          contentContainerStyle={[
+            styles.scrollContainer,
+            { paddingBottom: getItemSpacing() }
+          ]} 
           showsVerticalScrollIndicator={true}
         >
           {items.length === 0 ? (
-            <Text style={styles.emptyMessage}>{emptyMessage || "No items found"}</Text>
+            <Text style={[
+              styles.emptyMessage,
+              {
+                fontSize: conditionalScale(16, {
+                  desktop: 18,
+                  tablet: 17,
+                  phone: 16,
+                  smallPhone: 14
+                }),
+                padding: scale(20)
+              }
+            ]}>{emptyMessage || "No items found"}</Text>
           ) : (
             items.map((item, index) => (
               <View 
                 key={item._id || index} 
                 style={[
                   styles.itemContainer, 
-                  index === 0 ? { marginTop: 8 } : null,
-                  index === items.length - 1 ? { marginBottom: 8 } : null
+                  {
+                    marginBottom: index === items.length - 1 ? 0 : getItemSpacing(),
+                    marginTop: index === 0 ? getItemSpacing() / 2 : 0
+                  }
                 ]}
               >
                 {customRenderItem ? (
@@ -88,15 +114,33 @@ export default function BoxSelector({ title, items, onSelect, children, renderIt
                         styles.itemButton,
                         item.style,
                         { 
-                          paddingVertical: getPaddingVertical(),
-                          paddingHorizontal: getPaddingHorizontal() 
+                          paddingVertical: conditionalScale(8, {
+                            desktop: 15,
+                            tablet: 12,
+                            phone: 10,
+                            smallPhone: 8
+                          }),
+                          paddingHorizontal: conditionalScale(10, {
+                            desktop: 20,
+                            tablet: 16,
+                            phone: 14,
+                            smallPhone: 10
+                          }),
+                          borderRadius: scale(8)
                         }
                       ]}
                       onPress={() => onSelect(item)}
                     >
                       <Text style={[
                         styles.itemButtonText,
-                        screenWidth < 480 && { fontSize: 16 }
+                        {
+                          fontSize: conditionalScale(16, {
+                            desktop: 18,
+                            tablet: 17,
+                            phone: 16,
+                            smallPhone: 14
+                          })
+                        }
                       ]}>
                         {item.name}
                       </Text>
@@ -104,7 +148,15 @@ export default function BoxSelector({ title, items, onSelect, children, renderIt
                       {item.subtitle && (
                         <Text style={[
                           styles.itemSubtitle,
-                          screenWidth < 480 && { fontSize: 12, marginTop: 3 }
+                          {
+                            fontSize: conditionalScale(12, {
+                              desktop: 14,
+                              tablet: 13,
+                              phone: 12,
+                              smallPhone: 10
+                            }),
+                            marginTop: scale(3)
+                          }
                         ]}>
                           {item.subtitle}
                         </Text>
@@ -122,8 +174,15 @@ export default function BoxSelector({ title, items, onSelect, children, renderIt
         {children && (
           <View style={[
             styles.childrenContainer,
-            screenWidth < 480 ? { marginTop: 20 } : 
-            screenWidth < 768 ? { marginTop: 25 } : { marginTop: 30 }
+            {
+              marginTop: conditionalScale(15, {
+                desktop: 20,
+                tablet: 18, 
+                phone: 15,
+                smallPhone: 12
+              }),
+              paddingHorizontal: scale(5)
+            }
           ]}>
             {children}
           </View>
@@ -135,21 +194,24 @@ export default function BoxSelector({ title, items, onSelect, children, renderIt
 
 const styles = StyleSheet.create({
   container: {
-    width: '95%',
+    width: conditionalScale('95%', {
+      desktop: '90%',
+      tablet: '92%',
+      phone: '95%',
+      smallPhone: '98%'
+    }),
     alignItems: 'center',
   },
   title: {
-    fontSize: 24,
-    marginBottom: 20,
     fontWeight: 'bold',
     color: '#333333',
   },
   box: {
     width: '100%',
     backgroundColor: '#E6E0CE',
-    borderRadius: 12,
-    paddingVertical: 10,
-    paddingHorizontal: 10,
+    borderRadius: scale(12),
+    paddingVertical: scale(8),
+    paddingHorizontal: scale(8),
     elevation: 3,
     shadowColor: "#000",
     shadowOffset: { width: 0, height: 2 },
@@ -159,17 +221,12 @@ const styles = StyleSheet.create({
   scrollContainer: {
     flexGrow: 1,
     alignItems: 'center',
-    paddingBottom: 10,
   },
   itemContainer: {
     width: '98%',
-    marginBottom: 12,
   },
   itemButton: {
     backgroundColor: 'white',
-    paddingVertical: 18,
-    borderRadius: 8,
-    paddingHorizontal: 25,
     shadowColor: "#000",
     shadowOffset: { width: 0, height: 1 },
     shadowOpacity: 0.05,
@@ -177,28 +234,22 @@ const styles = StyleSheet.create({
     elevation: 1,
   },
   itemButtonText: {
-    fontSize: 18,
     fontWeight: '600',
     textAlign: 'center',
     color: '#333333',
   },
   itemSubtitle: {
-    fontSize: 14,
     color: '#666',
     textAlign: 'center',
-    marginTop: 5,
   },
   childrenContainer: {
     width: '100%',
     alignItems: 'center',
-    marginBottom: 10, 
-    paddingHorizontal: 5, 
+    marginBottom: scale(8),
   },
   emptyMessage: {
     textAlign: 'center',
     color: '#666',
-    fontSize: 16,
-    padding: 20,
     fontStyle: 'italic',
   },
 });

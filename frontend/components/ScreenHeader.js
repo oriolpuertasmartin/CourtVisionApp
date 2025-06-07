@@ -4,6 +4,7 @@ import { Ionicons } from '@expo/vector-icons';
 import SubpageTitle from './SubpageTitle';
 import HeaderTitle from './HeaderTitle';
 import { useDeviceType } from './ResponsiveUtils';
+import { scale, conditionalScale } from '../utils/responsive';
 
 export default function ScreenHeader({ 
   title, 
@@ -20,10 +21,14 @@ export default function ScreenHeader({
   // Determinar el tamaño del icono según el dispositivo
   const getIconSize = () => {
     if (iconSize) return iconSize;
-    if (screenWidth > 1024) return 28; // desktop
-    if (screenWidth > 768) return 26;  // tablet
-    if (screenWidth > 480) return 24;  // phone
-    return 22; // small-phone
+    
+    // Usando conditionalScale para simplificar la lógica
+    return conditionalScale(24, {
+      desktop: 28,
+      tablet: 26,
+      phone: 24,
+      smallPhone: 22
+    });
   };
   
   // Ajustar posición según tipo de dispositivo
@@ -34,9 +39,9 @@ export default function ScreenHeader({
       ((screenWidth >= 375 && Dimensions.get('window').height >= 812) || 
        (screenWidth >= 812 && Dimensions.get('window').height >= 375));
        
-    if (hasNotch) return { top: 50 };
-    if (screenWidth > 768) return { top: 40 };
-    return { top: 35 };
+    if (hasNotch) return { top: scale(50) };
+    if (screenWidth > 768) return { top: scale(40) };
+    return { top: scale(35) };
   };
 
   return (
@@ -69,8 +74,8 @@ export default function ScreenHeader({
 const styles = StyleSheet.create({
   backButton: {
     position: 'absolute',
-    left: 20,
+    left: scale(20),
     zIndex: 10,
-    padding: 10,
+    padding: scale(10),
   }
 });

@@ -40,6 +40,27 @@ export class PlayerStats {
 
   @Prop({ default: 0 })
   freeThrowsAttempted: number;
+
+  @Prop({ default: 0 })
+  twoPointsMade: number;
+
+  @Prop({ default: 0 })
+  twoPointsAttempted: number;
+
+  @Prop({ default: 0 })
+  threePointsMade: number;
+
+  @Prop({ default: 0 })
+  threePointsAttempted: number;
+
+  @Prop({ default: 0 })
+  fouls: number;
+
+  @Prop({ default: 0 })
+  defRebounds: number;
+
+  @Prop({ default: 0 })
+  offRebounds: number;
 }
 
 export const PlayerStatsSchema = SchemaFactory.createForClass(PlayerStats);

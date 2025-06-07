@@ -1,9 +1,11 @@
 import React, { useState } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, Modal, Image, Alert, Platform } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
+import { scale, conditionalScale, getDeviceType } from '../utils/responsive';
 
 export default function FloatingUserButton({ user, onPress, onLogout }) {
   const [modalVisible, setModalVisible] = useState(false);
+  const deviceType = getDeviceType();
 
   // Obtener las iniciales del usuario para mostrar si no hay foto de perfil
   const getUserInitials = () => {
@@ -45,25 +47,118 @@ export default function FloatingUserButton({ user, onPress, onLogout }) {
     }
   };
 
+  // Calcular dimensiones responsivas según el dispositivo
+  const photoSize = conditionalScale(50, {
+    desktop: 60,
+    tablet: 55,
+    phone: 50,
+    smallPhone: 40
+  });
+
+  const buttonPadding = conditionalScale(18, {
+    desktop: 20,
+    tablet: 18,
+    phone: 15,
+    smallPhone: 12
+  });
+
+  const borderRadius = photoSize / 2;
+  
+  const iconSize = conditionalScale(24, {
+    desktop: 28,
+    tablet: 26,
+    phone: 24,
+    smallPhone: 20
+  });
+
+  // Calcular el margen correcto según el tamaño del dispositivo
+  // Reducido de 15 a valores más pequeños según el dispositivo
+  const photoMargin = conditionalScale(8, {
+    desktop: 10,
+    tablet: 9,
+    phone: 8,
+    smallPhone: 6
+  });
+
   return (
     <>
       <TouchableOpacity 
-        style={styles.button} 
+        style={[
+          styles.button,
+          {
+            padding: buttonPadding,
+            borderRadius: borderRadius + 10,  // Un poco más grande que la foto
+            bottom: scale(20),
+            right: scale(20)
+          }
+        ]} 
         onPress={() => setModalVisible(true)}
       >
         {user?.profile_photo ? (
           <Image 
             source={{ uri: user.profile_photo }} 
-            style={styles.profilePhoto} 
+            style={[
+              styles.profilePhoto,
+              {
+                width: photoSize,
+                height: photoSize,
+                borderRadius: borderRadius,
+                marginRight: photoMargin // Aquí hacemos el cambio principal
+              }
+            ]} 
           />
         ) : (
-          <View style={styles.statusIndicator}>
-            <Text style={styles.initialsText}>{getUserInitials()}</Text>
+          <View style={[
+            styles.statusIndicator,
+            {
+              width: photoSize,
+              height: photoSize,
+              borderRadius: borderRadius,
+              marginRight: photoMargin // Aquí hacemos el cambio principal
+            }
+          ]}>
+            <Text style={[
+              styles.initialsText,
+              {
+                fontSize: conditionalScale(20, {
+                  desktop: 24,
+                  tablet: 22,
+                  phone: 20,
+                  smallPhone: 16
+                })
+              }
+            ]}>
+              {getUserInitials()}
+            </Text>
           </View>
         )}
         <View>
-          <Text style={styles.text}>{user?.username || 'Usuario'}</Text>
-          <Text style={styles.subtext}>{user?.email || 'email@ejemplo.com'}</Text>
+          <Text style={[
+            styles.text,
+            {
+              fontSize: conditionalScale(18, {
+                desktop: 20,
+                tablet: 18,
+                phone: 16,
+                smallPhone: 14
+              })
+            }
+          ]}>
+            {user?.username || 'Usuario'}
+          </Text>
+          <Text style={[
+            styles.subtext,
+            {
+              fontSize: conditionalScale(14, {
+                desktop: 16,
+                tablet: 14,
+                phone: 12,
+                smallPhone: 10
+              })
+            }
+          ]}>
+            {user?.email || 'email@ejemplo.com'}
+          </Text>
         </View>
       </TouchableOpacity>
 
@@ -79,24 +174,77 @@ export default function FloatingUserButton({ user, onPress, onLogout }) {
           activeOpacity={1} 
           onPress={() => setModalVisible(false)}
         >
-          <View style={styles.modalView}>
+          <View style={[
+            styles.modalView,
+            {
+              width: conditionalScale(200, {
+                desktop: 250,
+                tablet: 230,
+                phone: 200,
+                smallPhone: 180
+              }),
+              padding: scale(10)
+            }
+          ]}>
             <TouchableOpacity 
-              style={styles.modalOption}
+              style={[
+                styles.modalOption,
+                {
+                  paddingVertical: scale(12),
+                  paddingHorizontal: scale(15)
+                }
+              ]}
               onPress={() => {
                 setModalVisible(false);
                 onPress && onPress();
               }}
             >
-              <Ionicons name="person-outline" size={24} color="#333" />
-              <Text style={styles.modalOptionText}>Ajustes del perfil</Text>
+              <Ionicons name="person-outline" size={iconSize} color="#333" />
+              <Text style={[
+                styles.modalOptionText,
+                {
+                  marginLeft: scale(10),
+                  fontSize: conditionalScale(16, {
+                    desktop: 18,
+                    tablet: 17,
+                    phone: 16,
+                    smallPhone: 14
+                  })
+                }
+              ]}>
+                Ajustes del perfil
+              </Text>
             </TouchableOpacity>
 
             <TouchableOpacity 
-              style={[styles.modalOption, styles.logoutOption]}
-              onPress={confirmLogout}  // Cambiado para usar la nueva función confirmLogout
+              style={[
+                styles.modalOption, 
+                styles.logoutOption,
+                {
+                  paddingVertical: scale(12),
+                  paddingHorizontal: scale(15),
+                  marginTop: scale(5),
+                  paddingTop: scale(15)
+                }
+              ]}
+              onPress={confirmLogout}
             >
-              <Ionicons name="log-out-outline" size={24} color="#D32F2F" />
-              <Text style={[styles.modalOptionText, { color: '#D32F2F' }]}>Cerrar Sesión</Text>
+              <Ionicons name="log-out-outline" size={iconSize} color="#D32F2F" />
+              <Text style={[
+                styles.modalOptionText,
+                { 
+                  color: '#D32F2F',
+                  marginLeft: scale(10),
+                  fontSize: conditionalScale(16, {
+                    desktop: 18,
+                    tablet: 17,
+                    phone: 16,
+                    smallPhone: 14
+                  })
+                }
+              ]}>
+                Cerrar Sesión
+              </Text>
             </TouchableOpacity>
           </View>
         </TouchableOpacity>
@@ -110,11 +258,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     position: 'absolute',
-    bottom: 20,
-    right: 20,
     backgroundColor: '#D9D9D9',
-    padding: 18,
-    borderRadius: 25,
     elevation: 5,
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 2 },
@@ -122,48 +266,35 @@ const styles = StyleSheet.create({
     shadowRadius: 3.84,
   },
   statusIndicator: {
-    width: 50,
-    height: 50,
-    borderRadius: 25,
     backgroundColor: '#FFA500',
-    marginRight: 15,
     justifyContent: 'center',
     alignItems: 'center',
   },
   profilePhoto: {
-    width: 50,
-    height: 50,
-    borderRadius: 25,
-    marginRight: 15,
     borderWidth: 2,
     borderColor: '#FFA500',
   },
   initialsText: {
     color: 'white',
     fontWeight: 'bold',
-    fontSize: 20,
   },
   text: {
     color: 'black',
     fontWeight: 'bold',
-    fontSize: 18,
   },
   subtext: {
     color: 'black',
-    fontSize: 14,
   },
   modalOverlay: {
     flex: 1,
     backgroundColor: 'rgba(0, 0, 0, 0.5)',
     justifyContent: 'flex-end',
     alignItems: 'flex-end',
-    padding: 30,
+    padding: scale(30),
   },
   modalView: {
-    width: 200,
     backgroundColor: 'white',
     borderRadius: 10,
-    padding: 10,
     elevation: 5,
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 2 },
@@ -173,19 +304,13 @@ const styles = StyleSheet.create({
   modalOption: {
     flexDirection: 'row',
     alignItems: 'center',
-    paddingVertical: 12,
-    paddingHorizontal: 15,
     borderRadius: 5,
   },
   logoutOption: {
-    marginTop: 5,
     borderTopWidth: 1,
     borderTopColor: '#eee',
-    paddingTop: 15,
   },
   modalOptionText: {
-    marginLeft: 10,
-    fontSize: 16,
     color: '#333',
   },
 });

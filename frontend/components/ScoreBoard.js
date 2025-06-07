@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from "react";
-import { View, Text, StyleSheet, TouchableOpacity } from "react-native";
+import { View, Text, StyleSheet, TouchableOpacity, Dimensions } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import API_BASE_URL from "../config/apiConfig";
 
@@ -12,7 +12,10 @@ const Scoreboard = ({
   teamAScore = 0,        // Recibe los puntos como prop, en lugar de manejarlos internamente
   teamBScore = 0,        // Recibe los puntos como prop, en lugar de manejarlos internamente
   teamAFouls = 0,        // Recibe las faltas como prop, en lugar de manejarlas internamente
-  teamBFouls = 0         // Recibe las faltas como prop, en lugar de manejarlas internamente
+  teamBFouls = 0,         // Recibe las faltas como prop, en lugar de manejarlas internamente
+  scale = 1,             // Factor de escala para ajustar el tamaño
+  width,                 // Ancho personalizado (opcional)
+  compactMode = false    // Modo compacto para pantallas pequeñas
 }) => {
   const [isPlaying, setIsPlaying] = useState(false); // Empieza pausado
   const [currentPeriod, setCurrentPeriod] = useState(period);
@@ -20,6 +23,17 @@ const Scoreboard = ({
   const [match, setMatch] = useState(null);
   const [periodsHistory, setPeriodsHistory] = useState([]);
   const [showHistory, setShowHistory] = useState(false);
+  const [screenWidth, setScreenWidth] = useState(Dimensions.get('window').width);
+
+  // Actualizar dimensiones cuando cambie el tamaño de la pantalla
+  useEffect(() => {
+    const updateDimensions = () => {
+      setScreenWidth(Dimensions.get('window').width);
+    };
+
+    const subscription = Dimensions.addEventListener('change', updateDimensions);
+    return () => subscription.remove();
+  }, []);
   
 
   const [totalSeconds, setTotalSeconds] = useState(() => {
@@ -191,65 +205,129 @@ const handlePeriodChange = async (newPeriod) => {
 
   if (loading && matchId) {
     return (
-      <View style={styles.container}>
+      <View style={[
+        styles.container,
+        { 
+          transform: [{ scale }],
+          width: width || 500 * scale, 
+          padding: compactMode ? 10 : 20
+        }
+      ]}>
         <Text style={styles.period}>Cargando...</Text>
       </View>
     );
   }
 
+  // Ajustar tamaños de texto según el modo y el factor de escala
+  const getFontSize = (baseSize) => {
+    if (compactMode) {
+      return baseSize * 0.8; // 20% más pequeño en modo compacto
+    }
+    return baseSize;
+  };
+
   return (
-    <View style={styles.container}>
+    <View style={[
+      styles.container, 
+      { 
+        transform: [{ scale }],
+        width: width || 500 * scale,
+        padding: compactMode ? 10 : 20
+      }
+    ]}>
       {/* Selector de periodos - 4 cuartos (H1, H2, H3, H4) */}
       <View style={styles.periodSelector}>
         <TouchableOpacity onPress={() => handlePeriodChange("H1")}>
-          <Text style={[styles.periodOption, currentPeriod === "H1" && styles.activePeriod]}>H1</Text>
+          <Text style={[
+            styles.periodOption, 
+            currentPeriod === "H1" && styles.activePeriod,
+            { fontSize: getFontSize(14) }
+          ]}>H1</Text>
         </TouchableOpacity>
         <TouchableOpacity onPress={() => handlePeriodChange("H2")}>
-          <Text style={[styles.periodOption, currentPeriod === "H2" && styles.activePeriod]}>H2</Text>
+          <Text style={[
+            styles.periodOption, 
+            currentPeriod === "H2" && styles.activePeriod,
+            { fontSize: getFontSize(14) }
+          ]}>H2</Text>
         </TouchableOpacity>
         <TouchableOpacity onPress={() => handlePeriodChange("H3")}>
-          <Text style={[styles.periodOption, currentPeriod === "H3" && styles.activePeriod]}>H3</Text>
+          <Text style={[
+            styles.periodOption, 
+            currentPeriod === "H3" && styles.activePeriod,
+            { fontSize: getFontSize(14) }
+          ]}>H3</Text>
         </TouchableOpacity>
         <TouchableOpacity onPress={() => handlePeriodChange("H4")}>
-          <Text style={[styles.periodOption, currentPeriod === "H4" && styles.activePeriod]}>H4</Text>
+          <Text style={[
+            styles.periodOption, 
+            currentPeriod === "H4" && styles.activePeriod,
+            { fontSize: getFontSize(14) }
+          ]}>H4</Text>
         </TouchableOpacity>
       </View>
       
-      <Text style={styles.period}>{currentPeriod}</Text>
+      <Text style={[styles.period, { fontSize: getFontSize(18) }]}>
+        {currentPeriod}
+      </Text>
 
       <View style={styles.scoreRow}>
         <View style={styles.teamColumn}>
-          <Text style={styles.teamName}>{teamAName}</Text>
-          <Text style={styles.score}>{teamAScore}</Text>
+          <Text style={[styles.teamName, { fontSize: getFontSize(25) }]}>
+            {compactMode && teamAName.length > 5 ? teamAName.substring(0, 5) + "..." : teamAName}
+          </Text>
+          <Text style={[styles.score, { fontSize: getFontSize(42) }]}>
+            {teamAScore}
+          </Text>
         </View>
         <View style={styles.teamColumn}>
-          <Text style={styles.teamName}>{teamBName}</Text>
-          <Text style={styles.score}>{teamBScore}</Text>
+          <Text style={[styles.teamName, { fontSize: getFontSize(25) }]}>
+            {compactMode && teamBName.length > 5 ? teamBName.substring(0, 5) + "..." : teamBName}
+          </Text>
+          <Text style={[styles.score, { fontSize: getFontSize(42) }]}>
+            {teamBScore}
+          </Text>
         </View>
       </View>
 
-      <Text style={styles.time}>{formatTime(totalSeconds)}</Text>
+      <Text style={[styles.time, { fontSize: getFontSize(20) }]}>
+        {formatTime(totalSeconds)}
+      </Text>
 
       <TouchableOpacity onPress={togglePlayPause} style={styles.playPause}>
-        <Ionicons name={isPlaying ? "pause" : "play"} size={32} color="black" />
+        <Ionicons 
+          name={isPlaying ? "pause" : "play"} 
+          size={compactMode ? 24 : 32} 
+          color="black" 
+        />
       </TouchableOpacity>
 
       <View style={styles.foulRow}>
-        <Text style={styles.foulLabel}>Faltas:</Text>
-        <Text style={styles.foulText}>{teamAFouls}</Text>
-        <Text style={styles.foulSeparator}>-</Text>
-        <Text style={styles.foulText}>{teamBFouls}</Text>
+        <Text style={[styles.foulLabel, { fontSize: getFontSize(16) }]}>
+          Faltas:
+        </Text>
+        <Text style={[styles.foulText, { fontSize: getFontSize(18) }]}>
+          {teamAFouls}
+        </Text>
+        <Text style={[styles.foulSeparator, { fontSize: getFontSize(18) }]}>
+          -
+        </Text>
+        <Text style={[styles.foulText, { fontSize: getFontSize(18) }]}>
+          {teamBFouls}
+        </Text>
       </View>
       
       {/* Botón para mostrar/ocultar historial */}
-      <TouchableOpacity onPress={toggleHistoryView} style={styles.historyButton}>
-        <Text style={styles.historyButtonText}>
-          {showHistory ? "Ocultar Historial" : "Ver Historial por Periodos"}
-        </Text>
-      </TouchableOpacity>
+      {!compactMode && (
+        <TouchableOpacity onPress={toggleHistoryView} style={styles.historyButton}>
+          <Text style={styles.historyButtonText}>
+            {showHistory ? "Ocultar Historial" : "Ver Historial por Periodos"}
+          </Text>
+        </TouchableOpacity>
+      )}
       
-      {/* Historial de periodos */}
-      {showHistory && periodsHistory.length > 0 && (
+      {/* Historial de periodos - solo mostrar en modo no compacto */}
+      {!compactMode && showHistory && periodsHistory.length > 0 && (
         <View style={styles.historyContainer}>
           <Text style={styles.historyTitle}>Resumen por Periodos</Text>
           {periodsHistory.map((p, index) => (

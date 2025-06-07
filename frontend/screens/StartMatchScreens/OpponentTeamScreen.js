@@ -16,6 +16,7 @@ import ImageUploader from "../../components/ImageUploader";
 import ScreenHeader from "../../components/ScreenHeader";
 import ScreenContainer from "../../components/ScreenContainer";
 import { useDeviceType } from "../../components/ResponsiveUtils";
+import { scale, conditionalScale } from "../../utils/responsive";
 
 export default function OpponentTeamScreen({ route, navigation }) {
   const { matchId, teamId } = route.params;
@@ -25,11 +26,17 @@ export default function OpponentTeamScreen({ route, navigation }) {
   const [screenWidth, setScreenWidth] = useState(
     Dimensions.get("window").width
   );
+  const [screenHeight, setScreenHeight] = useState(
+    Dimensions.get("window").height
+  );
   const isLargeScreen = screenWidth > 768;
+  const isSmallScreen = screenWidth < 480;
 
   useEffect(() => {
     const updateDimensions = () => {
-      setScreenWidth(Dimensions.get("window").width);
+      const dimensions = Dimensions.get("window");
+      setScreenWidth(dimensions.width);
+      setScreenHeight(dimensions.height);
     };
 
     const subscription = Dimensions.addEventListener(
@@ -95,27 +102,56 @@ export default function OpponentTeamScreen({ route, navigation }) {
     updateOpponentTeam(formData);
   };
 
+  // Ajustar tamaños según el dispositivo
+  const getImageSize = () => {
+    if (isSmallScreen) return 80;
+    if (!isLargeScreen) return 100;
+    return 120;
+  };
+
   return (
     <ScreenContainer
+      scrollable={true}
       fullWidth={isLargeScreen}
-      contentContainerStyle={styles.contentContainer}
+      contentContainerStyle={[
+        styles.contentContainer,
+        isSmallScreen && { 
+          paddingBottom: scale(80),
+          paddingTop: 0, // Eliminamos padding superior para dispositivos pequeños
+          marginTop: 0, // Eliminar cualquier margen superior adicional
+        }
+      ]}
+      noTopPadding={isSmallScreen} // Importante: añadimos esta prop para pantallas pequeñas
     >
       <ScreenHeader
         title="Opponent team"
         onBack={handleGoBack}
         showBackButton={true}
         isMainScreen={false}
+        // Ajuste más cerca al borde superior
+        customStyle={isSmallScreen ? { top: scale(15) } : {}}
       />
 
-      <View style={styles.content}>
+      <View style={[
+        styles.content,
+        isSmallScreen && { 
+          padding: scale(10),
+          // Acercar mucho más el BoxFill al título
+          marginTop: scale(-20),
+          // Eliminar espacio adicional
+          paddingTop: 0,
+        }
+      ]}>
         {/* Formulario de información del equipo oponente */}
         <BoxFill
+          title="" // Eliminar el título del BoxFill porque ya usamos ScreenHeader
           fields={[
             { name: "nombre", placeholder: "Opponent Name *", required: true },
             { name: "category", placeholder: "Category" },
           ]}
           formData={formData}
           onChangeForm={setFormData}
+          containerStyle={isSmallScreen ? styles.boxFillContainerSmall : styles.boxFillContainer}
         >
           {/* Cargador de imágenes */}
           <ImageUploader
@@ -124,13 +160,13 @@ export default function OpponentTeamScreen({ route, navigation }) {
             onImageSelected={(imageUri) =>
               setFormData({ ...formData, photo: imageUri })
             }
-            size={120}
+            size={getImageSize()}
             containerStyle={{
               width: "100%",
               backgroundColor: "#FFF9E7",
               borderRadius: 12,
-              padding: 10,
-              marginVertical: 10,
+              padding: isSmallScreen ? scale(5) : scale(10),
+              marginVertical: isSmallScreen ? scale(5) : scale(10),
               alignItems: "center",
             }}
           />
@@ -139,7 +175,10 @@ export default function OpponentTeamScreen({ route, navigation }) {
           <PrimaryButton
             title={isPending ? "Saving..." : "Save Opponent"}
             onPress={handleSubmit}
-            style={styles.saveButton}
+            style={[
+              styles.saveButton,
+              isSmallScreen && { marginTop: scale(5), paddingVertical: scale(8) }
+            ]}
             disabled={isPending}
           />
         </BoxFill>
@@ -159,13 +198,13 @@ const styles = StyleSheet.create({
     alignItems: "center",
     justifyContent: "flex-start",
     width: "100%",
-    flex: 1,
+    paddingBottom: 20,
   },
   content: {
     width: "100%",
     maxWidth: "100%",
-    padding: 20,
-    paddingBottom: 20,
+    padding: scale(15),
+    paddingBottom: scale(20),
     alignItems: "center",
   },
   backButton: {
@@ -177,7 +216,15 @@ const styles = StyleSheet.create({
   },
   saveButton: {
     backgroundColor: "#FFA500",
-    marginTop: 10,
+    marginTop: scale(10),
+  },
+  boxFillContainer: {
+    marginVertical: scale(20),
+  },
+  boxFillContainerSmall: {
+    marginVertical: scale(2), // Reducido de 5 a 2
+    marginTop: 0,
+    paddingTop: 0, // Asegurarse de que no hay padding superior
   },
   loadingOverlay: {
     position: "absolute",
