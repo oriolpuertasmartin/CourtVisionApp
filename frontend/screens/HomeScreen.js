@@ -213,21 +213,23 @@ export default function HomeScreen() {
       </TouchableOpacity>
     );
   };
-  
+
   return (
     <ScreenContainer
       fullWidth={isLargeScreen}
       contentContainerStyle={styles.contentContainer}
     >
-      <ScrollView 
+      <ScrollView
         style={styles.scrollView}
-        contentContainerStyle={styles.scrollContent}
+        contentContainerStyle={[styles.scrollContent, { flexGrow: 1 }]}
         showsVerticalScrollIndicator={false}
       >
         {/* Welcome section with solid color background */}
         <View style={styles.welcomeContainer}>
           <View style={styles.welcomeOverlay}>
-            <Text style={styles.welcomeText}>Welcome back{user ? `, ${user.name?.split(' ')[0]}` : ''}!</Text>
+            <Text style={styles.welcomeText}>
+              Welcome back{user ? `, ${user.name?.split(" ")[0]}` : ""}!
+            </Text>
             <Text style={styles.welcomeSubtext}>
               Track and analyze your basketball team's performance
             </Text>
@@ -235,54 +237,67 @@ export default function HomeScreen() {
         </View>
 
         {/* Nueva sección dividida en dos columnas */}
-        <View style={[
-          styles.twoColumnContainer,
-          { flexDirection: isLargeScreen ? "row" : "column" }
-        ]}>
+        <View
+          style={[
+            styles.twoColumnContainer,
+            { flexDirection: isLargeScreen ? "row" : "column" },
+          ]}
+        >
           {/* Columna izquierda - Quick Actions */}
-          <View style={[
-            styles.columnContainer,
-            { 
-              width: isLargeScreen ? "48%" : "100%",
-              marginBottom: isLargeScreen ? 0 : 15
-            }
-          ]}>
+          <View
+            style={[
+              styles.columnContainer,
+              {
+                width: isLargeScreen ? "48%" : "100%",
+                marginBottom: isLargeScreen ? 0 : 25,
+                flex: 1,
+              },
+            ]}
+          >
             <Text style={styles.columnTitle}>Quick Actions</Text>
             <View style={styles.columnContent}>
-              <TouchableOpacity 
-                style={styles.quickActionButton}
+              <TouchableOpacity
+                style={[styles.quickActionButton, { backgroundColor: "#EB840B20" }]}
                 onPress={() => navigation.navigate("Start a Match")}
               >
-                <Ionicons name="basketball-outline" size={24} color="#EB840B" />
+                <Ionicons name="basketball-outline" size={28} color="#EB840B" />
                 <Text style={styles.quickActionText}>Start Match</Text>
               </TouchableOpacity>
-              
-              <TouchableOpacity 
-                style={styles.quickActionButton}
+
+              <TouchableOpacity
+                style={[styles.quickActionButton, { backgroundColor: "#4A90E220" }]}
                 onPress={() => navigation.navigate("Teams")}
               >
-                <Ionicons name="people-outline" size={24} color="#4A90E2" />
+                <Ionicons name="people-outline" size={28} color="#4A90E2" />
                 <Text style={styles.quickActionText}>Teams</Text>
               </TouchableOpacity>
-              
-              <TouchableOpacity 
-                style={styles.quickActionButton}
-                onPress={() => navigation.navigate("Teams")}
+
+              <TouchableOpacity
+                style={[styles.quickActionButton, { backgroundColor: "#50C87820" }]}
+                onPress={() => navigation.navigate("Info")}
               >
-                <Ionicons name="stats-chart-outline" size={24} color="#50C878" />
-                <Text style={styles.quickActionText}>Statistics</Text>
+                <Ionicons
+                  name="information-circle-outline"
+                  size={28}
+                  color="#50C878"
+                />
+                <Text style={styles.quickActionText}>Info</Text>
               </TouchableOpacity>
             </View>
           </View>
 
           {/* Columna derecha - News */}
-          <View style={[
-            styles.columnContainer,
-            { 
-              width: isLargeScreen ? "48%" : "100%",
-              marginBottom: isLargeScreen ? 0 : 15
-            }
-          ]}>
+          <View
+            style={[
+              styles.columnContainer,
+              {
+                width: isLargeScreen ? "48%" : "100%",
+                marginBottom: isLargeScreen ? 0 : 25,
+                flex: 1,
+                marginLeft: isLargeScreen ? 20 : 0,
+              },
+            ]}
+          >
             <Text style={styles.columnTitle}>News</Text>
             <View style={styles.columnContent}>
               <View style={styles.newsItem}>
@@ -292,7 +307,7 @@ export default function HomeScreen() {
                   Check out the new statistical analysis tools in the app.
                 </Text>
               </View>
-              
+
               <View style={styles.newsItem}>
                 <Text style={styles.newsDate}>Yesterday</Text>
                 <Text style={styles.newsTitle}>Performance improvements</Text>
@@ -303,15 +318,6 @@ export default function HomeScreen() {
             </View>
           </View>
         </View>
-
-        {/* App info section */}
-        <TouchableOpacity 
-          style={styles.infoContainer}
-          onPress={() => navigation.navigate("Info")}
-        >
-          <Ionicons name="information-circle-outline" size={24} color="#666" />
-          <Text style={styles.infoText}>Learn more about CourtVision</Text>
-        </TouchableOpacity>
       </ScrollView>
     </ScreenContainer>
   );
@@ -322,13 +328,16 @@ const styles = StyleSheet.create({
     alignItems: "center",
     justifyContent: "flex-start",
     width: "100%",
+    flex: 1,
   },
   scrollView: {
     width: "100%",
+    flex: 1,
   },
   scrollContent: {
     paddingBottom: 40,
-    paddingTop: 50, // Añadir padding superior para compensar la eliminación del título
+    paddingTop: 50,
+    flexGrow: 1,
   },
   welcomeContainer: {
     width: "100%",
@@ -336,7 +345,11 @@ const styles = StyleSheet.create({
     marginBottom: 20,
     justifyContent: "center",
     alignItems: "center",
-    backgroundColor: "#EB840B", // Color sólido en lugar de imagen
+    backgroundColor: "#EB840B",
+    borderRadius: 20,
+    shadowColor: "#CCCCCC",
+    shadowOffset: { width: 0, height: 2 },
+    alignSelf: "center",
   },
   welcomeOverlay: {
     backgroundColor: "rgba(0,0,0,0.2)",
@@ -357,55 +370,64 @@ const styles = StyleSheet.create({
     color: "white",
     textAlign: "center",
   },
-  // Nuevos estilos para la sección de dos columnas
   twoColumnContainer: {
     justifyContent: "space-between",
     width: "100%",
     paddingHorizontal: 20,
     marginBottom: 25,
+    flex: 1,
   },
   columnContainer: {
-    backgroundColor: "#F9F9F9",
+    backgroundColor: "#EAEAEA", // Gris un poco más oscuro
     borderRadius: 15,
     padding: 15,
     elevation: 1,
-    shadowColor: "#000",
+    shadowColor: "#CCCCCC",
     shadowOffset: { width: 0, height: 1 },
     shadowOpacity: 0.05,
     shadowRadius: 2,
+    flex: 1,
+    minHeight: 400,
   },
   columnTitle: {
-    fontSize: 18,
+    fontSize: 30,
     fontWeight: "bold",
     color: "#333",
-    marginBottom: 15,
-    paddingBottom: 8,
+    marginBottom: 25,
+    paddingBottom: 15,
     borderBottomWidth: 1,
-    borderBottomColor: "#EEE",
+    borderBottomColor: "#DDD",
   },
   columnContent: {
     flex: 1,
+    justifyContent: "space-between", // Distribuir elementos uniformemente
   },
-  // Estilos para los botones de acción rápida
   quickActionButton: {
     flexDirection: "row",
     alignItems: "center",
-    paddingVertical: 12,
-    borderBottomWidth: 1,
-    borderBottomColor: "#EEEEEE",
+    paddingVertical: 28, // Botones mucho más grandes
+    borderRadius: 12,
+    marginBottom: 20, // Más espacio entre botones
+    paddingHorizontal: 20, // Más padding horizontal
+    height: "27%", // Altura fija para ocupar el espacio disponible
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.1,
+    shadowRadius: 2,
+    elevation: 2,
   },
   quickActionText: {
     marginLeft: 15,
-    fontSize: 16,
+    fontSize: 20, // Texto más grande
     color: "#333",
     fontWeight: "500",
   },
-  // Estilos para los elementos de noticias
   newsItem: {
-    marginBottom: 15,
-    paddingBottom: 12,
+    marginBottom: 20, // Más espacio entre noticias
+    paddingBottom: 20,
     borderBottomWidth: 1,
-    borderBottomColor: "#EEEEEE",
+    borderBottomColor: "#DDD",
+    flex: 1, // Para que ocupen espacio proporcional
   },
   newsDate: {
     fontSize: 12,
@@ -413,16 +435,15 @@ const styles = StyleSheet.create({
     marginBottom: 4,
   },
   newsTitle: {
-    fontSize: 16,
+    fontSize: 18, // Título más grande
     fontWeight: "bold",
     color: "#333",
-    marginBottom: 4,
+    marginBottom: 8,
   },
   newsDescription: {
-    fontSize: 14,
+    fontSize: 15, // Descripción más grande
     color: "#666",
   },
-  // Estilos necesarios para los componentes que aún se usan
   featureCard: {
     borderRadius: 15,
     padding: 15,
@@ -537,18 +558,5 @@ const styles = StyleSheet.create({
     fontSize: 12,
     color: "white",
     fontWeight: "bold",
-  },
-  infoContainer: {
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "center",
-    padding: 15,
-    marginTop: 10,
-    marginBottom: 20,
-  },
-  infoText: {
-    fontSize: 14,
-    color: "#666",
-    marginLeft: 5,
-  },
+  }
 });
