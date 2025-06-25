@@ -8,16 +8,16 @@ const Scoreboard = ({
   teamAName = "UAB",
   teamBName = "Rival",
   period = "H1",
-  initialTime = "10:00", // Aquí arranca el cronómetro
-  teamAScore = 0,        // Recibe los puntos como prop, en lugar de manejarlos internamente
-  teamBScore = 0,        // Recibe los puntos como prop, en lugar de manejarlos internamente
-  teamAFouls = 0,        // Recibe las faltas como prop, en lugar de manejarlas internamente
-  teamBFouls = 0,         // Recibe las faltas como prop, en lugar de manejarlas internamente
-  scale = 1,             // Factor de escala para ajustar el tamaño
-  width,                 // Ancho personalizado (opcional)
-  compactMode = false    // Modo compacto para pantallas pequeñas
+  initialTime = "10:00", // Starting time for the timer
+  teamAScore = 0,        // Points received as props, instead of handling them internally
+  teamBScore = 0,        // Points received as props, instead of handling them internally
+  teamAFouls = 0,        // Fouls received as props, instead of handling them internally
+  teamBFouls = 0,         // Fouls received as props, instead of handling them internally
+  scale = 1,             // Scale factor to adjust size
+  width,                 // Custom width (optional)
+  compactMode = false    // Compact mode for small screens
 }) => {
-  const [isPlaying, setIsPlaying] = useState(false); // Empieza pausado
+  const [isPlaying, setIsPlaying] = useState(false); // Starts paused
   const [currentPeriod, setCurrentPeriod] = useState(period);
   const [loading, setLoading] = useState(matchId ? true : false);
   const [match, setMatch] = useState(null);
@@ -25,7 +25,7 @@ const Scoreboard = ({
   const [showHistory, setShowHistory] = useState(false);
   const [screenWidth, setScreenWidth] = useState(Dimensions.get('window').width);
 
-  // Actualizar dimensiones cuando cambie el tamaño de la pantalla
+  // Update dimensions when screen size changes
   useEffect(() => {
     const updateDimensions = () => {
       setScreenWidth(Dimensions.get('window').width);
@@ -43,25 +43,25 @@ const Scoreboard = ({
 
   const intervalRef = useRef(null);
 
-  // Obtener información del partido si se proporciona un matchId
+  // Get match information if matchId is provided
   useEffect(() => {
     async function fetchMatchData() {
       try {
         if (!matchId) return;
         
         const response = await fetch(`${API_BASE_URL}/matches/${matchId}`);
-        if (!response.ok) throw new Error("Error al obtener datos del partido");
+        if (!response.ok) throw new Error("Error loading match data");
         
         const data = await response.json();
         setMatch(data);
         
-        // Inicializar el periodo si existe
+        // Initialize period if it exists
         if (data.currentPeriod) setCurrentPeriod(data.currentPeriod);
         if (data.periodsHistory) setPeriodsHistory(data.periodsHistory);
         
         setLoading(false);
       } catch (error) {
-        console.error("Error cargando datos del partido:", error);
+        console.error("Error loading match data:", error);
         setLoading(false);
       }
     }
@@ -69,13 +69,13 @@ const Scoreboard = ({
     if (matchId) fetchMatchData();
   }, [matchId]);
 
-  // Actualizar solo el periodo en el servidor cuando cambia
+  // Update only the period in the server when it changes
   useEffect(() => {
     const updatePeriod = async () => {
       try {
         if (!matchId || loading) return;
         
-        console.log("Actualizando período en el servidor:", currentPeriod);
+        console.log("Updating period in server:", currentPeriod);
         
         const response = await fetch(`${API_BASE_URL}/matches/${matchId}`, {
           method: "PATCH",
@@ -85,10 +85,10 @@ const Scoreboard = ({
           }),
         });
         
-        if (!response.ok) throw new Error("Error al actualizar el periodo");
-        console.log("Período actualizado en el servidor:", currentPeriod);
+        if (!response.ok) throw new Error("Error updating period");
+        console.log("Period updated in server:", currentPeriod);
       } catch (error) {
-        console.error("Error al actualizar el periodo:", error);
+        console.error("Error updating period:", error);
       }
     };
 
@@ -99,14 +99,14 @@ const Scoreboard = ({
     return () => clearTimeout(saveTimeout);
   }, [currentPeriod, loading, matchId]);
 
-  // Controlar el cronómetro
+  // Control the timer
   useEffect(() => {
     if (isPlaying && totalSeconds > 0) {
       intervalRef.current = setInterval(() => {
         setTotalSeconds((prev) => {
           if (prev <= 1) {
             clearInterval(intervalRef.current);
-            setIsPlaying(false); // Se pausa automáticamente en 00:00
+            setIsPlaying(false); // Auto-pause at 00:00
             return 0;
           }
           return prev - 1;
@@ -116,6 +116,66 @@ const Scoreboard = ({
 
     return () => clearInterval(intervalRef.current);
   }, [isPlaying]);
+
+  // New function to save the current period without changing periods
+  const saveCurrentPeriod = async () => {
+    try {
+      if (!matchId) return;
+      
+      console.log("Saving statistics for current period:", currentPeriod);
+      
+      // Save current period stats
+      const currentPeriodStats = {
+        period: currentPeriod,
+        teamAScore,
+        teamBScore,
+        teamAFouls,
+        teamBFouls
+      };
+      
+      // Update local history
+      const updatedHistory = [...periodsHistory];
+      
+      const existingIndex = updatedHistory.findIndex(p => p.period === currentPeriod);
+      
+      if (existingIndex >= 0) {
+        updatedHistory[existingIndex] = currentPeriodStats;
+      } else {
+        updatedHistory.push(currentPeriodStats);
+      }
+      
+      setPeriodsHistory(updatedHistory);
+      
+      // Save to backend
+      const response = await fetch(`${API_BASE_URL}/matches/${matchId}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ 
+          periodsHistory: updatedHistory,
+          currentPeriod,
+          teamAScore,
+          teamBScore,
+          teamAFouls,
+          teamBFouls
+        }),
+      });
+      
+      if (!response.ok) {
+        throw new Error("Error saving period");
+      }
+      
+      console.log("Period saved successfully");
+    } catch (error) {
+      console.error("Error saving period:", error);
+    }
+  };
+
+  // Add effect to save current period when timer reaches zero
+  useEffect(() => {
+    if (totalSeconds === 0 && !isPlaying) {
+      saveCurrentPeriod();
+    }
+  }, [totalSeconds, isPlaying]);
 
   const formatTime = (seconds) => {
     const min = String(Math.floor(seconds / 60)).padStart(2, "0");
@@ -129,75 +189,73 @@ const Scoreboard = ({
     }
   };
 
-  // Función para cambiar de periodo y guardar las estadísticas
-  // Actualizar la función handlePeriodChange para usar el endpoint general
-
-const handlePeriodChange = async (newPeriod) => {
-  if (newPeriod === currentPeriod) return;
-  
-  try {
-    console.log(`Cambiando de periodo ${currentPeriod} a ${newPeriod}`);
+  // Function to change period and save statistics
+  const handlePeriodChange = async (newPeriod) => {
+    if (newPeriod === currentPeriod) return;
     
-    // Guardar estadísticas del periodo actual
-    const currentPeriodStats = {
-      period: currentPeriod,
-      teamAScore,
-      teamBScore,
-      teamAFouls,
-      teamBFouls
-    };
-    
-    console.log("Estadísticas del periodo actual:", currentPeriodStats);
-    
-    // Actualizar historial local
-    const updatedHistory = [...periodsHistory];
-    
-    const existingIndex = updatedHistory.findIndex(p => p.period === currentPeriod);
-    
-    if (existingIndex >= 0) {
-      updatedHistory[existingIndex] = currentPeriodStats;
-    } else {
-      updatedHistory.push(currentPeriodStats);
-    }
-    
-    setPeriodsHistory(updatedHistory);
-    
-    // Guardar en el backend usando el endpoint general en lugar del específico
-    if (matchId) {
-      console.log("Guardando periodo usando endpoint general");
+    try {
+      console.log(`Changing from period ${currentPeriod} to ${newPeriod}`);
       
-      const response = await fetch(`${API_BASE_URL}/matches/${matchId}`, {
-        method: "PATCH",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ 
-          periodsHistory: updatedHistory,
-          currentPeriod: newPeriod,
-          teamAScore,
-          teamBScore,
-          teamAFouls,
-          teamBFouls
-        }),
-      });
+      // Save current period statistics
+      const currentPeriodStats = {
+        period: currentPeriod,
+        teamAScore,
+        teamBScore,
+        teamAFouls,
+        teamBFouls
+      };
       
-      if (!response.ok) {
-        console.error("Error al guardar periodo. Estado:", response.status);
-        throw new Error("Error al guardar periodo");
+      console.log("Current period statistics:", currentPeriodStats);
+      
+      // Update local history
+      const updatedHistory = [...periodsHistory];
+      
+      const existingIndex = updatedHistory.findIndex(p => p.period === currentPeriod);
+      
+      if (existingIndex >= 0) {
+        updatedHistory[existingIndex] = currentPeriodStats;
+      } else {
+        updatedHistory.push(currentPeriodStats);
       }
       
-      console.log("Periodo guardado exitosamente");
+      setPeriodsHistory(updatedHistory);
+      
+      // Save to backend using the general endpoint instead of the specific one
+      if (matchId) {
+        console.log("Saving period using general endpoint");
+        
+        const response = await fetch(`${API_BASE_URL}/matches/${matchId}`, {
+          method: "PATCH",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ 
+            periodsHistory: updatedHistory,
+            currentPeriod: newPeriod,
+            teamAScore,
+            teamBScore,
+            teamAFouls,
+            teamBFouls
+          }),
+        });
+        
+        if (!response.ok) {
+          console.error("Error saving period. Status:", response.status);
+          throw new Error("Error saving period");
+        }
+        
+        console.log("Period saved successfully");
+      }
+      
+      // Change to new period
+      setCurrentPeriod(newPeriod);
+      
+      // Reset timer for new period
+      const [min, sec] = initialTime.split(":").map(Number);
+      setTotalSeconds(min * 60 + sec);
+      setIsPlaying(false);
+    } catch (error) {
+      console.error("Error changing period:", error);
     }
-    
-    // Cambiar al nuevo periodo
-    setCurrentPeriod(newPeriod);
-    
-    // Reiniciar cronómetro para el nuevo periodo
-    const [min, sec] = initialTime.split(":").map(Number);
-    setTotalSeconds(min * 60 + sec);
-    setIsPlaying(false);
-  } catch (error) {
-    console.error("Error al cambiar de periodo:", error);
-  }
-};
+  };
 
   const toggleHistoryView = () => {
     setShowHistory(prev => !prev);
@@ -213,17 +271,52 @@ const handlePeriodChange = async (newPeriod) => {
           padding: compactMode ? 10 : 20
         }
       ]}>
-        <Text style={styles.period}>Cargando...</Text>
+        <Text style={styles.period}>Loading...</Text>
       </View>
     );
   }
 
-  // Ajustar tamaños de texto según el modo y el factor de escala
+  // Adjust text sizes based on mode and scale factor
   const getFontSize = (baseSize) => {
     if (compactMode) {
-      return baseSize * 0.8; // 20% más pequeño en modo compacto
+      return baseSize * 0.8; // 20% smaller in compact mode
     }
     return baseSize;
+  };
+
+  // Process period history to show individual period scores
+  const processedPeriodsHistory = () => {
+    if (!periodsHistory || periodsHistory.length === 0) return [];
+    
+    // Sort periods chronologically
+    const sortedPeriods = [...periodsHistory].sort((a, b) => {
+      const periodOrder = { 'H1': 1, 'H2': 2, 'H3': 3, 'H4': 4 };
+      return periodOrder[a.period] - periodOrder[b.period];
+    });
+    
+    // Calculate per-period scores rather than cumulative
+    let lastTeamAScore = 0;
+    let lastTeamBScore = 0;
+    
+    return sortedPeriods.map((period, index) => {
+      const periodTeamAScore = index === 0 
+        ? period.teamAScore 
+        : period.teamAScore - lastTeamAScore;
+      
+      const periodTeamBScore = index === 0 
+        ? period.teamBScore 
+        : period.teamBScore - lastTeamBScore;
+      
+      // Save current scores for next period calculation
+      lastTeamAScore = period.teamAScore;
+      lastTeamBScore = period.teamBScore;
+      
+      return {
+        ...period,
+        periodTeamAScore,
+        periodTeamBScore
+      };
+    });
   };
 
   return (
@@ -235,7 +328,7 @@ const handlePeriodChange = async (newPeriod) => {
         padding: compactMode ? 10 : 20
       }
     ]}>
-      {/* Selector de periodos - 4 cuartos (H1, H2, H3, H4) */}
+      {/* Period selector - 4 quarters (H1, H2, H3, H4) */}
       <View style={styles.periodSelector}>
         <TouchableOpacity onPress={() => handlePeriodChange("H1")}>
           <Text style={[
@@ -304,7 +397,7 @@ const handlePeriodChange = async (newPeriod) => {
 
       <View style={styles.foulRow}>
         <Text style={[styles.foulLabel, { fontSize: getFontSize(16) }]}>
-          Faltas:
+          Fouls:
         </Text>
         <Text style={[styles.foulText, { fontSize: getFontSize(18) }]}>
           {teamAFouls}
@@ -317,28 +410,37 @@ const handlePeriodChange = async (newPeriod) => {
         </Text>
       </View>
       
-      {/* Botón para mostrar/ocultar historial */}
-      {!compactMode && (
-        <TouchableOpacity onPress={toggleHistoryView} style={styles.historyButton}>
+      {/* Button to save the current period without changing (especially useful for H4) */}
+      {currentPeriod === "H4" && (
+        <TouchableOpacity onPress={saveCurrentPeriod} style={[styles.historyButton, { backgroundColor: '#4CAF50' }]}>
           <Text style={styles.historyButtonText}>
-            {showHistory ? "Ocultar Historial" : "Ver Historial por Periodos"}
+            Save Current Period
           </Text>
         </TouchableOpacity>
       )}
       
-      {/* Historial de periodos - solo mostrar en modo no compacto */}
+      {/* Button to show/hide history */}
+      {!compactMode && (
+        <TouchableOpacity onPress={toggleHistoryView} style={styles.historyButton}>
+          <Text style={styles.historyButtonText}>
+            {showHistory ? "Hide History" : "View Period History"}
+          </Text>
+        </TouchableOpacity>
+      )}
+      
+      {/* Period history - only show in non-compact mode */}
       {!compactMode && showHistory && periodsHistory.length > 0 && (
         <View style={styles.historyContainer}>
-          <Text style={styles.historyTitle}>Resumen por Periodos</Text>
-          {periodsHistory.map((p, index) => (
+          <Text style={styles.historyTitle}>Periods Summary</Text>
+          {processedPeriodsHistory().map((p, index) => (
             <View key={index} style={styles.historyRow}>
               <Text style={styles.historyPeriod}>{p.period}</Text>
               <View style={styles.historyScores}>
-                <Text style={styles.historyScore}>{p.teamAScore} - {p.teamBScore}</Text>
-                <Text style={styles.historyFouls}>Faltas: {p.teamAFouls} - {p.teamBFouls}</Text>
+                <Text style={styles.historyScore}>{p.periodTeamAScore} - {p.periodTeamBScore}</Text>
+                <Text style={styles.historyFouls}>Fouls: {p.teamAFouls} - {p.teamBFouls}</Text>
               </View>
             </View>
-          ))}
+          ))}   
         </View>
       )}
     </View>
@@ -439,6 +541,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 15,
     borderRadius: 20,
     marginTop: 5,
+    marginBottom: 5,
   },
   historyButtonText: {
     color: 'white',
@@ -481,5 +584,12 @@ const styles = StyleSheet.create({
   historyFouls: {
     fontSize: 12,
     color: '#666',
+  },
+  totalRow: {
+    marginTop: 5,
+    paddingTop: 8,
+    borderTopWidth: 2,
+    borderTopColor: '#ccc',
+    borderBottomWidth: 0,
   }
 });

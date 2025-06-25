@@ -67,18 +67,18 @@ export default function StatsView({ route, navigation }) {
       return await response.json();
     },
     enabled: !!matchId,
+    refetchOnMount: "always", // Refrescar al montar
+    staleTime: 0, // No usar caché
   });
 
   // Consulta para obtener el historial de períodos
   const { data: periodsHistory = [], isLoading: isPeriodsLoading } = useQuery({
     queryKey: ["periods", matchId],
     queryFn: async () => {
-      // Usamos los datos del partido si ya están disponibles
-      if (match?.periodsHistory) {
+      if (match && match.periodsHistory) {
         return match.periodsHistory;
       }
 
-      // O hacemos una petición específica si es necesario
       const response = await fetch(
         `${API_BASE_URL}/matches/${matchId}/periods`
       );
@@ -88,8 +88,40 @@ export default function StatsView({ route, navigation }) {
       return await response.json();
     },
     enabled: !!matchId,
-    initialData: [],
+    refetchOnMount: "always",
+    staleTime: 0,
   });
+
+  // Process period history to show individual period scores instead of cumulative
+  const processedPeriodsHistory = React.useMemo(() => {
+    if (!periodsHistory || periodsHistory.length === 0) return [];
+
+    // Sort periods in chronological order (H1, H2, H3, H4)
+    const sortedPeriods = [...periodsHistory].sort((a, b) => {
+      const periodOrder = { H1: 1, H2: 2, H3: 3, H4: 4 };
+      return periodOrder[a.period] - periodOrder[b.period];
+    });
+
+    // Calculate per-period scores rather than cumulative scores
+    let lastTeamAScore = 0;
+    let lastTeamBScore = 0;
+
+    return sortedPeriods.map((period, index) => {
+      const periodScore = {
+        ...period,
+        periodTeamAScore:
+          index === 0 ? period.teamAScore : period.teamAScore - lastTeamAScore,
+        periodTeamBScore:
+          index === 0 ? period.teamBScore : period.teamBScore - lastTeamBScore,
+      };
+
+      // Save current score as last score for next calculation
+      lastTeamAScore = period.teamAScore;
+      lastTeamBScore = period.teamBScore;
+
+      return periodScore;
+    });
+  }, [periodsHistory]);
 
   // Consulta para obtener jugadores del equipo
   const { data: allPlayers = [], isLoading: isPlayersLoading } = useQuery({
@@ -152,6 +184,8 @@ export default function StatsView({ route, navigation }) {
     onSuccess: (data) => {
       processPlayerStats(data);
     },
+    refetchOnMount: "always",
+    staleTime: 0,
   });
 
   // Función para procesar los datos de estadísticas y jugadores
@@ -478,13 +512,13 @@ export default function StatsView({ route, navigation }) {
             <th>${teamName}</th>
             <th>${match?.opponentTeam?.name || "Opponent"}</th>
           </tr>
-          ${periodsHistory
+          ${processedPeriodsHistory
             .map(
               (period) => `
             <tr>
               <td>${period.period}</td>
-              <td>${period.teamAScore}</td>
-              <td>${period.teamBScore}</td>
+              <td>${period.periodTeamAScore}</td>
+              <td>${period.periodTeamBScore}</td>
             </tr>
           `
             )
@@ -660,20 +694,22 @@ export default function StatsView({ route, navigation }) {
             </Text>
           </View>
 
-          {periodsHistory.length === 0 ? (
+          {processedPeriodsHistory.length === 0 ? (
             <View style={styles.emptyState}>
-              <Text style={styles.emptyText}>
-                No period data available
-              </Text>
+              <Text style={styles.emptyText}>No period data available</Text>
             </View>
           ) : (
             <>
               {/* Filas con datos de cada período */}
-              {periodsHistory.map((period, index) => (
+              {processedPeriodsHistory.map((period, index) => (
                 <View key={index} style={styles.periodRow}>
                   <Text style={styles.periodCell}>{period.period}</Text>
-                  <Text style={styles.periodCell}>{period.teamAScore}</Text>
-                  <Text style={styles.periodCell}>{period.teamBScore}</Text>
+                  <Text style={styles.periodCell}>
+                    {period.periodTeamAScore}
+                  </Text>
+                  <Text style={styles.periodCell}>
+                    {period.periodTeamBScore}
+                  </Text>
                 </View>
               ))}
 
@@ -752,9 +788,7 @@ export default function StatsView({ route, navigation }) {
           >
             {/* Encabezados de la tabla */}
             <View style={styles.tableHeader}>
-              <Text style={[styles.headerCell, styles.playerCell]}>
-                Player
-              </Text>
+              <Text style={[styles.headerCell, styles.playerCell]}>Player</Text>
               <Text style={styles.headerCell}>PTS</Text>
 
               {/* Tiros divididos por tipo */}
@@ -787,9 +821,7 @@ export default function StatsView({ route, navigation }) {
             {/* Si no hay datos, mostrar mensaje */}
             {playerStats.length === 0 ? (
               <View style={styles.emptyState}>
-                <Text style={styles.emptyText}>
-                  No statistics available
-                </Text>
+                <Text style={styles.emptyText}>No statistics available</Text>
               </View>
             ) : (
               // Filas de jugadores

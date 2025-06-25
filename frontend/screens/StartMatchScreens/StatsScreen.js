@@ -34,16 +34,21 @@ export default function StatsScreen({ route, navigation }) {
   const deviceType = useDeviceType();
 
   // Para detectar el tamaño de la pantalla y ajustar el layout
-  const [screenWidth, setScreenWidth] = useState(Dimensions.get('window').width);
+  const [screenWidth, setScreenWidth] = useState(
+    Dimensions.get("window").width
+  );
   const isLargeScreen = screenWidth > 768;
 
   // Actualizar dimensiones cuando cambie el tamaño de la pantalla
   useEffect(() => {
     const updateDimensions = () => {
-      setScreenWidth(Dimensions.get('window').width);
+      setScreenWidth(Dimensions.get("window").width);
     };
 
-    const subscription = Dimensions.addEventListener('change', updateDimensions);
+    const subscription = Dimensions.addEventListener(
+      "change",
+      updateDimensions
+    );
     return () => subscription.remove();
   }, []);
 
@@ -141,8 +146,7 @@ export default function StatsScreen({ route, navigation }) {
         }
 
         const response = await fetch(`${API_BASE_URL}/players/team/${teamId}`);
-        if (!response.ok)
-          throw new Error("Error getting team players.");
+        if (!response.ok) throw new Error("Error getting team players.");
         const data = await response.json();
 
         if (
@@ -276,10 +280,7 @@ export default function StatsScreen({ route, navigation }) {
   // Handler actualizado para procesar correctamente los tiros acertados y fallados
   const handleStatUpdate = async (stat) => {
     if (!selectedPlayerId) {
-      Alert.alert(
-        "Player not selected",
-        "Please select a player first."
-      );
+      Alert.alert("Player not selected", "Please select a player first.");
       return;
     }
 
@@ -295,9 +296,7 @@ export default function StatsScreen({ route, navigation }) {
       }
 
       if (!playerStats || !playerStats.statsId) {
-        throw new Error(
-          "Stats document not found for the selected player."
-        );
+        throw new Error("Stats document not found for the selected player.");
       }
 
       // Preparar el payload según el tipo de estadística
@@ -443,12 +442,44 @@ export default function StatsScreen({ route, navigation }) {
   // Función para finalizar partido y ver estadísticas
   const finalizarPartido = async () => {
     try {
+      // Primero obtener el match actual para acceder a su historial de periodos
+      const matchResponse = await fetch(`${API_BASE_URL}/matches/${matchId}`);
+      if (!matchResponse.ok) {
+        throw new Error("Error obteniendo datos del partido");
+      }
+      const matchData = await matchResponse.json();
+
+      // Obtener el periodo actual
+      const currentPeriod = matchData.currentPeriod || "H4";
+
+      // Preparar el historial de periodos actualizado
+      let updatedHistory = [...(matchData.periodsHistory || [])];
+      const currentPeriodStats = {
+        period: currentPeriod,
+        teamAScore,
+        teamBScore,
+        teamAFouls,
+        teamBFouls,
+      };
+
+      // Actualizar o agregar el periodo actual en el historial
+      const existingIndex = updatedHistory.findIndex(
+        (p) => p.period === currentPeriod
+      );
+      if (existingIndex >= 0) {
+        updatedHistory[existingIndex] = currentPeriodStats;
+      } else {
+        updatedHistory.push(currentPeriodStats);
+      }
+
+      // Actualizar el partido con el estado final
       const updateData = {
         status: "completed",
         teamAScore,
         teamBScore,
         teamAFouls,
         teamBFouls,
+        periodsHistory: updatedHistory,
       };
 
       const response = await fetch(`${API_BASE_URL}/matches/${matchId}`, {
@@ -461,6 +492,7 @@ export default function StatsScreen({ route, navigation }) {
         throw new Error("Error finishing the match");
       }
 
+      // El resto del código sigue igual...
       // Update team stats based on game result
       if (teamId) {
         const statsUpdate =
@@ -537,7 +569,7 @@ export default function StatsScreen({ route, navigation }) {
                 initialTime="10:00"
               />
             </View>
-            
+
             <View style={styles.mobilePlayerSection}>
               <Text style={styles.sectionTitle}>Starting Five</Text>
               <ScrollView horizontal showsHorizontalScrollIndicator={false}>
@@ -554,7 +586,7 @@ export default function StatsScreen({ route, navigation }) {
                 ))}
               </ScrollView>
             </View>
-            
+
             {opponentsStats && (
               <View style={styles.mobileOpponentSection}>
                 <Text style={styles.sectionTitle}>Opponent</Text>
@@ -573,7 +605,7 @@ export default function StatsScreen({ route, navigation }) {
                 </View>
               </View>
             )}
-            
+
             <View style={styles.mobilePlayerSection}>
               <Text style={styles.sectionTitle}>Bench</Text>
               <ScrollView horizontal showsHorizontalScrollIndicator={false}>
@@ -590,21 +622,19 @@ export default function StatsScreen({ route, navigation }) {
                 ))}
               </ScrollView>
             </View>
-            
+
             {/* Botones para estadísticas */}
             <View style={styles.mobileStatsButtonsContainer}>
               <StatsButtons onStatPress={handleStatUpdate} isMobile={true} />
             </View>
-            
+
             {/* Botón para finalizar partido */}
             <View style={styles.finishButtonContainer}>
               <TouchableOpacity
                 onPress={finalizarPartido}
                 style={styles.finishButton}
               >
-                <Text style={styles.finishButtonText}>
-                  Finish the match
-                </Text>
+                <Text style={styles.finishButtonText}>Finish the match</Text>
               </TouchableOpacity>
             </View>
           </ScrollView>
@@ -628,7 +658,7 @@ export default function StatsScreen({ route, navigation }) {
                 </View>
               ))}
             </View>
-            
+
             {opponentsStats && (
               <View style={styles.tabletOpponentContainer}>
                 <PlayerButton
@@ -644,7 +674,7 @@ export default function StatsScreen({ route, navigation }) {
               </View>
             )}
           </View>
-          
+
           <View style={styles.tabletScoreboardContainer}>
             <Scoreboard
               matchId={matchId}
@@ -657,19 +687,17 @@ export default function StatsScreen({ route, navigation }) {
               period="H1"
               initialTime="10:00"
             />
-            
+
             <TouchableOpacity
               onPress={finalizarPartido}
               style={styles.finishButton}
             >
-              <Text style={styles.finishButtonText}>
-                Finish the match
-              </Text>
+              <Text style={styles.finishButtonText}>Finish the match</Text>
             </TouchableOpacity>
           </View>
-          
+
           <StatsButtons onStatPress={handleStatUpdate} />
-          
+
           <View style={styles.tabletBottomContainer}>
             <ScrollView horizontal showsHorizontalScrollIndicator={false}>
               {benchStats.map((player) => (
@@ -686,7 +714,7 @@ export default function StatsScreen({ route, navigation }) {
           </View>
         </View>
       );
-    } 
+    }
     // Pantalla grande (desktop)
     else {
       return (
@@ -739,9 +767,7 @@ export default function StatsScreen({ route, navigation }) {
                 onPress={finalizarPartido}
                 style={styles.finishButton}
               >
-                <Text style={styles.finishButtonText}>
-                  Finish the match
-                </Text>
+                <Text style={styles.finishButtonText}>Finish the match</Text>
               </TouchableOpacity>
             </View>
           </View>
@@ -817,7 +843,7 @@ const styles = StyleSheet.create({
   },
   backButton: {
     position: "absolute",
-    top: 40, 
+    top: 40,
     left: 20,
     zIndex: 10,
     padding: 10,
@@ -830,7 +856,7 @@ const styles = StyleSheet.create({
     position: "relative",
   },
   topContainer: {
-    marginTop: 30, 
+    marginTop: 30,
     position: "relative",
     width: "100%",
     height: "30%",
@@ -851,7 +877,7 @@ const styles = StyleSheet.create({
     alignItems: "flex-start",
     width: "35%",
     position: "absolute",
-    top: 30, 
+    top: 30,
     left: 120,
     gap: 10,
   },
@@ -878,7 +904,7 @@ const styles = StyleSheet.create({
   },
   opponentButtonContainer: {
     position: "absolute",
-    top: 160, 
+    top: 160,
     right: 120,
     zIndex: 10,
     width: 400,
@@ -908,7 +934,7 @@ const styles = StyleSheet.create({
     fontWeight: "bold",
     color: "white",
   },
-  
+
   // Estilos para Tablet
   tabletContainer: {
     flex: 1,
@@ -956,7 +982,7 @@ const styles = StyleSheet.create({
     marginHorizontal: 5,
     padding: 5,
   },
-  
+
   // Estilos para Móvil
   mobileContainer: {
     flex: 1,
@@ -997,5 +1023,5 @@ const styles = StyleSheet.create({
     marginVertical: 20,
     alignItems: "center",
     transform: [{ scale: 0.8 }],
-  }
+  },
 });

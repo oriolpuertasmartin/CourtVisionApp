@@ -133,7 +133,7 @@ export default function InfoScreen() {
             "Select the team",
             "Configure opponent optionally",
             "Choose starters",
-            "Record actions live"
+            "Record actions live: to add an statistic, tap the player and then the action",
           ]
         )}
 
@@ -151,7 +151,7 @@ export default function InfoScreen() {
             "Quarter and final scores",
             "Individual performance",
             "Shooting percentages",
-            "Rebounds, assists, steals",
+            "Rebounds, assists, steals, blocks, ...",
             "Valuation and advanced metrics"
           ]
         )}

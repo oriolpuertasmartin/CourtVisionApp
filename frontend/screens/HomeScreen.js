@@ -257,7 +257,10 @@ export default function HomeScreen() {
             <Text style={styles.columnTitle}>Quick Actions</Text>
             <View style={styles.columnContent}>
               <TouchableOpacity
-                style={[styles.quickActionButton, { backgroundColor: "#EB840B20" }]}
+                style={[
+                  styles.quickActionButton,
+                  { backgroundColor: "#EB840B20" },
+                ]}
                 onPress={() => navigation.navigate("Start a Match")}
               >
                 <Ionicons name="basketball-outline" size={28} color="#EB840B" />
@@ -265,7 +268,10 @@ export default function HomeScreen() {
               </TouchableOpacity>
 
               <TouchableOpacity
-                style={[styles.quickActionButton, { backgroundColor: "#4A90E220" }]}
+                style={[
+                  styles.quickActionButton,
+                  { backgroundColor: "#4A90E220" },
+                ]}
                 onPress={() => navigation.navigate("Teams")}
               >
                 <Ionicons name="people-outline" size={28} color="#4A90E2" />
@@ -273,7 +279,10 @@ export default function HomeScreen() {
               </TouchableOpacity>
 
               <TouchableOpacity
-                style={[styles.quickActionButton, { backgroundColor: "#50C87820" }]}
+                style={[
+                  styles.quickActionButton,
+                  { backgroundColor: "#50C87820" },
+                ]}
                 onPress={() => navigation.navigate("Info")}
               >
                 <Ionicons
@@ -301,18 +310,19 @@ export default function HomeScreen() {
             <Text style={styles.columnTitle}>News</Text>
             <View style={styles.columnContent}>
               <View style={styles.newsItem}>
-                <Text style={styles.newsDate}>Today</Text>
-                <Text style={styles.newsTitle}>New features available</Text>
+                <Text style={styles.newsDate}>Yesterday</Text>
+                <Text style={styles.newsTitle}>Performance improvements</Text>
                 <Text style={styles.newsDescription}>
-                  Check out the new statistical analysis tools in the app.
+                  We've made the app faster and more reliable. Now you can also add photos for both teams and players!
                 </Text>
               </View>
 
               <View style={styles.newsItem}>
-                <Text style={styles.newsDate}>Yesterday</Text>
-                <Text style={styles.newsTitle}>Performance improvements</Text>
+                <Text style={styles.newsDate}>Coming soon</Text>
+                <Text style={styles.newsTitle}>Player customization & historical stats</Text>
                 <Text style={styles.newsDescription}>
-                  We've made the app faster and more reliable.
+                  Soon you'll be able to personalize player profiles and view
+                  each player's historical statistics for the season.
                 </Text>
               </View>
             </View>
@@ -430,7 +440,7 @@ const styles = StyleSheet.create({
     flex: 1, // Para que ocupen espacio proporcional
   },
   newsDate: {
-    fontSize: 12,
+    fontSize: 14,
     color: "#999",
     marginBottom: 4,
   },
@@ -558,5 +568,5 @@ const styles = StyleSheet.create({
     fontSize: 12,
     color: "white",
     fontWeight: "bold",
-  }
+  },
 });
