@@ -190,7 +190,12 @@ export default function StatsView({ route, navigation }) {
 
   // Actualizar top performers cuando cambian las estadísticas o jugadores
   useEffect(() => {
-    if (allStatsData && allStatsData.length > 0 && allPlayers && allPlayers.length > 0) {
+    if (
+      allStatsData &&
+      allStatsData.length > 0 &&
+      allPlayers &&
+      allPlayers.length > 0
+    ) {
       processPlayerStats(allStatsData);
     }
   }, [allStatsData, allPlayers]);
@@ -272,15 +277,49 @@ export default function StatsView({ route, navigation }) {
   };
 
   // Procesamiento de los datos de los jugadores para la tabla
+  // Procesamiento de los datos de los jugadores para la tabla
   const playerStats = React.useMemo(() => {
     if (!allStatsData.length || !allPlayers.length || !match) return [];
 
     // Combinar estadísticas con información de jugadores
-    const combinedData = allStatsData.map((stat) => ({
-      ...stat,
-      ...allPlayers.find((p) => p._id === stat.playerId),
-      isStarter: match.startingPlayers?.includes(stat.playerId),
-    }));
+    const combinedData = allStatsData.map((stat) => {
+      // Calcular PIR (Performance Index Rating)
+      // PIR = (pts + reb + ast + stl + blk) - (tiros fallados + tiros libres fallados + to + pf)
+      const fieldGoalsMissed =
+        (stat.fieldGoalsAttempted || 0) - (stat.fieldGoalsMade || 0);
+      const freeThrowsMissed =
+        (stat.freeThrowsAttempted || 0) - (stat.freeThrowsMade || 0);
+
+      const pir =
+        (stat.points || 0) +
+        (stat.rebounds || 0) +
+        (stat.assists || 0) +
+        (stat.steals || 0) +
+        (stat.blocks || 0) -
+        fieldGoalsMissed -
+        freeThrowsMissed -
+        (stat.turnovers || 0) -
+        (stat.fouls || 0);
+
+      // Calcular ratio de asistencias/pérdidas (A/T)
+      // Para evitar división por cero, usamos 0 cuando no hay pérdidas
+      const assistToTurnoverRatio =
+        (stat.turnovers || 0) === 0
+          ? stat.assists || 0
+          : (stat.assists || 0) / (stat.turnovers || 1);
+
+      // Redondear el ratio a 1 decimal
+      const roundedAssistToTurnoverRatio =
+        Math.round(assistToTurnoverRatio * 10) / 10;
+
+      return {
+        ...stat,
+        ...allPlayers.find((p) => p._id === stat.playerId),
+        isStarter: match.startingPlayers?.includes(stat.playerId),
+        pir: pir,
+        assistToTurnoverRatio: roundedAssistToTurnoverRatio,
+      };
+    });
 
     // Ordenar para que los titulares aparezcan primero
     return combinedData.sort((a, b) => {
