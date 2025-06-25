@@ -188,6 +188,13 @@ export default function StatsView({ route, navigation }) {
     staleTime: 0,
   });
 
+  // Actualizar top performers cuando cambian las estadísticas o jugadores
+  useEffect(() => {
+    if (allStatsData && allStatsData.length > 0 && allPlayers && allPlayers.length > 0) {
+      processPlayerStats(allStatsData);
+    }
+  }, [allStatsData, allPlayers]);
+
   // Función para procesar los datos de estadísticas y jugadores
   const processPlayerStats = (statsData) => {
     if (!statsData || !allPlayers) return;
@@ -200,6 +207,8 @@ export default function StatsView({ route, navigation }) {
       steals: { player: null, value: 0 },
       blocks: { player: null, value: 0 },
     };
+
+    console.log("Processing stats data:", statsData.length, "players");
 
     statsData.forEach((player) => {
       // Máximo anotador
@@ -258,6 +267,7 @@ export default function StatsView({ route, navigation }) {
       }
     });
 
+    console.log("Top performers updated:", top);
     setTopPerformers(top);
   };
 
