@@ -33,11 +33,30 @@ export default function StatsScreen({ route, navigation }) {
   const [teamBFouls, setTeamBFouls] = useState(0);
   const deviceType = useDeviceType();
 
-  // Para detectar el tamaño de la pantalla y ajustar el layout
+  // Responsive scale for components
   const [screenWidth, setScreenWidth] = useState(
     Dimensions.get("window").width
   );
   const isLargeScreen = screenWidth > 768;
+
+  // Calculate scale and size for responsive components
+  const getComponentScale = () => {
+    if (screenWidth < 400) return 0.7;
+    if (screenWidth < 480) return 0.8;
+    if (screenWidth < 768) return 1;
+    if (screenWidth < 1200) return 1.2;
+    return 1.4;
+  };
+  const componentScale = getComponentScale();
+
+  const getPlayerButtonSize = () => {
+    if (screenWidth < 400) return "xs";
+    if (screenWidth < 480) return "small";
+    if (screenWidth < 768) return "medium";
+    if (screenWidth < 1200) return "large";
+    return "xl";
+  };
+  const playerButtonSize = getPlayerButtonSize();
 
   // Actualizar dimensiones cuando cambie el tamaño de la pantalla
   useEffect(() => {
@@ -567,6 +586,9 @@ export default function StatsScreen({ route, navigation }) {
                 teamBFouls={teamBFouls}
                 period="H1"
                 initialTime="10:00"
+                scale={0.5}
+                width={300}
+                compactMode={true}
               />
             </View>
 
@@ -580,7 +602,8 @@ export default function StatsScreen({ route, navigation }) {
                       playerstats={player}
                       onPress={() => handleSelectPlayer(player.playerId)}
                       isSelected={selectedPlayerId === player.playerId}
-                      size="small"
+                      size={playerButtonSize}
+                      scale={componentScale}
                     />
                   </View>
                 ))}
@@ -600,7 +623,8 @@ export default function StatsScreen({ route, navigation }) {
                     playerstats={opponentsStats}
                     onPress={() => handleSelectPlayer("opponent")}
                     isSelected={selectedPlayerId === "opponent"}
-                    size="small"
+                    size={playerButtonSize}
+                    scale={componentScale}
                   />
                 </View>
               </View>
@@ -616,7 +640,8 @@ export default function StatsScreen({ route, navigation }) {
                       playerstats={player}
                       onPress={() => handleSelectPlayer(player.playerId)}
                       isSelected={selectedPlayerId === player.playerId}
-                      size="small"
+                      size={playerButtonSize}
+                      scale={componentScale}
                     />
                   </View>
                 ))}
@@ -625,17 +650,7 @@ export default function StatsScreen({ route, navigation }) {
 
             {/* Botones para estadísticas */}
             <View style={styles.mobileStatsButtonsContainer}>
-              <StatsButtons onStatPress={handleStatUpdate} isMobile={true} />
-            </View>
-
-            {/* Botón para finalizar partido */}
-            <View style={styles.finishButtonContainer}>
-              <TouchableOpacity
-                onPress={finalizarPartido}
-                style={styles.finishButton}
-              >
-                <Text style={styles.finishButtonText}>Finish the match</Text>
-              </TouchableOpacity>
+              <StatsButtons onStatPress={handleStatUpdate} isMobile={true} scale={componentScale} />
             </View>
           </ScrollView>
         </View>
@@ -654,6 +669,8 @@ export default function StatsScreen({ route, navigation }) {
                     playerstats={player}
                     onPress={() => handleSelectPlayer(player.playerId)}
                     isSelected={selectedPlayerId === player.playerId}
+                    size={playerButtonSize}
+                    scale={componentScale}
                   />
                 </View>
               ))}
@@ -670,6 +687,8 @@ export default function StatsScreen({ route, navigation }) {
                   playerstats={opponentsStats}
                   onPress={() => handleSelectPlayer("opponent")}
                   isSelected={selectedPlayerId === "opponent"}
+                  size={playerButtonSize}
+                  scale={componentScale}
                 />
               </View>
             )}
@@ -686,17 +705,12 @@ export default function StatsScreen({ route, navigation }) {
               teamBFouls={teamBFouls}
               period="H1"
               initialTime="10:00"
+              scale={componentScale}
+              onFinish={finalizarPartido}
             />
-
-            <TouchableOpacity
-              onPress={finalizarPartido}
-              style={styles.finishButton}
-            >
-              <Text style={styles.finishButtonText}>Finish the match</Text>
-            </TouchableOpacity>
           </View>
 
-          <StatsButtons onStatPress={handleStatUpdate} />
+          <StatsButtons onStatPress={handleStatUpdate} scale={componentScale} />
 
           <View style={styles.tabletBottomContainer}>
             <ScrollView horizontal showsHorizontalScrollIndicator={false}>
@@ -707,6 +721,8 @@ export default function StatsScreen({ route, navigation }) {
                     playerstats={player}
                     onPress={() => handleSelectPlayer(player.playerId)}
                     isSelected={selectedPlayerId === player.playerId}
+                    size={playerButtonSize}
+                    scale={componentScale}
                   />
                 </View>
               ))}
@@ -728,6 +744,8 @@ export default function StatsScreen({ route, navigation }) {
                     playerstats={player}
                     onPress={() => handleSelectPlayer(player.playerId)}
                     isSelected={selectedPlayerId === player.playerId}
+                    size={playerButtonSize}
+                    scale={componentScale}
                   />
                 </View>
               ))}
@@ -745,6 +763,8 @@ export default function StatsScreen({ route, navigation }) {
                 playerstats={opponentsStats}
                 onPress={() => handleSelectPlayer("opponent")}
                 isSelected={selectedPlayerId === "opponent"}
+                size={playerButtonSize}
+                scale={componentScale}
               />
             </View>
           )}
@@ -760,19 +780,12 @@ export default function StatsScreen({ route, navigation }) {
               teamBFouls={teamBFouls}
               period="H1"
               initialTime="10:00"
+              scale={componentScale}
+              onFinish={finalizarPartido}
             />
-
-            <View style={styles.finishButtonContainer}>
-              <TouchableOpacity
-                onPress={finalizarPartido}
-                style={styles.finishButton}
-              >
-                <Text style={styles.finishButtonText}>Finish the match</Text>
-              </TouchableOpacity>
-            </View>
           </View>
 
-          <StatsButtons onStatPress={handleStatUpdate} />
+          <StatsButtons onStatPress={handleStatUpdate} scale={componentScale} />
 
           <View style={styles.bottomContainer}>
             <View style={styles.benchPlayersContainer}>
@@ -783,6 +796,8 @@ export default function StatsScreen({ route, navigation }) {
                     playerstats={player}
                     onPress={() => handleSelectPlayer(player.playerId)}
                     isSelected={selectedPlayerId === player.playerId}
+                    size={playerButtonSize}
+                    scale={componentScale}
                   />
                 </View>
               ))}
@@ -878,7 +893,7 @@ const styles = StyleSheet.create({
     width: "35%",
     position: "absolute",
     top: 30,
-    left: 120,
+    left: 80,
     gap: 10,
   },
   startingPlayerItem: {
@@ -893,8 +908,7 @@ const styles = StyleSheet.create({
     alignItems: "flex-start",
     width: "35%",
     position: "absolute",
-    left: 0,
-    paddingLeft: 120,
+    left: 80,
     gap: 10,
   },
   benchItem: {
@@ -904,22 +918,17 @@ const styles = StyleSheet.create({
   },
   opponentButtonContainer: {
     position: "absolute",
-    top: 160,
-    right: 120,
+    top: 90,
+    right: 15,
     zIndex: 10,
     width: 400,
     transform: [{ scale: 1.5 }],
   },
   scoreboardContainer: {
     position: "absolute",
-    top: 500,
-    right: 120,
+    top: 350,
+    right: 80,
     zIndex: 10,
-  },
-  finishButtonContainer: {
-    marginTop: 20,
-    width: "100%",
-    alignItems: "center",
   },
   finishButton: {
     backgroundColor: "#D9534F",
@@ -994,7 +1003,8 @@ const styles = StyleSheet.create({
   },
   mobileScoreboardContainer: {
     alignItems: "center",
-    marginVertical: 10,
+    marginVertical: 0,
+    marginTop: -10,
     transform: [{ scale: 0.85 }],
   },
   mobilePlayerSection: {
