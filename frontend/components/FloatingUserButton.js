@@ -88,8 +88,8 @@ export default function FloatingUserButton({ user, onPress, onLogout }) {
           {
             padding: buttonPadding,
             borderRadius: borderRadius + 10,  // Un poco más grande que la foto
-            bottom: scale(20),
-            right: scale(20)
+            bottom: scale(10),
+            right: scale(10)
           }
         ]} 
         onPress={() => setModalVisible(true)}

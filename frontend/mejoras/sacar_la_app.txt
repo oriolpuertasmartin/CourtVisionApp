@@ -1,0 +1,53 @@
+1. Publicar la aplicación en las tiendas (App Store y Google Play)
+Esta es la opción más común para distribuir aplicaciones móviles.
+
+Pasos:
+Convertir tu aplicación Expo a un archivo nativo:
+
+Usa expo build o eas build para generar los archivos .apk (Android) y .ipa (iOS).
+Si estás usando Expo Managed Workflow:
+Esto generará los archivos necesarios para subir a las tiendas.
+Configurar cuentas de desarrollador:
+
+Regístrate como desarrollador en Google Play Console y Apple Developer.
+Subir la aplicación:
+
+Sigue las guías de cada tienda para subir tu aplicación:
+Guía para Google Play
+Guía para App Store
+2. Generar archivos descargables (.apk y .ipa)
+Si no quieres publicar en las tiendas, puedes generar archivos descargables que los usuarios puedan instalar directamente.
+
+Pasos:
+Generar el archivo .apk para Android:
+
+Usa Expo para construir el archivo:
+Una vez generado, puedes compartir el archivo .apk directamente con los usuarios.
+Generar el archivo .ipa para iOS:
+
+Usa Expo para construir el archivo:
+Para instalar en dispositivos iOS, necesitarás usar TestFlight o tener los dispositivos registrados en tu cuenta de desarrollador.
+3. Usar Expo Go para pruebas
+Si no quieres generar archivos nativos, puedes compartir tu aplicación a través de Expo Go.
+
+Pasos:
+Publicar tu proyecto en Expo:
+
+Usa el comando:
+Esto generará un enlace público que los usuarios pueden abrir en la aplicación Expo Go.
+Compartir el enlace:
+
+Comparte el enlace generado con los usuarios. Ellos podrán abrirlo en la aplicación Expo Go.
+4. Crear una Progressive Web App (PWA)
+Si quieres que los usuarios puedan acceder a tu aplicación desde un navegador, puedes convertirla en una PWA.
+
+Pasos:
+Configurar Expo para web:
+
+Asegúrate de que tu proyecto es compatible con web.
+Usa el comando:
+Subir la PWA:
+
+Sube los archivos generados a un servidor web o servicio de hosting como Netlify o Vercel.
+Recomendación:
+Si buscas una solución profesional y escalable, publica tu aplicación en las tiendas (App Store y Google Play). Si solo necesitas compartirla rápidamente con un grupo pequeño de usuarios, generar archivos .apk y .ipa es una opción más rápida.

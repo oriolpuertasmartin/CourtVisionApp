@@ -1,0 +1,25 @@
+Tendria que añadir un nuevo campo en la base de datos Mongo que sea 'roles'(jugador, entrenador, analista, superadmin).ñ
+
+La idea es primero decidir bien los roles que quiero que tenga la aplicación, añadirlos a la base de datos, y luego jugar con el rol del userId para ver que permisos tiene
+y que cosas puede o no hacer.
+
+ChatGPT:
+
+1. Actualizar el esquema de MongoDB
+En tu backend, probablemente tengas un modelo para los usuarios en la carpeta src/users. Necesitarás añadir un nuevo campo roles al esquema del usuario. Por ejemplo:
+
+2. Migrar los datos existentes
+Si ya tienes usuarios en la base de datos, necesitarás actualizar sus documentos para incluir el nuevo campo roles. Puedes hacerlo con un script de migración:
+
+Ejecuta este script para actualizar los documentos existentes.
+
+3. Implementar lógica de permisos
+En tu backend, puedes usar los roles para controlar el acceso a ciertas rutas o funcionalidades. Por ejemplo, en un guard de NestJS:
+
+4. Actualizar el frontend
+En el frontend, puedes usar el rol del usuario para mostrar u ocultar ciertas funcionalidades. Por ejemplo:
+
+5. Probar la funcionalidad
+Asegúrate de probar tanto el backend como el frontend para verificar que los roles funcionan correctamente y que los permisos están aplicados según lo esperado.
+
+Con estos pasos, puedes añadir roles a tu aplicación sin problemas.
